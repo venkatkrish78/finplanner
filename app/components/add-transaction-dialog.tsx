@@ -22,6 +22,7 @@ import { CalendarIcon, Loader2, Plus } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
+import { Transaction } from '@/lib/types'
 
 interface Category {
   id: string
@@ -33,9 +34,10 @@ interface AddTransactionDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onTransactionAdded: () => void
+  editingTransaction?: Transaction | null
 }
 
-export function AddTransactionDialog({ open, onOpenChange, onTransactionAdded }: AddTransactionDialogProps) {
+export function AddTransactionDialog({ open, onOpenChange, onTransactionAdded, editingTransaction }: AddTransactionDialogProps) {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(false)
   const [date, setDate] = useState<Date>(new Date())
@@ -53,10 +55,28 @@ export function AddTransactionDialog({ open, onOpenChange, onTransactionAdded }:
   useEffect(() => {
     if (open) {
       fetchCategories()
-      // Reset form when dialog opens
-      resetForm()
+      if (editingTransaction) {
+        populateForm()
+      } else {
+        resetForm()
+      }
     }
-  }, [open])
+  }, [open, editingTransaction])
+
+  const populateForm = () => {
+    if (!editingTransaction) return
+    
+    setFormData({
+      amount: editingTransaction.amount.toString(),
+      type: editingTransaction.type,
+      description: editingTransaction.description || '',
+      merchant: editingTransaction.merchant || '',
+      categoryId: editingTransaction.categoryId,
+      accountNumber: editingTransaction.accountNumber || '',
+      transactionId: editingTransaction.transactionId || ''
+    })
+    setDate(new Date(editingTransaction.date))
+  }
 
   const fetchCategories = async () => {
     try {
@@ -65,7 +85,7 @@ export function AddTransactionDialog({ open, onOpenChange, onTransactionAdded }:
         const data = await response.json()
         setCategories(data)
         // Set default category if none selected and form is empty
-        if (data.length > 0 && !formData.categoryId && formData.amount === '') {
+        if (data.length > 0 && !formData.categoryId && formData.amount === '' && !editingTransaction) {
           setFormData(prev => ({ ...prev, categoryId: data[0].id }))
         }
       }
@@ -119,8 +139,11 @@ export function AddTransactionDialog({ open, onOpenChange, onTransactionAdded }:
 
       console.log('Submitting transaction:', requestBody)
 
-      const response = await fetch('/api/transactions', {
-        method: 'POST',
+      const url = editingTransaction ? `/api/transactions/${editingTransaction.id}` : '/api/transactions'
+      const method = editingTransaction ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -133,19 +156,21 @@ export function AddTransactionDialog({ open, onOpenChange, onTransactionAdded }:
       if (response.ok) {
         toast({
           title: "Success",
-          description: "Transaction added successfully",
+          description: editingTransaction ? "Transaction updated successfully" : "Transaction added successfully",
         })
         onTransactionAdded()
         onOpenChange(false)
-        resetForm()
+        if (!editingTransaction) {
+          resetForm()
+        }
       } else {
-        throw new Error(responseData.error || 'Failed to create transaction')
+        throw new Error(responseData.error || `Failed to ${editingTransaction ? 'update' : 'create'} transaction`)
       }
     } catch (error) {
-      console.error('Error creating transaction:', error)
+      console.error(`Error ${editingTransaction ? 'updating' : 'creating'} transaction:`, error)
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add transaction",
+        description: error instanceof Error ? error.message : `Failed to ${editingTransaction ? 'update' : 'add'} transaction`,
         variant: "destructive",
       })
     } finally {
@@ -178,10 +203,10 @@ export function AddTransactionDialog({ open, onOpenChange, onTransactionAdded }:
             <div className="p-2 bg-gradient-to-br from-professional-blue to-professional-blue-light rounded-lg">
               <Plus className="h-4 w-4 text-white" />
             </div>
-            Add New Transaction
+            {editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}
           </DialogTitle>
           <DialogDescription className="text-slate-600">
-            Enter the details of your transaction below.
+            {editingTransaction ? 'Update the transaction details below.' : 'Enter the details of your transaction below.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -370,7 +395,7 @@ export function AddTransactionDialog({ open, onOpenChange, onTransactionAdded }:
               className="bg-professional-blue hover:bg-professional-blue-dark text-white"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Add Transaction
+              {editingTransaction ? 'Update Transaction' : 'Add Transaction'}
             </Button>
           </DialogFooter>
         </form>

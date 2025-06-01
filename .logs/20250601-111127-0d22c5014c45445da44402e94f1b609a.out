@@ -135,3 +135,33 @@ Transaction count: 21
  GET /api/transactions/analytics?year=2025&month=6 200 in 370ms
  GET /api/categories 200 in 35ms
  GET /api/transactions/summary?year=2025&month=6 200 in 38ms
+ GET / 200 in 145ms
+ GET / 200 in 45ms
+ GET / 200 in 38ms
+ ✓ Compiled /api/dashboard in 406ms (1664 modules)
+Dashboard API called, testing Prisma connection...
+Transaction count: 21
+ GET /api/dashboard 200 in 565ms
+Dashboard API called, testing Prisma connection...
+Transaction count: 21
+ GET /api/dashboard 200 in 35ms
+ ✓ Compiled in 801ms (1633 modules)
+ ✓ Compiled in 365ms (1633 modules)
+ ✓ Compiled in 870ms (3266 modules)
+ ✓ Compiled in 723ms (3266 modules)
+ ✓ Compiled in 560ms (3266 modules)
+ ✓ Compiled in 634ms (3266 modules)
+ ✓ Compiled in 612ms (3266 modules)
+ ✓ Compiled in 754ms (3266 modules)
+ ✓ Compiled in 582ms (3266 modules)
+ ✓ Compiled in 546ms (3266 modules)
+ ✓ Compiled in 547ms (3266 modules)
+ ✓ Compiled in 727ms (3266 modules)
+ ✓ Compiled in 784ms (3266 modules)
+ ✓ Compiled in 608ms (3266 modules)
+ ✓ Compiled in 725ms (3266 modules)
+ ✓ Compiled in 1237ms (3266 modules)
+ ✓ Compiled in 1353ms (3278 modules)
+ ✓ Compiled in 382ms (1639 modules)
+ ✓ Compiled in 974ms (3278 modules)
+[?25h

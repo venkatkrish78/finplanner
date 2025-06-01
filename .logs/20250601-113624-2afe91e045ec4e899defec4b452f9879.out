@@ -1,0 +1,84 @@
+yarn run v1.22.22
+$ next dev
+  ▲ Next.js 14.2.28
+  - Local:        http://localhost:3000
+  - Environments: .env
+  - Experiments (use with caution):
+    · outputFileTracingRoot
+
+ ✓ Starting...
+ ✓ Ready in 1653ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.9s (1456 modules)
+ GET / 200 in 3473ms
+ GET / 200 in 3464ms
+ ✓ Compiled in 655ms (732 modules)
+ GET / 200 in 72ms
+ ✓ Compiled /api/dashboard in 304ms (755 modules)
+Dashboard API called, testing Prisma connection...
+Transaction count: 22
+ GET /api/dashboard 200 in 532ms
+Dashboard API called, testing Prisma connection...
+Transaction count: 22
+ GET /api/dashboard 200 in 37ms
+ GET / 200 in 89ms
+ GET / 200 in 37ms
+ GET / 200 in 37ms
+Dashboard API called, testing Prisma connection...
+Transaction count: 22
+ GET /api/dashboard 200 in 36ms
+Dashboard API called, testing Prisma connection...
+Transaction count: 22
+ GET /api/dashboard 200 in 35ms
+ ○ Compiling /transactions ...
+ ✓ Compiled /transactions in 1625ms (3184 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 509ms (3187 modules)
+ GET /_next/static/webpack/3d17ef6b01ad1d19.webpack.hot-update.json 404 in 770ms
+ GET /transactions 200 in 96ms
+ ✓ Compiled /api/transactions/analytics in 240ms (1628 modules)
+ ✓ Compiled (1634 modules)
+ GET /api/categories 200 in 760ms
+ GET /api/transactions/summary?year=2025&month=6 200 in 777ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 778ms
+ GET /api/transactions/analytics?year=2025&month=6 200 in 797ms
+ GET /api/categories 200 in 57ms
+ GET /api/transactions/summary?year=2025&month=6 200 in 55ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 58ms
+ GET /api/transactions/analytics?year=2025&month=6 200 in 68ms
+ GET /api/transactions/summary?year=2025&month=6 200 in 33ms
+ GET /api/transactions/analytics?year=2025&month=6 200 in 45ms
+ GET /api/transactions/summary?year=2025&month=6 200 in 25ms
+ GET /api/transactions/analytics?year=2025&month=6 200 in 39ms
+ GET /api/categories 200 in 25ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 25ms
+ GET /api/categories 200 in 27ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 24ms
+ ✓ Compiled /api/transactions/[id] in 188ms (1636 modules)
+ GET /api/transactions/cmbdlcyrm000dpc0157s066sa 200 in 511ms
+ GET /api/transactions/cmbdlcyrm000dpc0157s066sa 200 in 43ms
+ GET /api/categories 200 in 28ms
+ DELETE /api/transactions/cmbdlcyrm000dpc0157s066sa 200 in 43ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 30ms
+ GET /api/transactions/cmbdl0j7t0005pc012yl5oqs2 200 in 38ms
+ DELETE /api/transactions/cmbdl0j7t0005pc012yl5oqs2 200 in 42ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 27ms
+ GET /api/transactions/cmbdjdyxm000dqi01wk027e17 200 in 37ms
+ DELETE /api/transactions/cmbdjdyxm000dqi01wk027e17 200 in 40ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 27ms
+ GET /api/transactions/cmbdjdftn0009qi01ezogns5q 200 in 39ms
+ DELETE /api/transactions/cmbdjdftn0009qi01ezogns5q 200 in 37ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 25ms
+ GET /api/transactions/cmbdj2jdb0001qi01diq8fe0i 200 in 38ms
+ DELETE /api/transactions/cmbdj2jdb0001qi01diq8fe0i 200 in 42ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 29ms
+ GET /api/transactions/cmbdggcyv0003qi01y34ks8m7 200 in 38ms
+ DELETE /api/transactions/cmbdggcyv0003qi01y34ks8m7 200 in 41ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 25ms
+ ✓ Compiled /api/dashboard in 276ms (1638 modules)
+Dashboard API called, testing Prisma connection...
+Transaction count: 17
+ GET /api/dashboard 200 in 418ms
+Dashboard API called, testing Prisma connection...
+Transaction count: 17
+ GET /api/dashboard 200 in 41ms

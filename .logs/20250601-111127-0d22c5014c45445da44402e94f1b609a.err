@@ -1,0 +1,20 @@
+ ⨯ ./components/enhanced-transaction-list.tsx
+Error: 
+  [31mx[0m Expected ',', got '{'
+     ,-[[36;1;4m/home/ubuntu/moneymitra/app/components/enhanced-transaction-list.tsx[0m:489:1]
+ [2m489[0m |       </CardContent>
+ [2m490[0m |     </Card>
+ [2m491[0m | 
+ [2m492[0m |     {/* Transaction Detail Modal */}
+     : [31;1m    ^[0m
+ [2m493[0m |     <TransactionDetailModal
+ [2m494[0m |       open={detailModalOpen}
+ [2m495[0m |       onOpenChange={setDetailModalOpen}
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/enhanced-transaction-list.tsx
+./app/transactions/page.tsx
