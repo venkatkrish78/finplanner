@@ -86,6 +86,7 @@ enum BillFrequency {
   QUARTERLY
   HALF_YEARLY
   YEARLY
+  ONE_TIME
 }
 
 enum BillStatus {

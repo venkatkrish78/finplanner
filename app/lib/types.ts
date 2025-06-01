@@ -81,7 +81,8 @@ export enum BillFrequency {
   MONTHLY = 'MONTHLY',
   QUARTERLY = 'QUARTERLY',
   HALF_YEARLY = 'HALF_YEARLY',
-  YEARLY = 'YEARLY'
+  YEARLY = 'YEARLY',
+  ONE_TIME = 'ONE_TIME'
 }
 
 export enum BillStatus {

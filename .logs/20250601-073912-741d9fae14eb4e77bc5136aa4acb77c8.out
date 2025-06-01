@@ -1,0 +1,87 @@
+yarn run v1.22.22
+$ next dev
+  ▲ Next.js 14.2.28
+  - Local:        http://localhost:3000
+  - Environments: .env
+  - Experiments (use with caution):
+    · outputFileTracingRoot
+
+ ✓ Starting...
+ ✓ Ready in 1729ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.4s (1279 modules)
+ GET / 200 in 2854ms
+ GET / 200 in 2916ms
+ ✓ Compiled in 587ms (645 modules)
+ GET / 200 in 66ms
+ ✓ Compiled /api/investments in 312ms (666 modules)
+ ✓ Compiled (670 modules)
+ GET /api/investments 200 in 623ms
+ GET /api/bills 200 in 654ms
+ GET /api/transactions 200 in 657ms
+ ✓ Compiled /api/loans in 124ms (672 modules)
+ ✓ Compiled in 0ms (674 modules)
+ ✓ Compiled in 0ms (674 modules)
+ ✓ Compiled in 0ms (674 modules)
+ GET /api/goals 200 in 504ms
+ GET /api/investments 200 in 496ms
+ GET /api/transactions 200 in 493ms
+ GET /api/bills 200 in 496ms
+ GET /api/loans 200 in 612ms
+ GET /api/goals 200 in 27ms
+ GET /api/loans 200 in 23ms
+ GET / 200 in 119ms
+ GET / 200 in 123ms
+ GET / 200 in 37ms
+ GET /api/investments 200 in 43ms
+ GET /api/bills 200 in 50ms
+ GET /api/goals 200 in 53ms
+ GET /api/transactions 200 in 59ms
+ GET /api/loans 200 in 55ms
+ GET /api/bills 200 in 31ms
+ GET /api/investments 200 in 31ms
+ GET /api/loans 200 in 32ms
+ GET /api/goals 200 in 37ms
+ GET /api/transactions 200 in 30ms
+ ○ Compiling /transactions ...
+ ✓ Compiled /transactions in 1577ms (3057 modules)
+ GET /api/transactions 200 in 43ms
+ ✓ Compiled /api/categories in 245ms (1552 modules)
+ GET /api/categories 200 in 300ms
+ GET /api/transactions 200 in 27ms
+ GET /api/categories 200 in 25ms
+ ○ Compiling /bills ...
+ ✓ Compiled /bills in 653ms (3083 modules)
+ GET /api/bills 200 in 37ms
+ ✓ Compiled /api/bills/stats in 198ms (1567 modules)
+ GET /api/bills/stats 200 in 258ms
+ GET /api/bills 200 in 24ms
+ GET /api/bills/stats 200 in 25ms
+ GET /api/bills/stats 200 in 37ms
+ GET /api/bills?view=monthly&year=2025&month=6 200 in 43ms
+ GET /api/bills 200 in 41ms
+ GET /api/bills/stats 200 in 43ms
+ GET /api/bills/stats 200 in 40ms
+ GET /api/bills?view=monthly&year=2025&month=6 200 in 45ms
+ ✓ Compiled /api/bills/[id]/payment in 257ms (1563 modules)
+ POST /api/bills/cmbdaetey00030x2x3ff0xk4y/payment 200 in 645ms
+ GET /api/bills/stats 200 in 42ms
+ GET /api/bills?view=monthly&year=2025&month=6 200 in 46ms
+ POST /api/bills/cmbdai10l000h0x2xm9aee2jg/payment 200 in 43ms
+ GET /api/bills/stats 200 in 40ms
+ GET /api/bills?view=monthly&year=2025&month=6 200 in 46ms
+ POST /api/bills/cmbda9jew00050xl50sfpovso/payment 200 in 43ms
+ GET /api/bills/stats 200 in 42ms
+ GET /api/bills?view=monthly&year=2025&month=6 200 in 49ms
+ DELETE /api/bills/cmbda583c00030x20z6hlzhk7/payment?view=monthly&year=2025&month=6 200 in 37ms
+ GET /api/bills/stats 200 in 38ms
+ GET /api/bills?view=monthly&year=2025&month=6 200 in 46ms
+ GET /api/bills/stats 200 in 36ms
+ GET /api/bills?view=monthly&year=2025&month=7 200 in 43ms
+ GET /api/bills/stats 200 in 37ms
+ GET /api/bills?view=monthly&year=2025&month=6 200 in 45ms
+ ○ Compiling /goals ...
+ ✓ Compiled /goals in 536ms (2237 modules)
+ ✓ Compiled /api/goals in 155ms (717 modules)
+ GET /api/goals 200 in 198ms
+ GET /api/goals 200 in 24ms

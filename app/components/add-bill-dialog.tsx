@@ -118,6 +118,7 @@ export default function AddBillDialog({ open, onOpenChange, onBillAdded, editing
   }
 
   const frequencyOptions = [
+    { value: BillFrequency.ONE_TIME, label: 'One-time' },
     { value: BillFrequency.WEEKLY, label: 'Weekly' },
     { value: BillFrequency.MONTHLY, label: 'Monthly' },
     { value: BillFrequency.QUARTERLY, label: 'Quarterly' },
