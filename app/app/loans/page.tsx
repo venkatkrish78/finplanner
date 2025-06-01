@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { formatCurrency } from '@/lib/currency'
 import { AddLoanDialog } from '@/components/add-loan-dialog'
+import { LoanList } from '@/components/loan-list'
 
 interface LoansData {
   loans: any[]
@@ -242,51 +243,7 @@ export default function LoansPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <Card className="professional-card">
-            <CardHeader>
-              <CardTitle className="text-slate-900">Loans ({data.loans.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {data.loans.length === 0 ? (
-                <div className="text-center py-8">
-                  <Calculator className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">No loans found</h3>
-                  <p className="text-slate-600 mb-4">Start by adding your first loan</p>
-                  <Button 
-                    className="bg-professional-blue hover:bg-professional-blue-dark text-white"
-                    onClick={() => setShowAddDialog(true)}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Loan
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {data.loans.map((loan: any) => (
-                    <div key={loan.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-                      <div className="flex items-center space-x-4">
-                        <div className="p-2 rounded-full bg-slate-100">
-                          <Calculator className="h-4 w-4 text-professional-blue" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-slate-900">{loan.name}</h3>
-                          <p className="text-sm text-slate-600">{loan.loanType} • {loan.interestRate}% interest</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-red-600">
-                          {formatCurrency(loan.currentBalance)}
-                        </div>
-                        <p className="text-sm text-slate-600">
-                          EMI: {formatCurrency(loan.emiAmount)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <LoanList loans={data.loans} onLoanUpdated={fetchLoansData} />
         </motion.div>
       </motion.div>
 

@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Edit, Trash2, Calendar, DollarSign, MoreVertical, Power, PowerOff } from 'lucide-react'
+import { Edit, Trash2, Calendar, DollarSign, MoreVertical, Power, PowerOff, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +13,7 @@ import { toast } from 'sonner'
 import { Bill, BillFrequency } from '@/lib/types'
 import { formatCurrency } from '@/lib/currency'
 import AddBillDialog from './add-bill-dialog'
+import BillDetailModal from './bill-detail-modal'
 
 interface BillListProps {
   refreshTrigger: number
@@ -24,6 +25,7 @@ export default function BillList({ refreshTrigger, onBillUpdated }: BillListProp
   const [loading, setLoading] = useState(true)
   const [editingBill, setEditingBill] = useState<Bill | null>(null)
   const [deletingBill, setDeletingBill] = useState<Bill | null>(null)
+  const [detailBillId, setDetailBillId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchBills()
@@ -144,7 +146,10 @@ export default function BillList({ refreshTrigger, onBillUpdated }: BillListProp
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Card className={`bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 ${!bill.isActive ? 'opacity-60' : ''}`}>
+            <Card 
+              className={`bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer ${!bill.isActive ? 'opacity-60' : ''}`}
+              onClick={() => setDetailBillId(bill.id)}
+            >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -157,16 +162,33 @@ export default function BillList({ refreshTrigger, onBillUpdated }: BillListProp
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <MoreVertical className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setEditingBill(bill)}>
+                      <DropdownMenuItem onClick={(e) => {
+                        e.stopPropagation()
+                        setDetailBillId(bill.id)
+                      }}>
+                        <FileText className="w-4 h-4 mr-2" />
+                        View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={(e) => {
+                        e.stopPropagation()
+                        setEditingBill(bill)
+                      }}>
                         <Edit className="w-4 h-4 mr-2" />
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleToggleActive(bill)}>
+                      <DropdownMenuItem onClick={(e) => {
+                        e.stopPropagation()
+                        handleToggleActive(bill)
+                      }}>
                         {bill.isActive ? (
                           <>
                             <PowerOff className="w-4 h-4 mr-2" />
@@ -180,7 +202,10 @@ export default function BillList({ refreshTrigger, onBillUpdated }: BillListProp
                         )}
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => setDeletingBill(bill)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setDeletingBill(bill)
+                        }}
                         className="text-red-600"
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
@@ -265,6 +290,13 @@ export default function BillList({ refreshTrigger, onBillUpdated }: BillListProp
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <BillDetailModal
+        open={!!detailBillId}
+        onOpenChange={(open) => !open && setDetailBillId(null)}
+        billId={detailBillId}
+        onBillUpdated={onBillUpdated}
+      />
     </>
   )
 }

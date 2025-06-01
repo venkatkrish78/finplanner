@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { AddLoanPaymentDialog } from '@/components/add-loan-payment-dialog';
 import EditLoanDialog from '@/components/edit-loan-dialog';
 import DeleteLoanDialog from '@/components/delete-loan-dialog';
+import LoanDetailModal from '@/components/loan-detail-modal';
 import { formatCurrency } from '@/lib/currency';
 import { Loan, LoanType } from '@/lib/types';
 
@@ -46,6 +47,7 @@ export function LoanList({ loans, onLoanUpdated }: LoanListProps) {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [detailLoanId, setDetailLoanId] = useState<string | null>(null);
 
   const handleEdit = (loan: Loan) => {
     setSelectedLoan(loan);
@@ -105,7 +107,10 @@ export function LoanList({ loans, onLoanUpdated }: LoanListProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
+              <Card 
+              className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+              onClick={() => setDetailLoanId(loan.id)}
+            >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -121,7 +126,10 @@ export function LoanList({ loans, onLoanUpdated }: LoanListProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleEdit(loan)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleEdit(loan)
+                        }}
                         title="Edit Loan"
                         className="h-8 w-8 p-0"
                       >
@@ -130,7 +138,10 @@ export function LoanList({ loans, onLoanUpdated }: LoanListProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleAddPayment(loan)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleAddPayment(loan)
+                        }}
                         title="Make Payment"
                         className="h-8 w-8 p-0"
                       >
@@ -139,7 +150,10 @@ export function LoanList({ loans, onLoanUpdated }: LoanListProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDelete(loan)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDelete(loan)
+                        }}
                         title="Delete Loan"
                         className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
@@ -206,7 +220,10 @@ export function LoanList({ loans, onLoanUpdated }: LoanListProps) {
                   <div className="flex gap-2 pt-2">
                     <Button
                       size="sm"
-                      onClick={() => handleAddPayment(loan)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleAddPayment(loan)
+                      }}
                       className="flex-1 bg-red-600 hover:bg-red-700 text-white"
                     >
                       <DollarSign className="h-4 w-4 mr-1" />
@@ -249,6 +266,14 @@ export function LoanList({ loans, onLoanUpdated }: LoanListProps) {
         }}
         loan={selectedLoan}
         onLoanDeleted={onLoanUpdated}
+      />
+
+      {/* Detail Modal */}
+      <LoanDetailModal
+        open={!!detailLoanId}
+        onOpenChange={(open) => !open && setDetailLoanId(null)}
+        loanId={detailLoanId}
+        onLoanUpdated={onLoanUpdated}
       />
     </>
   );

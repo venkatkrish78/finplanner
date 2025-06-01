@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { formatCurrency } from '@/lib/currency'
 import AddBillDialog from '@/components/add-bill-dialog'
+import BillList from '@/components/bill-list'
 import { toast } from 'sonner'
 
 interface BillWithPaymentStatus {
@@ -530,31 +531,7 @@ export default function BillsPage() {
             </div>
 
             <TabsContent value="overview" className="space-y-6">
-              <Card className="professional-card">
-                <CardHeader>
-                  <CardTitle className="text-slate-900">All Bills ({data.bills.length})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {data.bills.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Building2 className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-slate-900 mb-2">No bills found</h3>
-                      <p className="text-slate-600 mb-4">Start by adding your first bill</p>
-                      <Button 
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                        onClick={() => setShowAddDialog(true)}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Bill
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {data.bills.map(renderBillItem)}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <BillList refreshTrigger={0} onBillUpdated={fetchBillsData} />
             </TabsContent>
 
             <TabsContent value="monthly" className="space-y-6">
