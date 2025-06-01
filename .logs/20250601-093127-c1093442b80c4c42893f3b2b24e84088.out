@@ -97,3 +97,20 @@ $ next dev
  GET /api/investments/portfolio 200 in 583ms
  GET /api/investments/portfolio 200 in 32ms
  GET /api/investments?includeGoals=true 200 in 36ms
+ GET / 200 in 121ms
+ GET / 200 in 45ms
+ GET / 200 in 41ms
+ GET /api/goals 200 in 64ms
+ GET /api/bills 200 in 71ms
+ GET /api/loans 200 in 78ms
+ GET /api/investments 200 in 92ms
+ GET /api/transactions 200 in 98ms
+ GET /api/goals 200 in 41ms
+ GET /api/loans 200 in 50ms
+ GET /api/bills 200 in 54ms
+ GET /api/investments 200 in 44ms
+ GET /api/transactions 200 in 48ms
+ ✓ Compiled in 1455ms (3136 modules)
+ ✓ Compiled in 577ms (1591 modules)
+ ✓ Compiled in 358ms (1591 modules)
+[?25h
