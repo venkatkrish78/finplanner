@@ -1,0 +1,33 @@
+yarn run v1.22.22
+$ next dev
+  ▲ Next.js 14.2.28
+  - Local:        http://localhost:3000
+  - Environments: .env
+  - Experiments (use with caution):
+    · outputFileTracingRoot
+
+ ✓ Starting...
+ ✓ Ready in 1799ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.5s (1279 modules)
+ GET / 200 in 3050ms
+ ✓ Compiled in 609ms (645 modules)
+ ○ Compiling /investments ...
+ ✓ Compiled /investments in 1080ms (1353 modules)
+ GET /investments 200 in 1254ms
+ ✓ Compiled /api/investments in 222ms (710 modules)
+ GET /api/investments 200 in 431ms
+ ✓ Compiled /api/goals in 138ms (712 modules)
+ GET /api/goals 200 in 194ms
+ ✓ Compiled /api/loans in 123ms (714 modules)
+ GET /api/loans 200 in 174ms
+ ✓ Compiled /api/goals/[id]/investments in 204ms (716 modules)
+ POST /api/goals/cmbdai4gv000l0x2xmdt893sj/investments 201 in 553ms
+ ✓ Compiled /api/investments/[id] in 186ms (718 modules)
+ PUT /api/investments/cmbdaf4xf000b0x2x8yqbhck1 200 in 517ms
+ ✓ Compiled /api/loans/[id] in 162ms (720 modules)
+ PUT /api/loans/cmbdaf0p000090x2x8pmfq975 500 in 485ms
+ PUT /api/loans/cmbdaf0p000090x2x8pmfq975 200 in 48ms
+ ✓ Compiled /api/health in 95ms (68 modules)
+ GET /api/health 200 in 180ms
+[?25h

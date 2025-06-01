@@ -123,3 +123,17 @@ $ next dev
  GET /api/loans 200 in 68ms
  GET /api/transactions 200 in 71ms
  GET /api/goals 200 in 69ms
+ ✓ Compiled in 788ms (1562 modules)
+ ✓ Compiled in 367ms (1562 modules)
+ ✓ Compiled in 1168ms (3103 modules)
+ ✓ Compiled in 600ms (3103 modules)
+ ✓ Compiled in 688ms (3103 modules)
+ ✓ Compiled in 1063ms (3111 modules)
+ ✓ Compiled in 380ms (1566 modules)
+ ✓ Compiled in 455ms (1566 modules)
+ ✓ Compiled in 491ms (1566 modules)
+ ✓ Compiled in 415ms (1566 modules)
+ ✓ Compiled in 1149ms (3111 modules)
+ ✓ Compiled in 855ms (3111 modules)
+ ✓ Compiled in 747ms (3111 modules)
+[?25h

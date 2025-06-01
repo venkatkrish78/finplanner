@@ -13,20 +13,44 @@ export async function GET(request: NextRequest) {
     const categoryId = searchParams.get('categoryId');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
+    const search = searchParams.get('search');
+    const sortBy = searchParams.get('sortBy') || 'date';
+    const sortOrder = searchParams.get('sortOrder') || 'desc';
+    const year = searchParams.get('year');
+    const month = searchParams.get('month');
 
     const skip = (page - 1) * limit;
 
     const where: any = {};
 
-    if (type && type !== 'ALL') {
+    if (type && type !== 'all') {
       where.type = type;
     }
 
-    if (categoryId) {
+    if (categoryId && categoryId !== 'all') {
       where.categoryId = categoryId;
     }
 
-    if (startDate || endDate) {
+    // Handle year/month filtering
+    if (year) {
+      const yearNum = parseInt(year);
+      if (month) {
+        const monthNum = parseInt(month);
+        const startOfMonth = new Date(yearNum, monthNum - 1, 1);
+        const endOfMonth = new Date(yearNum, monthNum, 0, 23, 59, 59);
+        where.date = {
+          gte: startOfMonth,
+          lte: endOfMonth
+        };
+      } else {
+        const startOfYear = new Date(yearNum, 0, 1);
+        const endOfYear = new Date(yearNum, 11, 31, 23, 59, 59);
+        where.date = {
+          gte: startOfYear,
+          lte: endOfYear
+        };
+      }
+    } else if (startDate || endDate) {
       where.date = {};
       if (startDate) {
         where.date.gte = new Date(startDate);
@@ -36,15 +60,50 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Handle search
+    if (search) {
+      where.OR = [
+        {
+          description: {
+            contains: search,
+            mode: 'insensitive'
+          }
+        },
+        {
+          merchant: {
+            contains: search,
+            mode: 'insensitive'
+          }
+        }
+      ];
+    }
+
+    // Handle sorting
+    const orderBy: any = {};
+    switch (sortBy) {
+      case 'amount':
+        orderBy.amount = sortOrder;
+        break;
+      case 'description':
+        orderBy.description = sortOrder;
+        break;
+      case 'category':
+        orderBy.category = { name: sortOrder };
+        break;
+      case 'merchant':
+        orderBy.merchant = sortOrder;
+        break;
+      default:
+        orderBy.date = sortOrder;
+    }
+
     const [transactions, total] = await Promise.all([
       prisma.transaction.findMany({
         where,
         include: {
           category: true
         },
-        orderBy: {
-          date: 'desc'
-        },
+        orderBy,
         skip,
         take: limit
       }),

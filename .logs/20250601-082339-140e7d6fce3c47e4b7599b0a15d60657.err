@@ -1,0 +1,57 @@
+Error updating loan: PrismaClientValidationError: 
+Invalid `_lib_db__WEBPACK_IMPORTED_MODULE_1__.prisma.loan.update()` invocation in
+/home/ubuntu/moneymitra/app/.next/server/app/api/loans/[id]/route.js:159:77
+
+  156 const emi = rate > 0 ? principal * rate * Math.pow(1 + rate, months) / (Math.pow(1 + rate, months) - 1) : principal / months;
+  157 const endDate = new Date(startDate);
+  158 endDate.setMonth(endDate.getMonth() + months);
+→ 159 const loan = await _lib_db__WEBPACK_IMPORTED_MODULE_1__.prisma.loan.update({
+        where: {
+          id: "cmbdaf0p000090x2x8pmfq975"
+        },
+        data: {
+          name: "Updated Test Loan",
+          loanType: undefined,
+          principalAmount: NaN,
+          interestRate: 11.5,
+          emiAmount: NaN,
+          tenure: NaN,
+          startDate: new Date("Invalid Date"),
+                     ~~~~~~~~~~~~~~~~~~~~~~~~
+          endDate: new Date("Invalid Date"),
+          description: undefined,
+          categoryId: null
+        },
+        include: {
+          category: true,
+          payments: true
+        }
+      })
+
+Invalid value for argument `startDate`: Provided Date object is invalid. Expected Date.
+    at An (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:32:1363)
+    at e.throwValidationError (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:32:10051)
+    at Aa (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:32:7488)
+    at Ia (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:32:8741)
+    at Aa (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:32:8272)
+    at Ia (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:32:8741)
+    at bt (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:32:5845)
+    at Dn (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:32:5747)
+    at /opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:133:10331
+    at Object.runInChildSpan (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:124:1549)
+    at Io.runInChildSpan (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:124:1913)
+    at r._executeRequest (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:133:10310)
+    at nl (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:34:9835)
+    at l (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:133:9784)
+    at /opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:133:10078
+    at AsyncResource.runInAsyncScope (node:async_hooks:211:14)
+    at /opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:133:10058
+    at Object.runInChildSpan (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:124:1549)
+    at Io.runInChildSpan (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:124:1913)
+    at r._request (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:133:9981)
+    at e._createPrismaPromise.action (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:34:5390)
+    at o (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:124:1018)
+    at Proxy.then (/opt/hostedapp/node/root/node_modules/.prisma/client/runtime/library.js:124:1114)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  clientVersion: '6.7.0'
+}
