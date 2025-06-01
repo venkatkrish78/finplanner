@@ -22,9 +22,10 @@ interface CategoryBreakdown {
 
 interface CategoryBreakdownWidgetProps {
   data: CategoryBreakdown[];
+  onDataChange?: () => void;
 }
 
-export function CategoryBreakdownWidget({ data }: CategoryBreakdownWidgetProps) {
+export function CategoryBreakdownWidget({ data, onDataChange }: CategoryBreakdownWidgetProps) {
   const totalAmount = data.reduce((sum, item) => sum + item.amount, 0);
 
   const chartData = {

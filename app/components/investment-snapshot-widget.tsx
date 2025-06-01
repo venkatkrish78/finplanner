@@ -30,9 +30,10 @@ interface InvestmentSnapshotWidgetProps {
     totalValue: number;
     investments: Investment[];
   };
+  onDataChange?: () => void;
 }
 
-export function InvestmentSnapshotWidget({ data }: InvestmentSnapshotWidgetProps) {
+export function InvestmentSnapshotWidget({ data, onDataChange }: InvestmentSnapshotWidgetProps) {
   const totalInvested = data.investments.reduce((sum, inv) => sum + inv.investedAmount, 0);
   const totalGainLoss = data.totalValue - totalInvested;
   const totalGainLossPercentage = totalInvested > 0 ? (totalGainLoss / totalInvested) * 100 : 0;

@@ -19,9 +19,10 @@ interface UpcomingItem {
 
 interface UpcomingItemsWidgetProps {
   items: UpcomingItem[];
+  onDataChange?: () => void;
 }
 
-export function UpcomingItemsWidget({ items }: UpcomingItemsWidgetProps) {
+export function UpcomingItemsWidget({ items, onDataChange }: UpcomingItemsWidgetProps) {
   const sortedItems = items.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
 
   const getDateLabel = (date: Date) => {

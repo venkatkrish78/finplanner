@@ -8,7 +8,11 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import Link from 'next/link';
 
-export function QuickActionsBar() {
+interface QuickActionsBarProps {
+  onDataChange?: () => void;
+}
+
+export function QuickActionsBar({ onDataChange }: QuickActionsBarProps = {}) {
   const actions = [
     {
       id: 'transaction',

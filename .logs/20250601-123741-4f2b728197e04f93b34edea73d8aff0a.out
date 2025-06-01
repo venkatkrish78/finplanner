@@ -1,0 +1,119 @@
+yarn run v1.22.22
+$ next dev
+  ▲ Next.js 14.2.28
+  - Local:        http://localhost:3000
+  - Environments: .env
+  - Experiments (use with caution):
+    · outputFileTracingRoot
+
+ ✓ Starting...
+ ✓ Ready in 1645ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.9s (1432 modules)
+ GET / 200 in 3473ms
+ ✓ Compiled in 651ms (720 modules)
+ ○ Compiling /transactions ...
+ ✓ Compiled /transactions in 1629ms (3164 modules)
+ GET /transactions 200 in 1876ms
+ ✓ Compiled /api/transactions/analytics in 371ms (1617 modules)
+ ✓ Compiled (1623 modules)
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 1227ms
+ GET /api/transactions/summary?year=2025&month=6&_t=1748781486795 200 in 1225ms
+ GET /api/transactions/summary?year=2025&month=6&_t=1748781486787 200 in 1240ms
+ GET /api/categories 200 in 1232ms
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748781486787 200 in 1257ms
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748781486795 200 in 1251ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 45ms
+ GET /api/categories 200 in 46ms
+ GET / 200 in 94ms
+ ✓ Compiled /api/dashboard in 176ms (1625 modules)
+Dashboard API called, testing Prisma connection...
+Transaction count: 17
+ GET /api/dashboard 200 in 390ms
+Dashboard API called, testing Prisma connection...
+Transaction count: 17
+ GET /api/dashboard 200 in 121ms
+ ✓ Compiled /api/dashboard in 1808ms (3176 modules)
+ ✓ Compiled in 1ms (1616 modules)
+ ✓ Compiled in 1ms (1616 modules)
+ ✓ Compiled in 0ms (1616 modules)
+ GET / 200 in 1798ms
+ ✓ Compiled in 0ms (1616 modules)
+Dashboard API called, testing Prisma connection...
+Dashboard API called, testing Prisma connection...
+Transaction count: 17
+Transaction count: 17
+ GET /api/dashboard?_t=1748781622276 200 in 1167ms
+ GET /api/dashboard?_t=1748781622276 200 in 1167ms
+ ✓ Compiled in 0ms (1616 modules)
+ ✓ Compiled in 0ms (1616 modules)
+ ✓ Compiled in 0ms (1616 modules)
+Dashboard API called, testing Prisma connection...
+Dashboard API called, testing Prisma connection...
+Transaction count: 17
+Transaction count: 17
+ GET /api/dashboard?_t=1748781623597 200 in 480ms
+ GET /api/dashboard?_t=1748781623594 200 in 491ms
+ ✓ Compiled in 591ms (3207 modules)
+ ✓ Compiled in 527ms (3207 modules)
+ ✓ Compiled in 673ms (3207 modules)
+ ✓ Compiled in 734ms (3207 modules)
+ ✓ Compiled in 511ms (3207 modules)
+ ✓ Compiled in 549ms (3207 modules)
+ ✓ Compiled in 659ms (3207 modules)
+ ✓ Compiled in 564ms (3207 modules)
+ ✓ Compiled in 692ms (3176 modules)
+ ✓ Compiled /api/dashboard in 161ms (1616 modules)
+Dashboard API called, testing Prisma connection...
+Transaction count: 17
+ GET /api/dashboard 200 in 347ms
+ ✓ Compiled /api/transactions/analytics in 230ms (1619 modules)
+ GET /api/transactions/analytics?year=2025&month=6 200 in 366ms
+ GET /api/transactions/analytics?year=2025 200 in 53ms
+ GET / 200 in 154ms
+Dashboard API called, testing Prisma connection...
+Dashboard API called, testing Prisma connection...
+Transaction count: 17
+Transaction count: 17
+ GET /api/dashboard?_t=1748781725633 200 in 195ms
+ GET /api/dashboard?_t=1748781725640 200 in 186ms
+ GET /transactions 200 in 97ms
+ ✓ Compiled /api/categories in 235ms (1621 modules)
+ ✓ Compiled (1625 modules)
+ GET /api/transactions/summary?year=2025&month=6&_t=1748781735028 200 in 837ms
+ GET /api/transactions/summary?year=2025&month=6&_t=1748781735035 200 in 831ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 845ms
+ GET /api/categories 200 in 845ms
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748781735035 200 in 885ms
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748781735028 200 in 894ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 53ms
+ GET /api/categories 200 in 59ms
+ GET /api/transactions/summary?year=2025&month=6 200 in 28ms
+ ✓ Compiled in 848ms (3216 modules)
+ ✓ Compiled in 547ms (3216 modules)
+ GET /api/transactions/summary?year=2025&month=6 200 in 33ms
+ GET /transactions 200 in 183ms
+ GET /api/transactions/summary?year=2025&month=6&_t=1748781792460 200 in 143ms
+ GET /api/transactions/summary?year=2025&month=6&_t=1748781792466 200 in 132ms
+ GET /api/categories 200 in 143ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 186ms
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748781792460 200 in 224ms
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748781792466 200 in 214ms
+ GET /api/categories 200 in 91ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 79ms
+ ○ Compiling /goals ...
+ ✓ Compiled /goals in 1143ms (3234 modules)
+ GET /goals 200 in 1278ms
+ ✓ Compiled /api/goals in 223ms (1642 modules)
+ GET /api/goals?includeInvestments=true 200 in 291ms
+ GET /api/goals?includeInvestments=true 200 in 71ms
+ ✓ Compiled /api/dashboard in 170ms (1644 modules)
+Dashboard API called, testing Prisma connection...
+Transaction count: 17
+ GET /api/dashboard 200 in 318ms
+ GET /api/transactions/analytics?year=2025&month=6 200 in 53ms
+ GET /api/transactions/summary?year=2025&month=6 200 in 33ms
+ ✓ Compiled in 652ms (3250 modules)
+ ✓ Compiled in 715ms (3246 modules)
+ GET /api/transactions/summary?year=2025&month=6 200 in 36ms
+[?25h

@@ -22,9 +22,10 @@ interface Loan {
 
 interface LoansStatusWidgetProps {
   loans: Loan[];
+  onDataChange?: () => void;
 }
 
-export function LoansStatusWidget({ loans }: LoansStatusWidgetProps) {
+export function LoansStatusWidget({ loans, onDataChange }: LoansStatusWidgetProps) {
   const totalOutstanding = loans.reduce((sum, loan) => sum + loan.outstandingAmount, 0);
   const totalAmount = loans.reduce((sum, loan) => sum + loan.totalAmount, 0);
   const overallProgress = totalAmount > 0 ? ((totalAmount - totalOutstanding) / totalAmount) * 100 : 0;

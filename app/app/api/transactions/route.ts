@@ -19,50 +19,42 @@ export async function GET(request: NextRequest) {
     const year = searchParams.get('year');
     const month = searchParams.get('month');
 
-    const skip = (page - 1) * limit;
-
-    const where: any = {};
-
-    if (type && type !== 'all') {
-      where.type = type;
-    }
-
-    if (categoryId && categoryId !== 'all') {
-      where.categoryId = categoryId;
-    }
-
-    // Handle year/month filtering
+    // Build date filter
+    let dateFilter: any = {};
     if (year) {
       const yearNum = parseInt(year);
       if (month) {
         const monthNum = parseInt(month);
         const startOfMonth = new Date(yearNum, monthNum - 1, 1);
         const endOfMonth = new Date(yearNum, monthNum, 0, 23, 59, 59);
-        where.date = {
-          gte: startOfMonth,
-          lte: endOfMonth
-        };
+        dateFilter = { gte: startOfMonth, lte: endOfMonth };
       } else {
         const startOfYear = new Date(yearNum, 0, 1);
         const endOfYear = new Date(yearNum, 11, 31, 23, 59, 59);
-        where.date = {
-          gte: startOfYear,
-          lte: endOfYear
-        };
+        dateFilter = { gte: startOfYear, lte: endOfYear };
       }
     } else if (startDate || endDate) {
-      where.date = {};
       if (startDate) {
-        where.date.gte = new Date(startDate);
+        dateFilter.gte = new Date(startDate);
       }
       if (endDate) {
-        where.date.lte = new Date(endDate);
+        dateFilter.lte = new Date(endDate);
       }
     }
 
-    // Handle search
+    // Get regular transactions
+    const transactionWhere: any = {};
+    if (Object.keys(dateFilter).length > 0) {
+      transactionWhere.date = dateFilter;
+    }
+    if (type && type !== 'all') {
+      transactionWhere.type = type;
+    }
+    if (categoryId && categoryId !== 'all') {
+      transactionWhere.categoryId = categoryId;
+    }
     if (search) {
-      where.OR = [
+      transactionWhere.OR = [
         {
           description: {
             contains: search,
@@ -78,40 +70,185 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // Handle sorting
-    const orderBy: any = {};
-    switch (sortBy) {
-      case 'amount':
-        orderBy.amount = sortOrder;
-        break;
-      case 'description':
-        orderBy.description = sortOrder;
-        break;
-      case 'category':
-        orderBy.category = { name: sortOrder };
-        break;
-      case 'merchant':
-        orderBy.merchant = sortOrder;
-        break;
-      default:
-        orderBy.date = sortOrder;
-    }
-
-    const [transactions, total] = await Promise.all([
+    // Get all transaction sources
+    const [regularTransactions, billInstances, loanPayments, investmentTransactions] = await Promise.all([
       prisma.transaction.findMany({
-        where,
+        where: transactionWhere,
         include: {
           category: true
-        },
-        orderBy,
-        skip,
-        take: limit
+        }
       }),
-      prisma.transaction.count({ where })
+      // Get bill payments
+      prisma.billInstance.findMany({
+        where: {
+          ...(Object.keys(dateFilter).length > 0 && { paidDate: dateFilter }),
+          status: 'PAID'
+        },
+        include: { 
+          bill: { include: { category: true } },
+          transaction: true 
+        }
+      }),
+      // Get loan payments
+      prisma.loanPayment.findMany({
+        where: {
+          ...(Object.keys(dateFilter).length > 0 && { paymentDate: dateFilter })
+        },
+        include: { 
+          loan: { include: { category: true } },
+          transaction: true 
+        }
+      }),
+      // Get investment transactions
+      prisma.investmentTransaction.findMany({
+        where: {
+          ...(Object.keys(dateFilter).length > 0 && { date: dateFilter }),
+          type: { in: ['BUY', 'SELL'] }
+        },
+        include: { 
+          investment: { include: { category: true } },
+          transaction: true 
+        }
+      })
     ]);
 
+    // Combine all transactions
+    const allTransactions: any[] = [...regularTransactions];
+
+    // Add bill payments that don't have corresponding transactions
+    billInstances.forEach(billInstance => {
+      if (!billInstance.transaction) {
+        const billTransaction = {
+          id: `bill-${billInstance.id}`,
+          amount: billInstance.amount,
+          type: 'EXPENSE' as const,
+          description: `Bill payment: ${billInstance.bill.name}`,
+          merchant: billInstance.bill.name,
+          date: billInstance.paidDate!,
+          category: billInstance.bill.category,
+          categoryId: billInstance.bill.categoryId,
+          status: 'SUCCESS',
+          source: 'BILL',
+          transactionId: `BILL-${billInstance.id}`,
+          accountNumber: null,
+          balance: null,
+          rawMessage: null,
+          createdAt: billInstance.createdAt,
+          updatedAt: billInstance.updatedAt
+        };
+        allTransactions.push(billTransaction);
+      }
+    });
+
+    // Add loan payments that don't have corresponding transactions
+    loanPayments.forEach(payment => {
+      if (!payment.transaction) {
+        const loanTransaction = {
+          id: `loan-${payment.id}`,
+          amount: payment.amount,
+          type: 'EXPENSE' as const,
+          description: `Loan payment: ${payment.loan.name}`,
+          merchant: payment.loan.name,
+          date: payment.paymentDate,
+          category: payment.loan.category,
+          categoryId: payment.loan.categoryId,
+          status: 'SUCCESS',
+          source: 'LOAN',
+          transactionId: `LOAN-${payment.id}`,
+          accountNumber: null,
+          balance: null,
+          rawMessage: null,
+          createdAt: payment.createdAt,
+          updatedAt: payment.createdAt
+        };
+        allTransactions.push(loanTransaction);
+      }
+    });
+
+    // Add investment transactions that don't have corresponding transactions
+    investmentTransactions.forEach(invTxn => {
+      if (!invTxn.transaction) {
+        const investmentTransaction = {
+          id: `investment-${invTxn.id}`,
+          amount: invTxn.amount,
+          type: invTxn.type === 'BUY' ? 'EXPENSE' : 'INCOME' as const,
+          description: `Investment ${invTxn.type.toLowerCase()}: ${invTxn.investment.name}`,
+          merchant: invTxn.investment.name,
+          date: invTxn.date,
+          category: invTxn.investment.category,
+          categoryId: invTxn.investment.categoryId,
+          status: 'SUCCESS',
+          source: 'INVESTMENT',
+          transactionId: `INV-${invTxn.id}`,
+          accountNumber: null,
+          balance: null,
+          rawMessage: null,
+          createdAt: invTxn.createdAt,
+          updatedAt: invTxn.updatedAt
+        };
+        allTransactions.push(investmentTransaction);
+      }
+    });
+
+    // Apply additional filters to combined transactions
+    let filteredTransactions = allTransactions;
+
+    if (type && type !== 'all') {
+      filteredTransactions = filteredTransactions.filter(txn => txn.type === type);
+    }
+
+    if (categoryId && categoryId !== 'all') {
+      filteredTransactions = filteredTransactions.filter(txn => txn.categoryId === categoryId);
+    }
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredTransactions = filteredTransactions.filter(txn => 
+        (txn.description && txn.description.toLowerCase().includes(searchLower)) ||
+        (txn.merchant && txn.merchant.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Sort transactions
+    filteredTransactions.sort((a, b) => {
+      let aValue: any, bValue: any;
+      
+      switch (sortBy) {
+        case 'amount':
+          aValue = a.amount;
+          bValue = b.amount;
+          break;
+        case 'description':
+          aValue = a.description || '';
+          bValue = b.description || '';
+          break;
+        case 'category':
+          aValue = a.category?.name || '';
+          bValue = b.category?.name || '';
+          break;
+        case 'merchant':
+          aValue = a.merchant || '';
+          bValue = b.merchant || '';
+          break;
+        default:
+          aValue = new Date(a.date);
+          bValue = new Date(b.date);
+      }
+
+      if (sortOrder === 'desc') {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      } else {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      }
+    });
+
+    // Apply pagination
+    const total = filteredTransactions.length;
+    const skip = (page - 1) * limit;
+    const paginatedTransactions = filteredTransactions.slice(skip, skip + limit);
+
     return NextResponse.json({
-      transactions,
+      transactions: paginatedTransactions,
       pagination: {
         page,
         limit,

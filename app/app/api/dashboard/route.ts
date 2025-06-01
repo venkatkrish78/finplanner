@@ -67,10 +67,34 @@ export async function GET(request: NextRequest) {
       include: { category: true }
     }).catch(() => []);
 
+    // Enhanced Goals Progress Calculation with Linked Investments
     const topGoals = await prisma.financialGoal.findMany({
       take: 3,
       orderBy: { targetAmount: 'desc' },
-      where: { status: 'ACTIVE' }
+      where: { status: 'ACTIVE' },
+      include: {
+        contributions: true,
+        investmentLinks: {
+          include: {
+            investment: {
+              select: {
+                id: true,
+                name: true,
+                currentValue: true,
+                isActive: true
+              }
+            }
+          }
+        },
+        investments: {
+          select: {
+            id: true,
+            name: true,
+            currentValue: true,
+            isActive: true
+          }
+        }
+      }
     }).catch(() => []);
 
     const activeLoans = await prisma.loan.findMany({
@@ -136,6 +160,52 @@ export async function GET(request: NextRequest) {
     // Calculate savings rate
     const savingsRate = currentIncome > 0 ? ((currentIncome - currentExpenses) / currentIncome) * 100 : 0;
 
+    // Enhanced Goals Progress Calculation
+    const enhancedGoals = topGoals.map(goal => {
+      let linkedInvestmentValue = 0;
+
+      // Calculate from many-to-many links with allocation
+      if (goal.investmentLinks) {
+        linkedInvestmentValue += goal.investmentLinks.reduce((sum, link) => {
+          if (link.investment && link.investment.isActive) {
+            return sum + (link.investment.currentValue * (link.allocation / 100));
+          }
+          return sum;
+        }, 0);
+      }
+
+      // Calculate from direct goal links (backward compatibility)
+      if (goal.investments) {
+        linkedInvestmentValue += goal.investments.reduce((sum, investment) => {
+          if (investment.isActive) {
+            return sum + investment.currentValue;
+          }
+          return sum;
+        }, 0);
+      }
+
+      // Calculate total contributions
+      const totalContributions = goal.contributions.reduce((sum, contribution) => {
+        return sum + contribution.amount;
+      }, 0);
+
+      // Total progress includes contributions + linked investment value
+      const totalProgress = goal.currentAmount + linkedInvestmentValue + totalContributions;
+      const progress = goal.targetAmount > 0 ? (totalProgress / goal.targetAmount) * 100 : 0;
+      const remainingAmount = Math.max(0, goal.targetAmount - totalProgress);
+
+      return {
+        id: goal.id,
+        name: goal.name,
+        targetAmount: goal.targetAmount,
+        currentAmount: totalProgress, // Updated to include all sources
+        progress: Math.min(100, progress), // Cap at 100%
+        remainingAmount,
+        linkedInvestmentValue,
+        totalContributions
+      };
+    });
+
     // Prepare insights
     const insights = [];
     
@@ -174,14 +244,7 @@ export async function GET(request: NextRequest) {
         expenseTrend,
         savingsRate
       },
-      goals: topGoals.map(goal => ({
-        id: goal.id,
-        name: goal.name,
-        targetAmount: goal.targetAmount,
-        currentAmount: goal.currentAmount,
-        progress: (goal.currentAmount / goal.targetAmount) * 100,
-        remainingAmount: goal.targetAmount - goal.currentAmount
-      })),
+      goals: enhancedGoals,
       loans: activeLoans.map(loan => ({
         id: loan.id,
         name: loan.name,
