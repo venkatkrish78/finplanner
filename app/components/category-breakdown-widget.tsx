@@ -60,7 +60,7 @@ export function CategoryBreakdownWidget({ data, onDataChange }: CategoryBreakdow
   };
 
   return (
-    <Card>
+    <Card className="hover:shadow-lg transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <div className="flex items-center gap-2">
           <div className="p-2 bg-indigo-50 rounded-lg">
@@ -75,14 +75,14 @@ export function CategoryBreakdownWidget({ data, onDataChange }: CategoryBreakdow
           </Button>
         </Link>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="pb-6">
         {data.length === 0 ? (
           <div className="text-center py-8">
             <PieChart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">No expense data for this month</p>
           </div>
         ) : (
-          <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Chart */}
             <div className="h-48">
               <Doughnut data={chartData} options={chartOptions} />
@@ -90,7 +90,7 @@ export function CategoryBreakdownWidget({ data, onDataChange }: CategoryBreakdow
 
             {/* Category List */}
             <div className="space-y-2">
-              {data.map((item, index) => {
+              {data.slice(0, 6).map((item, index) => {
                 const percentage = ((item.amount / totalAmount) * 100).toFixed(1);
                 const color = chartData.datasets[0].backgroundColor[index % chartData.datasets[0].backgroundColor.length];
                 
@@ -116,16 +116,26 @@ export function CategoryBreakdownWidget({ data, onDataChange }: CategoryBreakdow
                   </motion.div>
                 );
               })}
-            </div>
+              
+              {data.length > 6 && (
+                <div className="text-center pt-2">
+                  <Link href="/transactions">
+                    <Button variant="outline" size="sm">
+                      View {data.length - 6} More Categories
+                    </Button>
+                  </Link>
+                </div>
+              )}
 
-            {/* Total */}
-            <div className="border-t pt-3">
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Total Expenses</span>
-                <span className="text-lg font-bold">{formatCurrency(totalAmount)}</span>
+              {/* Total */}
+              <div className="border-t pt-3 mt-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Total Expenses</span>
+                  <span className="text-lg font-bold">{formatCurrency(totalAmount)}</span>
+                </div>
               </div>
             </div>
-          </>
+          </div>
         )}
       </CardContent>
     </Card>

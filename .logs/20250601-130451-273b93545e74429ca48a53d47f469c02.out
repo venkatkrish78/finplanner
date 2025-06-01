@@ -90,3 +90,14 @@ Transaction count: 17
 Transaction count: 17
  GET /api/dashboard?_t=1748783242030 200 in 131ms
  GET /api/dashboard?_t=1748783242030 200 in 119ms
+ GET / 200 in 122ms
+ GET / 200 in 47ms
+ GET / 200 in 41ms
+Dashboard API called, testing Prisma connection...
+Dashboard API called, testing Prisma connection...
+Transaction count: 17
+Transaction count: 17
+ GET /api/dashboard?_t=1748783413533 200 in 70ms
+ GET /api/dashboard?_t=1748783413537 200 in 72ms
+ ✓ Compiled in 2.3s (3263 modules)
+[?25h

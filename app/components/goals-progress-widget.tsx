@@ -39,7 +39,7 @@ export function GoalsProgressWidget({ goals, onDataChange }: GoalsProgressWidget
   };
 
   return (
-    <Card>
+    <Card className="h-full hover:shadow-lg transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <div className="flex items-center gap-2">
           <div className="p-2 bg-green-50 rounded-lg">
@@ -65,7 +65,7 @@ export function GoalsProgressWidget({ goals, onDataChange }: GoalsProgressWidget
           </Link>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pb-6">
         {goals.length === 0 ? (
           <div className="text-center py-8">
             <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -78,7 +78,7 @@ export function GoalsProgressWidget({ goals, onDataChange }: GoalsProgressWidget
             </Link>
           </div>
         ) : (
-          goals.map((goal, index) => (
+          goals.slice(0, 3).map((goal, index) => (
             <motion.div
               key={goal.id}
               initial={{ opacity: 0, x: -20 }}
@@ -87,7 +87,7 @@ export function GoalsProgressWidget({ goals, onDataChange }: GoalsProgressWidget
               className="space-y-2"
             >
               <div className="flex justify-between items-center">
-                <h4 className="font-medium text-sm">{goal.name}</h4>
+                <h4 className="font-medium text-sm truncate pr-2">{goal.name}</h4>
                 <span className="text-sm text-muted-foreground">
                   {goal.progress.toFixed(1)}%
                 </span>
@@ -113,6 +113,15 @@ export function GoalsProgressWidget({ goals, onDataChange }: GoalsProgressWidget
               )}
             </motion.div>
           ))
+        )}
+        {goals.length > 3 && (
+          <div className="text-center pt-2">
+            <Link href="/goals">
+              <Button variant="outline" size="sm">
+                View {goals.length - 3} More Goals
+              </Button>
+            </Link>
+          </div>
         )}
       </CardContent>
     </Card>

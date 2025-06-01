@@ -4,11 +4,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Banknote, ArrowRight, Calendar, Plus } from 'lucide-react';
+import { Banknote, ArrowRight, Plus, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatCurrency } from '@/lib/currency';
 import Link from 'next/link';
-import { format } from 'date-fns';
 
 interface Loan {
   id: string;
@@ -26,12 +25,16 @@ interface LoansStatusWidgetProps {
 }
 
 export function LoansStatusWidget({ loans, onDataChange }: LoansStatusWidgetProps) {
-  const totalOutstanding = loans.reduce((sum, loan) => sum + loan.outstandingAmount, 0);
-  const totalAmount = loans.reduce((sum, loan) => sum + loan.totalAmount, 0);
-  const overallProgress = totalAmount > 0 ? ((totalAmount - totalOutstanding) / totalAmount) * 100 : 0;
+  const formatDate = (date: Date | null) => {
+    if (!date) return 'No due date';
+    return new Date(date).toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
 
   return (
-    <Card>
+    <Card className="h-full hover:shadow-lg transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <div className="flex items-center gap-2">
           <div className="p-2 bg-red-50 rounded-lg">
@@ -46,79 +49,66 @@ export function LoansStatusWidget({ loans, onDataChange }: LoansStatusWidgetProp
           </Button>
         </Link>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pb-6">
         {loans.length === 0 ? (
           <div className="text-center py-8">
             <Banknote className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground mb-4">No active loans</p>
+            <p className="text-muted-foreground mb-4">No loans tracked</p>
             <Link href="/loans">
               <Button size="sm">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Loan
+                Add Your First Loan
               </Button>
             </Link>
           </div>
         ) : (
-          <>
-            {/* Overall Summary */}
-            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Total Outstanding</span>
-                <span className="text-lg font-bold text-red-600">
-                  {formatCurrency(totalOutstanding)}
+          loans.slice(0, 2).map((loan, index) => (
+            <motion.div
+              key={loan.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="space-y-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex justify-between items-start">
+                <h4 className="font-medium text-sm truncate pr-2">{loan.name}</h4>
+                <span className="text-xs text-muted-foreground">
+                  {loan.progress.toFixed(1)}% paid
                 </span>
               </div>
-              <Progress value={overallProgress} className="h-2" />
-              <div className="text-xs text-muted-foreground">
-                {overallProgress.toFixed(1)}% paid off
-              </div>
-            </div>
-
-            {/* Individual Loans */}
-            <div className="space-y-3">
-              {loans.slice(0, 3).map((loan, index) => (
-                <motion.div
-                  key={loan.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="border rounded-lg p-3 space-y-2"
-                >
+              
+              <Progress value={loan.progress} className="h-2" />
+              
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Outstanding:</span>
+                  <span className="font-medium">{formatCurrency(loan.outstandingAmount)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">EMI Amount:</span>
+                  <span className="font-medium">{formatCurrency(loan.emiAmount)}</span>
+                </div>
+                {loan.nextDueDate && (
                   <div className="flex justify-between items-center">
-                    <h4 className="font-medium text-sm">{loan.name}</h4>
-                    <span className="text-sm text-red-600 font-medium">
-                      {formatCurrency(loan.outstandingAmount)}
-                    </span>
-                  </div>
-                  <Progress value={loan.progress} className="h-1.5" />
-                  <div className="flex justify-between items-center text-xs text-muted-foreground">
-                    <span>{loan.progress.toFixed(1)}% paid</span>
-                    {loan.nextDueDate && (
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        <span>Due {format(new Date(loan.nextDueDate), 'MMM dd')}</span>
-                      </div>
-                    )}
-                  </div>
-                  {loan.emiAmount > 0 && (
-                    <div className="text-xs text-muted-foreground">
-                      EMI: {formatCurrency(loan.emiAmount)}
+                    <span className="text-muted-foreground">Next Due:</span>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      <span className="font-medium">{formatDate(loan.nextDueDate)}</span>
                     </div>
-                  )}
-                </motion.div>
-              ))}
-            </div>
-
-            {loans.length > 3 && (
-              <div className="text-center">
-                <Link href="/loans">
-                  <Button variant="outline" size="sm">
-                    View {loans.length - 3} more loans
-                  </Button>
-                </Link>
+                  </div>
+                )}
               </div>
-            )}
-          </>
+            </motion.div>
+          ))
+        )}
+        {loans.length > 2 && (
+          <div className="text-center pt-2">
+            <Link href="/loans">
+              <Button variant="outline" size="sm">
+                View {loans.length - 2} More Loans
+              </Button>
+            </Link>
+          </div>
         )}
       </CardContent>
     </Card>
