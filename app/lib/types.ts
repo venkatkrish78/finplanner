@@ -197,6 +197,11 @@ export type FinancialGoal = {
     color: string
   }
   contributions: GoalContribution[]
+  investments?: Investment[]
+  investmentLinks?: InvestmentGoalLink[]
+  // Calculated fields
+  linkedInvestmentValue?: number
+  dynamicProgress?: number
   createdAt: Date
   updatedAt: Date
 }
@@ -401,6 +406,8 @@ export type Investment = {
     name: string
     goalType: GoalType
   }
+  goalLinks?: InvestmentGoalLink[]
+  linkedGoals?: FinancialGoal[]
   categoryId?: string
   category?: {
     id: string
@@ -554,5 +561,44 @@ export type InvestmentGrowthCalculation = {
     year: number
     value: number
     returns: number
+  }>
+}
+
+// Investment-Goal Linking Types
+export type InvestmentGoalLink = {
+  id: string
+  investmentId: string
+  goalId: string
+  allocation: number
+  notes?: string
+  investment?: Investment
+  goal?: FinancialGoal
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type InvestmentGoalLinkFormData = {
+  goalId: string
+  allocation: number
+  notes?: string
+}
+
+export type GoalInvestmentSummary = {
+  goalId: string
+  goalName: string
+  goalType: GoalType
+  targetAmount: number
+  currentAmount: number
+  linkedInvestmentValue: number
+  totalProgress: number
+  investmentProgress: number
+  contributionProgress: number
+  linkedInvestments: Array<{
+    investmentId: string
+    investmentName: string
+    assetClass: AssetClass
+    currentValue: number
+    allocation: number
+    allocatedValue: number
   }>
 }

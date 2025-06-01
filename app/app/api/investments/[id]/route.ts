@@ -16,7 +16,22 @@ export async function GET(
           select: {
             id: true,
             name: true,
-            goalType: true
+            goalType: true,
+            targetAmount: true,
+            currentAmount: true
+          }
+        },
+        goalLinks: {
+          include: {
+            goal: {
+              select: {
+                id: true,
+                name: true,
+                goalType: true,
+                targetAmount: true,
+                currentAmount: true
+              }
+            }
           }
         },
         category: {
@@ -42,7 +57,36 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(investment)
+    // Add linked goals summary
+    const linkedGoals = [];
+    
+    // Add direct goal link (backward compatibility)
+    if (investment.goal) {
+      linkedGoals.push({
+        ...investment.goal,
+        allocation: 100,
+        linkType: 'direct'
+      });
+    }
+
+    // Add many-to-many goal links
+    if (investment.goalLinks) {
+      investment.goalLinks.forEach(link => {
+        linkedGoals.push({
+          ...link.goal,
+          allocation: link.allocation,
+          linkType: 'linked',
+          linkId: link.id
+        });
+      });
+    }
+
+    const investmentWithGoals = {
+      ...investment,
+      linkedGoals
+    };
+
+    return NextResponse.json(investmentWithGoals)
   } catch (error) {
     console.error('Error fetching investment:', error)
     return NextResponse.json(

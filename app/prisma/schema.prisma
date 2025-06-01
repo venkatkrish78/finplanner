@@ -189,6 +189,7 @@ model FinancialGoal {
   category      Category?         @relation(fields: [categoryId], references: [id])
   contributions GoalContribution[]
   investments   Investment[]
+  investmentLinks InvestmentGoalLink[]
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
@@ -321,9 +322,12 @@ model Investment {
   description     String?
   isActive        Boolean           @default(true)
   
-  // Goal linking
+  // Goal linking (keeping for backward compatibility)
   goalId          String?
   goal            FinancialGoal?    @relation(fields: [goalId], references: [id])
+  
+  // Many-to-many goal linking
+  goalLinks       InvestmentGoalLink[]
   
   // Category for transaction linking
   categoryId      String?
@@ -381,4 +385,22 @@ model SIP {
   updatedAt       DateTime      @updatedAt
   
   @@map("sips")
+}
+
+// Many-to-many relationship between Investments and Goals
+model InvestmentGoalLink {
+  id            String        @id @default(cuid())
+  investmentId  String
+  goalId        String
+  allocation    Float         @default(100) // Percentage allocation of investment to this goal
+  notes         String?
+  
+  investment    Investment    @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+  goal          FinancialGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  @@unique([investmentId, goalId])
+  @@map("investment_goal_links")
 }

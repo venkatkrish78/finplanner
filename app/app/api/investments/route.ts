@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const assetClass = searchParams.get('assetClass')
     const platform = searchParams.get('platform')
     const isActive = searchParams.get('isActive')
+    const includeGoals = searchParams.get('includeGoals') === 'true'
 
     const where: any = {}
     
@@ -22,12 +23,70 @@ export async function GET(request: NextRequest) {
 
     const investments = await prisma.investment.findMany({
       where,
+      include: {
+        goal: includeGoals ? {
+          select: {
+            id: true,
+            name: true,
+            goalType: true,
+            targetAmount: true,
+            currentAmount: true
+          }
+        } : undefined,
+        goalLinks: includeGoals ? {
+          include: {
+            goal: {
+              select: {
+                id: true,
+                name: true,
+                goalType: true,
+                targetAmount: true,
+                currentAmount: true
+              }
+            }
+          }
+        } : undefined,
+        category: true
+      },
       orderBy: {
         updatedAt: 'desc'
       }
     })
 
-    return NextResponse.json(investments)
+    // Add linked goals summary to each investment
+    const investmentsWithGoals = investments.map(investment => {
+      const linkedGoals = [];
+      
+      // Add direct goal link (backward compatibility)
+      if (includeGoals && investment.goal) {
+        linkedGoals.push({
+          ...investment.goal,
+          allocation: 100,
+          linkType: 'direct'
+        });
+      }
+
+      // Add many-to-many goal links
+      if (includeGoals && investment.goalLinks) {
+        investment.goalLinks.forEach((link: any) => {
+          if (link.goal) {
+            linkedGoals.push({
+              ...link.goal,
+              allocation: link.allocation,
+              linkType: 'linked',
+              linkId: link.id
+            });
+          }
+        });
+      }
+
+      return {
+        ...investment,
+        linkedGoals
+      };
+    });
+
+    return NextResponse.json(investmentsWithGoals)
   } catch (error) {
     console.error('Error fetching investments:', error)
     return NextResponse.json(

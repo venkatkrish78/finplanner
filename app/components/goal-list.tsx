@@ -2,13 +2,16 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Target, Calendar, TrendingUp, Plus, Edit, Trash2, CheckCircle } from 'lucide-react';
+import { Target, Calendar, TrendingUp, Plus, Edit, Trash2, CheckCircle, Link, Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { AddGoalContributionDialog } from '@/components/add-goal-contribution-dialog';
+import { EditGoalDialog } from '@/components/edit-goal-dialog';
+import { LinkInvestmentDialog } from '@/components/link-investment-dialog';
 import { formatCurrency } from '@/lib/currency';
 import { FinancialGoal, GoalType, GoalStatus } from '@/lib/types';
 
@@ -42,8 +45,11 @@ const goalTypeLabels = {
 };
 
 export function GoalList({ goals, onGoalUpdated }: GoalListProps) {
+  const router = useRouter();
   const [selectedGoal, setSelectedGoal] = useState<FinancialGoal | null>(null);
   const [isContributionDialogOpen, setIsContributionDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
 
   const handleDeleteGoal = async (goalId: string) => {
     if (!confirm('Are you sure you want to delete this goal?')) return;
@@ -88,6 +94,20 @@ export function GoalList({ goals, onGoalUpdated }: GoalListProps) {
     setSelectedGoal(null);
   };
 
+  const handleEditGoal = (goal: FinancialGoal) => {
+    setSelectedGoal(goal);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleLinkInvestment = (goal: FinancialGoal) => {
+    setSelectedGoal(goal);
+    setIsLinkDialogOpen(true);
+  };
+
+  const handleViewGoal = (goalId: string) => {
+    router.push(`/goals/${goalId}`);
+  };
+
   if (goals.length === 0) {
     return (
       <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
@@ -106,7 +126,13 @@ export function GoalList({ goals, onGoalUpdated }: GoalListProps) {
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {goals.map((goal, index) => {
-          const progress = goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0;
+          // Use dynamic progress if available, otherwise fall back to contribution-only progress
+          const dynamicProgress = (goal as any).dynamicProgress;
+          const totalProgress = (goal as any).totalProgress || goal.currentAmount;
+          const linkedInvestmentValue = (goal as any).linkedInvestmentValue || 0;
+          const progress = dynamicProgress !== undefined ? dynamicProgress : 
+            (goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0);
+          
           const isCompleted = goal.status === GoalStatus.COMPLETED;
           const daysRemaining = goal.targetDate 
             ? Math.ceil((new Date(goal.targetDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
@@ -136,15 +162,33 @@ export function GoalList({ goals, onGoalUpdated }: GoalListProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleAddContribution(goal)}
-                        disabled={isCompleted}
+                        onClick={() => handleViewGoal(goal.id)}
+                        title="View Details"
                       >
-                        <Plus className="h-4 w-4" />
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditGoal(goal)}
+                        title="Edit Goal"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleLinkInvestment(goal)}
+                        disabled={isCompleted}
+                        title="Link Investment"
+                      >
+                        <Link className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteGoal(goal.id)}
+                        title="Delete Goal"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -167,7 +211,7 @@ export function GoalList({ goals, onGoalUpdated }: GoalListProps) {
 
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-600">Current</p>
+                      <p className="text-gray-600">Contributions</p>
                       <p className="font-semibold text-green-600">
                         {formatCurrency(goal.currentAmount)}
                       </p>
@@ -179,6 +223,23 @@ export function GoalList({ goals, onGoalUpdated }: GoalListProps) {
                       </p>
                     </div>
                   </div>
+
+                  {linkedInvestmentValue > 0 && (
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-600">Investments</p>
+                        <p className="font-semibold text-purple-600">
+                          {formatCurrency(linkedInvestmentValue)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600">Total Progress</p>
+                        <p className="font-semibold text-emerald-600">
+                          {formatCurrency(totalProgress)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {goal.targetDate && (
                     <div className="flex items-center gap-2 text-sm">
@@ -232,12 +293,34 @@ export function GoalList({ goals, onGoalUpdated }: GoalListProps) {
       </div>
 
       {selectedGoal && (
-        <AddGoalContributionDialog
-          open={isContributionDialogOpen}
-          onOpenChange={setIsContributionDialogOpen}
-          goal={selectedGoal}
-          onContributionAdded={handleContributionAdded}
-        />
+        <>
+          <AddGoalContributionDialog
+            open={isContributionDialogOpen}
+            onOpenChange={setIsContributionDialogOpen}
+            goal={selectedGoal}
+            onContributionAdded={handleContributionAdded}
+          />
+          <EditGoalDialog
+            open={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
+            goal={selectedGoal}
+            onGoalUpdated={() => {
+              onGoalUpdated();
+              setIsEditDialogOpen(false);
+              setSelectedGoal(null);
+            }}
+          />
+          <LinkInvestmentDialog
+            open={isLinkDialogOpen}
+            onOpenChange={setIsLinkDialogOpen}
+            goalId={selectedGoal.id}
+            onInvestmentLinked={() => {
+              onGoalUpdated();
+              setIsLinkDialogOpen(false);
+              setSelectedGoal(null);
+            }}
+          />
+        </>
       )}
     </>
   );

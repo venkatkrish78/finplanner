@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { formatCurrency } from '@/lib/currency'
 import AddInvestmentDialog from '@/components/add-investment-dialog'
+import InvestmentList from '@/components/investment-list'
 
 interface InvestmentsData {
   investments: any[]
@@ -44,7 +45,7 @@ export default function InvestmentsPage() {
       setLoading(true)
       
       const [investmentsRes, portfolioRes] = await Promise.all([
-        fetch('/api/investments'),
+        fetch('/api/investments?includeGoals=true'),
         fetch('/api/investments/portfolio')
       ])
 
@@ -243,51 +244,7 @@ export default function InvestmentsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <Card className="professional-card">
-            <CardHeader>
-              <CardTitle className="text-slate-900">Investments ({data.investments.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {data.investments.length === 0 ? (
-                <div className="text-center py-8">
-                  <TrendingUp className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">No investments found</h3>
-                  <p className="text-slate-600 mb-4">Start by adding your first investment</p>
-                  <Button 
-                    className="bg-professional-blue hover:bg-professional-blue-dark text-white"
-                    onClick={() => setShowAddDialog(true)}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Investment
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {data.investments.map((investment: any) => (
-                    <div key={investment.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-                      <div className="flex items-center space-x-4">
-                        <div className="p-2 rounded-full bg-slate-100">
-                          <TrendingUp className="h-4 w-4 text-professional-blue" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-slate-900">{investment.name}</h3>
-                          <p className="text-sm text-slate-600">{investment.assetClass} • {investment.platform}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-emerald-600">
-                          {formatCurrency(investment.currentValue)}
-                        </div>
-                        <p className="text-sm text-slate-600">
-                          Invested: {formatCurrency(investment.totalInvested)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <InvestmentList investments={data.investments} onInvestmentUpdated={fetchInvestmentsData} />
         </motion.div>
       </motion.div>
 

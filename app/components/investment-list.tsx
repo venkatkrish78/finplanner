@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -12,7 +13,9 @@ import {
   Edit, 
   Trash2,
   Plus,
-  Target
+  Target,
+  Link,
+  Eye
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -20,7 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Investment, AssetClass, InvestmentPlatform } from '@/lib/types'
+import { Investment, AssetClass, InvestmentPlatform, GoalType } from '@/lib/types'
 import { formatCurrency } from '@/lib/currency'
 import { motion } from 'framer-motion'
 
@@ -63,7 +66,20 @@ const platformNames: Record<InvestmentPlatform, string> = {
   OTHER: 'Other'
 }
 
+const goalTypeColors = {
+  [GoalType.SAVINGS]: 'bg-green-100 text-green-800',
+  [GoalType.DEBT_PAYOFF]: 'bg-red-100 text-red-800',
+  [GoalType.INVESTMENT]: 'bg-blue-100 text-blue-800',
+  [GoalType.EMERGENCY_FUND]: 'bg-orange-100 text-orange-800',
+  [GoalType.EDUCATION]: 'bg-purple-100 text-purple-800',
+  [GoalType.HOUSE]: 'bg-indigo-100 text-indigo-800',
+  [GoalType.VACATION]: 'bg-pink-100 text-pink-800',
+  [GoalType.RETIREMENT]: 'bg-gray-100 text-gray-800',
+  [GoalType.OTHER]: 'bg-yellow-100 text-yellow-800'
+}
+
 export default function InvestmentList({ investments, onInvestmentUpdated }: InvestmentListProps) {
+  const router = useRouter()
   const [selectedInvestment, setSelectedInvestment] = useState<Investment | null>(null)
 
   const handleDelete = async (investmentId: string) => {
@@ -148,30 +164,38 @@ export default function InvestmentList({ investments, onInvestmentUpdated }: Inv
                         </Badge>
                       </div>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Transaction
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          className="text-red-600"
-                          onClick={() => handleDelete(investment.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => router.push(`/investments/${investment.id}`)}
+                        title="View Details"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Edit Investment"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Link to Goal"
+                      >
+                        <Link className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(investment.id)}
+                        title="Delete Investment"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
@@ -214,7 +238,40 @@ export default function InvestmentList({ investments, onInvestmentUpdated }: Inv
                       </div>
                     </div>
 
-                    {investment.goal && (
+                    {/* Show linked goals */}
+                    {((investment as any).linkedGoals?.length > 0) && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-gray-700">Linked Goals:</p>
+                        {(investment as any).linkedGoals.map((linkedGoal: any) => (
+                          <div key={linkedGoal.id} className="bg-blue-50 p-2 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Target className="h-4 w-4 text-blue-600" />
+                                <span className="text-sm text-blue-800 font-medium">
+                                  {linkedGoal.name}
+                                </span>
+                                <Badge className={goalTypeColors[linkedGoal.goalType as GoalType] || 'bg-gray-100 text-gray-800'} variant="secondary">
+                                  {linkedGoal.goalType.replace('_', ' ')}
+                                </Badge>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs text-blue-600">
+                                  {linkedGoal.allocation}% allocation
+                                </p>
+                                {linkedGoal.linkType === 'linked' && (
+                                  <p className="text-xs text-gray-500">
+                                    {formatCurrency(investment.currentValue * (linkedGoal.allocation / 100))}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Fallback for old direct goal link */}
+                    {investment.goal && !(investment as any).linkedGoals?.length && (
                       <div className="bg-blue-50 p-2 rounded-lg">
                         <div className="flex items-center gap-2">
                           <Target className="h-4 w-4 text-blue-600" />
