@@ -20,6 +20,7 @@ interface TransactionSummaryCardsProps {
   year: number;
   month?: number;
   view: 'monthly' | 'yearly';
+  refreshTrigger?: number;
 }
 
 interface SummaryData {
@@ -32,13 +33,20 @@ interface SummaryData {
   period: string;
 }
 
-export function TransactionSummaryCards({ year, month, view }: TransactionSummaryCardsProps) {
+export function TransactionSummaryCards({ year, month, view, refreshTrigger }: TransactionSummaryCardsProps) {
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchSummary();
   }, [year, month, view]);
+
+  // Refresh when refreshTrigger changes
+  useEffect(() => {
+    if (refreshTrigger && refreshTrigger > 0) {
+      fetchSummary();
+    }
+  }, [refreshTrigger]);
 
   const fetchSummary = async () => {
     try {
@@ -48,10 +56,21 @@ export function TransactionSummaryCards({ year, month, view }: TransactionSummar
         params.append('month', month.toString());
       }
       
-      const response = await fetch(`/api/transactions/summary?${params}`);
+      // Add cache busting parameter for real-time updates
+      params.append('_t', Date.now().toString());
+      
+      const response = await fetch(`/api/transactions/summary?${params}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+      
       if (response.ok) {
         const data = await response.json();
         setSummaryData(data);
+      } else {
+        console.error('Failed to fetch summary:', response.status);
       }
     } catch (error) {
       console.error('Error fetching summary:', error);

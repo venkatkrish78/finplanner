@@ -69,8 +69,14 @@ export function LinkInvestmentDialog({ open, onOpenChange, goalId, onInvestmentL
       const response = await fetch('/api/investments?includeGoals=true')
       if (response.ok) {
         const data = await response.json()
-        // Filter out investments that are already linked to this goal
-        const availableInvestments = data.filter((investment: Investment) => {
+        // Ensure data is an array and filter out investments that are already linked to this goal
+        const investmentArray = Array.isArray(data) ? data : []
+        const availableInvestments = investmentArray.filter((investment: Investment) => {
+          // Ensure investment has required properties
+          if (!investment.id || !investment.name) {
+            return false
+          }
+          
           const isAlreadyLinked = investment.linkedGoals?.some(
             (goal: any) => goal.id === goalId
           )
@@ -79,10 +85,12 @@ export function LinkInvestmentDialog({ open, onOpenChange, goalId, onInvestmentL
         setInvestments(availableInvestments)
       } else {
         toast.error('Failed to fetch investments')
+        setInvestments([])
       }
     } catch (error) {
       console.error('Error fetching investments:', error)
       toast.error('Failed to fetch investments')
+      setInvestments([])
     }
   }
 
@@ -150,9 +158,9 @@ export function LinkInvestmentDialog({ open, onOpenChange, goalId, onInvestmentL
               </SelectTrigger>
               <SelectContent>
                 {investments.length === 0 ? (
-                  <SelectItem value="" disabled>
+                  <div className="p-2 text-center text-sm text-slate-500">
                     No available investments
-                  </SelectItem>
+                  </div>
                 ) : (
                   investments.map((investment) => (
                     <SelectItem key={investment.id} value={investment.id}>

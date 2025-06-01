@@ -82,3 +82,51 @@ Transaction count: 17
 Dashboard API called, testing Prisma connection...
 Transaction count: 17
  GET /api/dashboard 200 in 41ms
+ GET / 200 in 134ms
+ GET / 200 in 39ms
+ GET / 200 in 38ms
+Dashboard API called, testing Prisma connection...
+Transaction count: 17
+ GET /api/dashboard 200 in 57ms
+Dashboard API called, testing Prisma connection...
+Transaction count: 17
+ GET /api/dashboard 200 in 40ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 48ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 25ms
+ GET /api/categories 200 in 43ms
+ GET /api/transactions/analytics?year=2025&month=6 200 in 67ms
+ GET /api/transactions/summary?year=2025&month=6 200 in 28ms
+ GET /api/categories 200 in 36ms
+ GET /api/transactions/summary?year=2025&month=6 200 in 45ms
+ GET /api/transactions/analytics?year=2025&month=6 200 in 76ms
+ ✓ Compiled in 1049ms (3192 modules)
+ ✓ Compiled in 651ms (3192 modules)
+ ✓ Compiled in 422ms (1599 modules)
+ ✓ Compiled in 1070ms (3192 modules)
+ ✓ Compiled /api/transactions/analytics in 645ms (3192 modules)
+ ✓ Compiled in 0ms (1625 modules)
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748778967915 200 in 849ms
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748778967915 200 in 851ms
+ ✓ Compiled in 706ms (3226 modules)
+ ✓ Compiled in 0ms (1626 modules)
+ ✓ Compiled in 0ms (1626 modules)
+ ✓ Compiled in 0ms (1626 modules)
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748778979658 200 in 672ms
+ ✓ Compiled in 855ms (3226 modules)
+ ✓ Compiled in 599ms (3226 modules)
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748778991555 200 in 74ms
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748778991556 200 in 94ms
+ ✓ Compiled in 532ms (3226 modules)
+ ✓ Compiled in 876ms (3226 modules)
+ ✓ Compiled in 536ms (3226 modules)
+ ✓ Compiled in 557ms (3226 modules)
+ ✓ Compiled /api/transactions/summary in 566ms (3226 modules)
+ ✓ Compiled in 1ms (1628 modules)
+ GET /api/transactions/summary?year=2025&month=6 200 in 479ms
+ GET /api/transactions/summary?year=2025&month=6 200 in 28ms
+ ✓ Compiled in 673ms (3228 modules)
+ ✓ Compiled in 498ms (3228 modules)
+ GET /api/transactions/summary?year=2025&month=6 200 in 66ms
+ GET /api/transactions/summary?year=2025&month=6 200 in 31ms
+ ✓ Compiled in 584ms (3226 modules)
+[?25h

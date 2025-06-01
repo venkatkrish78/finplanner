@@ -40,6 +40,8 @@ interface EnhancedTransactionListProps {
   sortBy: string;
   sortOrder: 'asc' | 'desc';
   onAddTransaction: () => void;
+  onTransactionUpdated?: () => void;
+  onTransactionDeleted?: () => void;
 }
 
 interface PaginationInfo {
@@ -58,7 +60,9 @@ export function EnhancedTransactionList({
   dateRange,
   sortBy,
   sortOrder,
-  onAddTransaction
+  onAddTransaction,
+  onTransactionUpdated,
+  onTransactionDeleted
 }: EnhancedTransactionListProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -158,6 +162,8 @@ export function EnhancedTransactionList({
           description: "Transaction deleted successfully",
         });
         fetchTransactions();
+        // Trigger parent callback for chart refresh
+        onTransactionDeleted?.();
       } else {
         toast({
           title: "Error",
@@ -181,6 +187,8 @@ export function EnhancedTransactionList({
   const handleTransactionUpdated = () => {
     fetchTransactions();
     setSelectedTransaction(null);
+    // Trigger parent callback for chart refresh
+    onTransactionUpdated?.();
   };
 
   const getTransactionIcon = (type: string) => {

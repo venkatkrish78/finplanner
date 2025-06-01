@@ -13,7 +13,7 @@ import { UpcomingItemsWidget } from '@/components/upcoming-items-widget';
 import { RecentActivitySection } from '@/components/recent-activity-section';
 import { SmartInsightsWidget } from '@/components/smart-insights-widget';
 import { CategoryBreakdownWidget } from '@/components/category-breakdown-widget';
-import { DashboardCharts } from '@/components/dashboard-charts';
+
 
 interface DashboardData {
   financialOverview: {
@@ -213,9 +213,6 @@ export default function Dashboard() {
             <SmartInsightsWidget insights={data.insights} />
           </div>
         </div>
-
-        {/* Charts Section */}
-        <DashboardCharts />
 
         {/* Recent Activity */}
         <RecentActivitySection activities={data.recentActivity} />

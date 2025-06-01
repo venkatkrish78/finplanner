@@ -73,6 +73,22 @@ export default function TransactionsPage() {
     })
   }
 
+  const handleTransactionUpdated = () => {
+    setRefreshKey(prev => prev + 1)
+    toast({
+      title: "Success",
+      description: "Transaction updated successfully",
+    })
+  }
+
+  const handleTransactionDeleted = () => {
+    setRefreshKey(prev => prev + 1)
+    toast({
+      title: "Success",
+      description: "Transaction deleted successfully",
+    })
+  }
+
   const handleExportCSV = async () => {
     try {
       const params = new URLSearchParams()
@@ -195,7 +211,8 @@ export default function TransactionsPage() {
           year={year}
           month={view === 'monthly' ? month : undefined}
           view={view}
-          key={`${view}-${year}-${month}-${refreshKey}`}
+          refreshTrigger={refreshKey}
+          key={`${view}-${year}-${month}`}
         />
 
         {/* Charts */}
@@ -211,7 +228,8 @@ export default function TransactionsPage() {
           <TransactionCharts
             year={year}
             month={view === 'monthly' ? month : undefined}
-            key={`charts-${view}-${year}-${month}-${refreshKey}`}
+            refreshTrigger={refreshKey}
+            key={`charts-${view}-${year}-${month}`}
           />
         </div>
 
@@ -244,6 +262,8 @@ export default function TransactionsPage() {
           sortBy={sortBy}
           sortOrder={sortOrder}
           onAddTransaction={() => setIsAddDialogOpen(true)}
+          onTransactionUpdated={handleTransactionUpdated}
+          onTransactionDeleted={handleTransactionDeleted}
           key={`list-${view}-${year}-${month}-${searchTerm}-${selectedCategory}-${selectedType}-${sortBy}-${sortOrder}-${refreshKey}`}
         />
       </motion.div>

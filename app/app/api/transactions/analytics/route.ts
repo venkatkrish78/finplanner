@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const monthParam = searchParams.get('month');
     const month = monthParam ? parseInt(monthParam) : null;
 
-    // Get monthly trends for the year using Prisma aggregations
+    // Get monthly trends for the year including all transaction sources
     const startOfYear = new Date(year, 0, 1);
     const endOfYear = new Date(year, 11, 31, 23, 59, 59);
     
@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
       const startOfMonth = new Date(year, monthNum - 1, 1);
       const endOfMonth = new Date(year, monthNum, 0, 23, 59, 59);
       
+      // Get all transactions (regular, bills, loans, investments)
       const [incomeData, expenseData] = await Promise.all([
         prisma.transaction.aggregate({
           where: {

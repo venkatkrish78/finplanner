@@ -1,12 +1,13 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { TrendingUp, PieChart } from 'lucide-react';
+import { TrendingUp, PieChart, RefreshCw } from 'lucide-react';
 import { formatCurrency } from '@/lib/currency';
+import { Button } from '@/components/ui/button';
 
 // Dynamic imports for charts to avoid SSR issues
 const Line = dynamic(() => import('react-chartjs-2').then(mod => mod.Line), {
@@ -54,6 +55,7 @@ function ChartSkeleton() {
 interface TransactionChartsProps {
   year: number;
   month?: number;
+  refreshTrigger?: number; // Add refresh trigger prop
 }
 
 interface MonthlyTrend {
@@ -72,32 +74,61 @@ interface CategoryBreakdown {
   transaction_count: number;
 }
 
-export function TransactionCharts({ year, month }: TransactionChartsProps) {
+export function TransactionCharts({ year, month, refreshTrigger }: TransactionChartsProps) {
   const [monthlyTrends, setMonthlyTrends] = useState<MonthlyTrend[]>([]);
   const [categoryBreakdown, setCategoryBreakdown] = useState<CategoryBreakdown[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [year, month]);
-
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      
       const params = new URLSearchParams({ year: year.toString() });
       if (month) params.append('month', month.toString());
       
-      const response = await fetch(`/api/transactions/analytics?${params}`);
+      // Add cache busting parameter for real-time updates
+      params.append('_t', Date.now().toString());
+      
+      const response = await fetch(`/api/transactions/analytics?${params}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+      
       if (response.ok) {
         const data = await response.json();
         setMonthlyTrends(data.monthlyTrends || []);
         setCategoryBreakdown(data.categoryBreakdown || []);
+      } else {
+        console.error('Failed to fetch analytics:', response.status);
       }
     } catch (error) {
       console.error('Error fetching analytics:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  }, [year, month]);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
+
+  // Refresh when refreshTrigger changes (from parent component)
+  useEffect(() => {
+    if (refreshTrigger && refreshTrigger > 0) {
+      fetchAnalytics(true);
+    }
+  }, [refreshTrigger, fetchAnalytics]);
+
+  const handleManualRefresh = () => {
+    fetchAnalytics(true);
   };
 
   // Prepare monthly trends chart data
@@ -244,6 +275,15 @@ export function TransactionCharts({ year, month }: TransactionChartsProps) {
             </div>
             Income vs Expenses
           </CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleManualRefresh}
+            disabled={refreshing}
+            className="h-8 w-8 p-0"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">
