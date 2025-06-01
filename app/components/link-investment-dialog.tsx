@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { TrendingUp, Target } from 'lucide-react'
 import { formatCurrency } from '@/lib/currency'
 import { AssetClass } from '@/lib/types'
+import { toast } from 'sonner'
 
 interface LinkInvestmentDialogProps {
   open: boolean
@@ -76,15 +77,27 @@ export function LinkInvestmentDialog({ open, onOpenChange, goalId, onInvestmentL
           return !isAlreadyLinked
         })
         setInvestments(availableInvestments)
+      } else {
+        toast.error('Failed to fetch investments')
       }
     } catch (error) {
       console.error('Error fetching investments:', error)
+      toast.error('Failed to fetch investments')
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedInvestmentId) return
+    if (!selectedInvestmentId) {
+      toast.error('Please select an investment')
+      return
+    }
+
+    const allocationValue = parseFloat(allocation)
+    if (isNaN(allocationValue) || allocationValue <= 0 || allocationValue > 100) {
+      toast.error('Please enter a valid allocation between 1 and 100')
+      return
+    }
 
     setLoading(true)
 
@@ -94,17 +107,22 @@ export function LinkInvestmentDialog({ open, onOpenChange, goalId, onInvestmentL
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           investmentId: selectedInvestmentId,
-          allocation: parseFloat(allocation),
+          allocation: allocationValue,
           notes: notes || undefined
         })
       })
 
       if (response.ok) {
+        toast.success('Investment linked successfully!')
         onInvestmentLinked()
         onOpenChange(false)
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to link investment')
       }
     } catch (error) {
       console.error('Error linking investment:', error)
+      toast.error('Failed to link investment')
     } finally {
       setLoading(false)
     }

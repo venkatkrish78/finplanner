@@ -26,6 +26,8 @@ import {
 import { Investment, AssetClass, InvestmentPlatform, GoalType } from '@/lib/types'
 import { formatCurrency } from '@/lib/currency'
 import { motion } from 'framer-motion'
+import EditInvestmentDialog from '@/components/edit-investment-dialog'
+import DeleteInvestmentDialog from '@/components/delete-investment-dialog'
 
 interface InvestmentListProps {
   investments: Investment[]
@@ -81,21 +83,23 @@ const goalTypeColors = {
 export default function InvestmentList({ investments, onInvestmentUpdated }: InvestmentListProps) {
   const router = useRouter()
   const [selectedInvestment, setSelectedInvestment] = useState<Investment | null>(null)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
-  const handleDelete = async (investmentId: string) => {
-    if (!confirm('Are you sure you want to delete this investment?')) return
+  const handleEdit = (investment: Investment) => {
+    setSelectedInvestment(investment)
+    setEditDialogOpen(true)
+  }
 
-    try {
-      const response = await fetch(`/api/investments/${investmentId}`, {
-        method: 'DELETE'
-      })
+  const handleDelete = (investment: Investment) => {
+    setSelectedInvestment(investment)
+    setDeleteDialogOpen(true)
+  }
 
-      if (response.ok) {
-        onInvestmentUpdated()
-      }
-    } catch (error) {
-      console.error('Error deleting investment:', error)
-    }
+  const handleDialogClose = () => {
+    setSelectedInvestment(null)
+    setEditDialogOpen(false)
+    setDeleteDialogOpen(false)
   }
 
   const getGainLossColor = (gainLoss: number) => {
@@ -145,7 +149,7 @@ export default function InvestmentList({ investments, onInvestmentUpdated }: Inv
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
-              <Card className="hover:shadow-lg transition-shadow duration-200">
+              <Card className="hover:shadow-lg transition-shadow duration-200 group">
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
@@ -170,13 +174,16 @@ export default function InvestmentList({ investments, onInvestmentUpdated }: Inv
                         size="sm"
                         onClick={() => router.push(`/investments/${investment.id}`)}
                         title="View Details"
+                        className="h-8 w-8 p-0"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleEdit(investment)}
                         title="Edit Investment"
+                        className="h-8 w-8 p-0"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -184,14 +191,16 @@ export default function InvestmentList({ investments, onInvestmentUpdated }: Inv
                         variant="ghost"
                         size="sm"
                         title="Link to Goal"
+                        className="h-8 w-8 p-0"
                       >
                         <Link className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDelete(investment.id)}
+                        onClick={() => handleDelete(investment)}
                         title="Delete Investment"
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -288,6 +297,28 @@ export default function InvestmentList({ investments, onInvestmentUpdated }: Inv
           )
         })}
       </div>
+
+      {/* Edit Investment Dialog */}
+      <EditInvestmentDialog
+        open={editDialogOpen}
+        onOpenChange={(open) => {
+          setEditDialogOpen(open)
+          if (!open) handleDialogClose()
+        }}
+        investment={selectedInvestment}
+        onInvestmentUpdated={onInvestmentUpdated}
+      />
+
+      {/* Delete Investment Dialog */}
+      <DeleteInvestmentDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open)
+          if (!open) handleDialogClose()
+        }}
+        investment={selectedInvestment}
+        onInvestmentDeleted={onInvestmentUpdated}
+      />
     </div>
   )
 }

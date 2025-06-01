@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { AddLoanPaymentDialog } from '@/components/add-loan-payment-dialog';
+import EditLoanDialog from '@/components/edit-loan-dialog';
+import DeleteLoanDialog from '@/components/delete-loan-dialog';
 import { formatCurrency } from '@/lib/currency';
 import { Loan, LoanType } from '@/lib/types';
 
@@ -42,21 +44,23 @@ const loanTypeLabels = {
 export function LoanList({ loans, onLoanUpdated }: LoanListProps) {
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const handleDeleteLoan = async (loanId: string) => {
-    if (!confirm('Are you sure you want to delete this loan?')) return;
+  const handleEdit = (loan: Loan) => {
+    setSelectedLoan(loan);
+    setEditDialogOpen(true);
+  };
 
-    try {
-      const response = await fetch(`/api/loans/${loanId}`, {
-        method: 'DELETE'
-      });
+  const handleDelete = (loan: Loan) => {
+    setSelectedLoan(loan);
+    setDeleteDialogOpen(true);
+  };
 
-      if (response.ok) {
-        onLoanUpdated();
-      }
-    } catch (error) {
-      console.error('Error deleting loan:', error);
-    }
+  const handleDialogClose = () => {
+    setSelectedLoan(null);
+    setEditDialogOpen(false);
+    setDeleteDialogOpen(false);
   };
 
   const handleAddPayment = (loan: Loan) => {
@@ -117,14 +121,27 @@ export function LoanList({ loans, onLoanUpdated }: LoanListProps) {
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleEdit(loan)}
+                        title="Edit Loan"
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleAddPayment(loan)}
+                        title="Make Payment"
+                        className="h-8 w-8 p-0"
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDeleteLoan(loan.id)}
+                        onClick={() => handleDelete(loan)}
+                        title="Delete Loan"
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -211,6 +228,28 @@ export function LoanList({ loans, onLoanUpdated }: LoanListProps) {
           onPaymentAdded={handlePaymentAdded}
         />
       )}
+
+      {/* Edit Loan Dialog */}
+      <EditLoanDialog
+        open={editDialogOpen}
+        onOpenChange={(open) => {
+          setEditDialogOpen(open)
+          if (!open) handleDialogClose()
+        }}
+        loan={selectedLoan}
+        onLoanUpdated={onLoanUpdated}
+      />
+
+      {/* Delete Loan Dialog */}
+      <DeleteLoanDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open)
+          if (!open) handleDialogClose()
+        }}
+        loan={selectedLoan}
+        onLoanDeleted={onLoanUpdated}
+      />
     </>
   );
 }
