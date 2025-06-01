@@ -1,0 +1,383 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/moneymitra/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  color       String   @default("#3B82F6")
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  transactions   Transaction[]
+  bills          Bill[]
+  financialGoals FinancialGoal[]
+  loans          Loan[]
+  investments    Investment[]
+  
+  @@map("categories")
+}
+
+model Transaction {
+  id              String      @id @default(cuid())
+  amount          Float
+  type            TransactionType
+  description     String?
+  merchant        String?
+  accountNumber   String?
+  transactionId   String?
+  date            DateTime
+  balance         Float?
+  status          TransactionStatus @default(SUCCESS)
+  source          TransactionSource @default(MANUAL)
+  rawMessage      String?     // Store original SMS/email for reference
+  
+  categoryId      String
+  category        Category    @relation(fields: [categoryId], references: [id])
+  
+  // Link to bill instance if this transaction is a bill payment
+  billInstance    BillInstance?
+  
+  // Link to goal contribution if this transaction is a goal contribution
+  goalContribution GoalContribution?
+  
+  // Link to loan payment if this transaction is a loan payment
+  loanPayment     LoanPayment?
+  
+  // Link to investment transaction if this transaction is investment-related
+  investmentTransaction InvestmentTransaction?
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  @@map("transactions")
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+enum TransactionStatus {
+  SUCCESS
+  FAILED
+  PENDING
+}
+
+enum TransactionSource {
+  MANUAL
+  SMS
+  EMAIL
+  BANK_STATEMENT
+}
+
+enum BillFrequency {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  HALF_YEARLY
+  YEARLY
+}
+
+enum BillStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum GoalType {
+  SAVINGS
+  DEBT_PAYOFF
+  INVESTMENT
+  EMERGENCY_FUND
+  EDUCATION
+  HOUSE
+  VACATION
+  RETIREMENT
+  OTHER
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+  CANCELLED
+}
+
+enum LoanType {
+  HOME_LOAN
+  PERSONAL_LOAN
+  CAR_LOAN
+  EDUCATION_LOAN
+  CREDIT_CARD
+  BUSINESS_LOAN
+  GOLD_LOAN
+  OTHER
+}
+
+enum LoanPaymentType {
+  EMI
+  PREPAYMENT
+  PARTIAL_PAYMENT
+  INTEREST_ONLY
+}
+
+model Bill {
+  id          String        @id @default(cuid())
+  name        String
+  amount      Float
+  frequency   BillFrequency
+  description String?
+  isActive    Boolean       @default(true)
+  
+  categoryId  String
+  category    Category      @relation(fields: [categoryId], references: [id])
+  
+  // Next due date for generating instances
+  nextDueDate DateTime
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  instances   BillInstance[]
+  
+  @@map("bills")
+}
+
+model BillInstance {
+  id          String      @id @default(cuid())
+  dueDate     DateTime
+  amount      Float
+  status      BillStatus  @default(PENDING)
+  paidDate    DateTime?
+  notes       String?
+  
+  billId      String
+  bill        Bill        @relation(fields: [billId], references: [id], onDelete: Cascade)
+  
+  // Link to transaction when paid
+  transactionId String?   @unique
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@map("bill_instances")
+}
+
+model FinancialGoal {
+  id            String            @id @default(cuid())
+  name          String
+  description   String?
+  goalType      GoalType
+  targetAmount  Float
+  currentAmount Float             @default(0)
+  targetDate    DateTime?
+  status        GoalStatus        @default(ACTIVE)
+  categoryId    String?
+  category      Category?         @relation(fields: [categoryId], references: [id])
+  contributions GoalContribution[]
+  investments   Investment[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@map("financial_goals")
+}
+
+model GoalContribution {
+  id        String        @id @default(cuid())
+  goalId    String
+  goal      FinancialGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  amount    Float
+  note      String?
+  transactionId String?   @unique
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+  createdAt DateTime      @default(now())
+
+  @@map("goal_contributions")
+}
+
+model Loan {
+  id              String        @id @default(cuid())
+  name            String
+  loanType        LoanType
+  principalAmount Float
+  currentBalance  Float
+  interestRate    Float
+  emiAmount       Float
+  tenure          Int           // in months
+  startDate       DateTime
+  endDate         DateTime?
+  description     String?
+  categoryId      String?
+  category        Category?     @relation(fields: [categoryId], references: [id])
+  payments        LoanPayment[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("loans")
+}
+
+model LoanPayment {
+  id            String          @id @default(cuid())
+  loanId        String
+  loan          Loan            @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  amount        Float
+  paymentType   LoanPaymentType @default(EMI)
+  principalPaid Float
+  interestPaid  Float
+  note          String?
+  transactionId String?         @unique
+  transaction   Transaction?    @relation(fields: [transactionId], references: [id])
+  paymentDate   DateTime        @default(now())
+  createdAt     DateTime        @default(now())
+
+  @@map("loan_payments")
+}
+
+// Investment Management Models
+enum AssetClass {
+  STOCKS
+  MUTUAL_FUNDS
+  CRYPTO
+  REAL_ESTATE
+  GOLD
+  BONDS
+  PPF
+  EPF
+  NSC
+  ELSS
+  FD
+  RD
+  ETF
+  OTHER
+}
+
+enum InvestmentPlatform {
+  ZERODHA
+  GROWW
+  ANGEL_ONE
+  UPSTOX
+  PAYTM_MONEY
+  KUVERA
+  COIN_DCBBANK
+  HDFC_SECURITIES
+  ICICI_DIRECT
+  KOTAK_SECURITIES
+  SBI_SECURITIES
+  BANK_BRANCH
+  POST_OFFICE
+  OTHER
+}
+
+enum InvestmentTransactionType {
+  BUY
+  SELL
+  DIVIDEND
+  BONUS
+  SPLIT
+  SIP_INSTALLMENT
+  INTEREST
+  MATURITY
+}
+
+enum SIPStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum SIPFrequency {
+  MONTHLY
+  QUARTERLY
+  WEEKLY
+  YEARLY
+}
+
+model Investment {
+  id              String            @id @default(cuid())
+  name            String
+  symbol          String?           // Stock symbol, mutual fund code, etc.
+  assetClass      AssetClass
+  platform        InvestmentPlatform
+  quantity        Float             @default(0)
+  averagePrice    Float             @default(0)
+  currentPrice    Float             @default(0)
+  totalInvested   Float             @default(0)
+  currentValue    Float             @default(0)
+  purchaseDate    DateTime?
+  description     String?
+  isActive        Boolean           @default(true)
+  
+  // Goal linking
+  goalId          String?
+  goal            FinancialGoal?    @relation(fields: [goalId], references: [id])
+  
+  // Category for transaction linking
+  categoryId      String?
+  category        Category?         @relation(fields: [categoryId], references: [id])
+  
+  transactions    InvestmentTransaction[]
+  sips            SIP[]
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  @@map("investments")
+}
+
+model InvestmentTransaction {
+  id              String                    @id @default(cuid())
+  investmentId    String
+  investment      Investment                @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+  
+  type            InvestmentTransactionType
+  quantity        Float
+  price           Float
+  amount          Float
+  fees            Float                     @default(0)
+  tax             Float                     @default(0)
+  date            DateTime
+  notes           String?
+  
+  // Link to main transaction if this affects cash flow
+  transactionId   String?                   @unique
+  transaction     Transaction?              @relation(fields: [transactionId], references: [id])
+  
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  
+  @@map("investment_transactions")
+}
+
+model SIP {
+  id              String        @id @default(cuid())
+  investmentId    String
+  investment      Investment    @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+  
+  name            String
+  amount          Float
+  frequency       SIPFrequency
+  startDate       DateTime
+  endDate         DateTime?
+  nextDate        DateTime
+  status          SIPStatus     @default(ACTIVE)
+  installmentsPaid Int          @default(0)
+  totalInstallments Int?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@map("sips")
+}

@@ -1,0 +1,37 @@
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Development
+  postgres-dev:
+    image: postgres:15-alpine
+    container_name: finplanner-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: finplanner_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - finplanner-dev-network
+
+  # Redis for Development
+  redis-dev:
+    image: redis:7-alpine
+    container_name: finplanner-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    networks:
+      - finplanner-dev-network
+
+volumes:
+  postgres_dev_data:
+    driver: local
+
+networks:
+  finplanner-dev-network:
+    driver: bridge

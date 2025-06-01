@@ -1,0 +1,169 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Professional styling enhancements */
+.professional-gradient {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+}
+
+.professional-card {
+  @apply bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-200;
+}
+
+.professional-button-primary {
+  @apply bg-professional-blue hover:bg-professional-blue-dark text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200;
+}
+
+.professional-button-secondary {
+  @apply bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-4 py-2 rounded-lg transition-colors duration-200;
+}
+
+.professional-text-primary {
+  @apply text-slate-900;
+}
+
+.professional-text-secondary {
+  @apply text-slate-600;
+}
+
+.professional-text-muted {
+  @apply text-slate-500;
+}
+
+/* Chart and visualization enhancements */
+.chart-container {
+  @apply bg-white p-6 rounded-lg border border-slate-200 shadow-sm;
+}
+
+/* Income/Expense color coding */
+.income-color {
+  @apply text-emerald-600;
+}
+
+.expense-color {
+  @apply text-red-600;
+}
+
+.neutral-color {
+  @apply text-slate-600;
+}
+
+/* Professional status badges */
+.status-success {
+  @apply bg-emerald-100 text-emerald-800 border-emerald-200;
+}
+
+.status-pending {
+  @apply bg-orange-100 text-orange-800 border-orange-200;
+}
+
+.status-failed {
+  @apply bg-red-100 text-red-800 border-red-200;
+}
+
+/* Enhanced hover effects */
+.hover-lift {
+  @apply transition-transform duration-200 hover:-translate-y-1;
+}
+
+.hover-shadow {
+  @apply transition-shadow duration-200 hover:shadow-lg;
+}
+
+/* Professional form styling */
+.form-input {
+  @apply border-slate-300 focus:border-professional-blue focus:ring-professional-blue;
+}
+
+.form-label {
+  @apply text-slate-700 font-medium;
+}
+
+/* Loading states */
+.skeleton {
+  @apply animate-pulse bg-slate-200 rounded;
+}
+
+/* Professional spacing */
+.section-spacing {
+  @apply py-8 px-4;
+}
+
+.card-spacing {
+  @apply p-6;
+}
+
+/* Responsive text sizing */
+.heading-xl {
+  @apply text-3xl font-bold text-slate-900;
+}
+
+.heading-lg {
+  @apply text-2xl font-semibold text-slate-900;
+}
+
+.heading-md {
+  @apply text-xl font-semibold text-slate-900;
+}
+
+.heading-sm {
+  @apply text-lg font-medium text-slate-900;
+}

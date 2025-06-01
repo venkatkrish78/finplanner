@@ -1,0 +1,112 @@
+yarn run v1.22.22
+$ next dev
+  ▲ Next.js 14.2.28
+  - Local:        http://localhost:3000
+  - Environments: .env
+  - Experiments (use with caution):
+    · outputFileTracingRoot
+
+ ✓ Starting...
+ ✓ Ready in 1752ms
+ ✓ Compiled /api/goals/stats in 248ms (58 modules)
+ GET /api/goals/stats 200 in 479ms
+ ✓ Compiled /api/loans/stats in 153ms (60 modules)
+ GET /api/loans/stats 200 in 204ms
+ ○ Compiling / ...
+ ✓ Compiled / in 3.3s (3089 modules)
+ GET / 200 in 3792ms
+ ✓ Compiled in 581ms (1532 modules)
+ ○ Compiling /goals ...
+ ✓ Compiled /goals in 1151ms (3117 modules)
+ GET /goals 200 in 1302ms
+ ○ Compiling /loans ...
+ ✓ Compiled /loans in 601ms (3141 modules)
+ GET /loans 200 in 678ms
+ ✓ Compiled /api/categories in 237ms (1593 modules)
+ POST /api/categories 200 in 296ms
+ POST /api/categories 200 in 23ms
+ POST /api/categories 200 in 21ms
+ GET / 200 in 137ms
+ ✓ Compiled /api/loans in 310ms (1595 modules)
+ ✓ Compiled (1601 modules)
+ GET /api/loans/stats 200 in 671ms
+ GET /api/goals/stats 200 in 691ms
+ GET /api/bills/instances?upcoming=true 200 in 712ms
+ GET /api/loans 200 in 720ms
+ GET /api/goals?status=ACTIVE 200 in 731ms
+ GET /api/transactions/stats 200 in 741ms
+ GET /api/categories 200 in 99ms
+ ✓ Compiled /api/transactions in 227ms (1603 modules)
+ GET /api/loans/stats 200 in 493ms
+ GET /api/goals/stats 200 in 492ms
+ GET /api/bills/instances?overdue=true 200 in 494ms
+ GET /api/transactions?page=1&limit=20 200 in 546ms
+ GET /api/bills/instances?upcoming=true 200 in 519ms
+ GET /api/goals?status=ACTIVE 200 in 475ms
+ GET /api/loans 200 in 58ms
+ GET /api/categories 200 in 67ms
+ GET /api/transactions/stats 200 in 73ms
+ GET /api/transactions?page=1&limit=20 200 in 65ms
+ GET /api/bills/instances?overdue=true 200 in 24ms
+ GET /goals 200 in 56ms
+ GET /api/goals 200 in 32ms
+ GET /api/goals/stats 200 in 39ms
+ GET /api/goals 200 in 32ms
+ GET /api/goals/stats 200 in 33ms
+ GET /loans 200 in 44ms
+ GET /api/loans 200 in 30ms
+ GET /api/loans/stats 200 in 35ms
+ GET /api/loans 200 in 25ms
+ GET /api/loans/stats 200 in 28ms
+ POST /api/goals 201 in 31ms
+ POST /api/goals 201 in 25ms
+ ✓ Compiled /api/goals/contributions in 202ms (1605 modules)
+ POST /api/goals/contributions 201 in 258ms
+ POST /api/goals/contributions 201 in 28ms
+ POST /api/loans 201 in 29ms
+ POST /api/loans 201 in 27ms
+ ✓ Compiled /api/loans/payments in 226ms (1607 modules)
+ POST /api/loans/payments 201 in 298ms
+ GET /goals 200 in 56ms
+ GET /api/goals 200 in 42ms
+ GET /api/goals/stats 200 in 43ms
+ GET /api/goals 200 in 29ms
+ GET /api/goals/stats 200 in 33ms
+ GET /loans 200 in 47ms
+ GET /api/loans 200 in 39ms
+ GET /api/loans/stats 200 in 48ms
+ GET /api/loans 200 in 37ms
+ GET /api/loans/stats 200 in 37ms
+ GET / 200 in 73ms
+ GET /api/goals/stats 200 in 63ms
+ GET /api/loans 200 in 64ms
+ GET /api/bills/instances?upcoming=true 200 in 66ms
+ GET /api/goals?status=ACTIVE 200 in 78ms
+ GET /api/loans/stats 200 in 82ms
+ GET /api/transactions/stats 200 in 89ms
+ GET /api/categories 200 in 58ms
+ GET /api/transactions?page=1&limit=20 200 in 81ms
+ GET /api/goals/stats 200 in 69ms
+ GET /api/bills/instances?overdue=true 200 in 83ms
+ GET /api/bills/instances?upcoming=true 200 in 67ms
+ GET /api/loans 200 in 83ms
+ GET /api/goals?status=ACTIVE 200 in 69ms
+ GET /api/loans/stats 200 in 59ms
+ GET /api/transactions/stats 200 in 71ms
+ GET /api/categories 200 in 67ms
+ GET /api/transactions?page=1&limit=20 200 in 64ms
+ GET /api/bills/instances?overdue=true 200 in 24ms
+ ✓ Compiled /api/loans/calculator in 274ms (1609 modules)
+ POST /api/loans/calculator 200 in 337ms
+ ✓ Compiled /api/goals/calculator in 248ms (1611 modules)
+ POST /api/goals/calculator 200 in 295ms
+ ○ Compiling /bills ...
+ ✓ Compiled /bills in 1122ms (3191 modules)
+ GET /bills 200 in 1278ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 799ms (3194 modules)
+ GET /transactions 404 in 852ms
+ GET /api/goals/stats 200 in 33ms
+ GET /api/loans/stats 200 in 26ms
+ ✓ Compiled in 488ms (1578 modules)
+[?25h

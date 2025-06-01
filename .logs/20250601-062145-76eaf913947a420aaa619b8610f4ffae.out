@@ -1,0 +1,10 @@
+yarn install v1.22.22
+[1/4] Resolving packages...
+success Already up-to-date.
+Done in 0.70s.
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+yarn run v1.22.22
+$ next dev
+[?25h
+Done in 0.63s.

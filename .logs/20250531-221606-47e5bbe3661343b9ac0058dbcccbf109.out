@@ -1,0 +1,199 @@
+yarn run v1.22.22
+$ next dev
+  ▲ Next.js 14.2.28
+  - Local:        http://localhost:3000
+  - Environments: .env
+  - Experiments (use with caution):
+    · outputFileTracingRoot
+
+ ✓ Starting...
+ ✓ Ready in 1803ms
+ ○ Compiling / ...
+ ✓ Compiled / in 6.2s (3108 modules)
+ GET / 200 in 6720ms
+ ✓ Compiled in 673ms (1555 modules)
+ ○ Compiling /api/loans/stats ...
+ ✓ Compiled /api/loans/stats in 3.3s (1578 modules)
+ ✓ Compiled (1588 modules)
+ GET /api/bills/instances?upcoming=true 200 in 3848ms
+ GET /api/goals?status=ACTIVE 200 in 3854ms
+ GET /api/loans 200 in 3855ms
+ GET /api/loans/stats 200 in 3853ms
+ GET /api/goals/stats 200 in 3863ms
+ GET /api/transactions/stats 200 in 3885ms
+ ✓ Compiled /api/transactions in 212ms (1590 modules)
+ ✓ Compiled (1594 modules)
+ GET /api/bills/instances?overdue=true 200 in 477ms
+ GET /api/bills/instances?upcoming=true 200 in 492ms
+ GET /api/loans 200 in 473ms
+ GET /api/investments/portfolio 200 in 524ms
+ GET /api/categories 200 in 519ms
+ GET /api/transactions?page=1&limit=20 200 in 521ms
+ GET /api/loans/stats 200 in 65ms
+ GET /api/goals?status=ACTIVE 200 in 74ms
+ GET /api/goals/stats 200 in 75ms
+ GET /api/bills/instances?overdue=true 200 in 77ms
+ GET /api/transactions/stats 200 in 89ms
+ GET /api/investments/portfolio 200 in 86ms
+ GET /api/categories 200 in 40ms
+ GET /api/transactions?page=1&limit=20 200 in 50ms
+ GET /api/categories 200 in 22ms
+ GET /api/transactions 200 in 26ms
+ ✓ Compiled /api/investments in 184ms (1596 modules)
+ GET /api/investments 200 in 225ms
+ GET /api/investments/portfolio 200 in 24ms
+ ✓ Compiled /api/bills in 243ms (1598 modules)
+ GET /api/bills 200 in 292ms
+ GET /api/goals 200 in 26ms
+ GET /api/loans 200 in 27ms
+ ○ Compiling /investments ...
+ ✓ Compiled /investments in 1172ms (3185 modules)
+ GET /investments 200 in 1326ms
+ ✓ Compiled /api/investments/sips in 212ms (1623 modules)
+ GET /api/investments/sips 200 in 258ms
+ GET /api/transactions/stats 200 in 33ms
+ GET / 200 in 91ms
+ GET / 200 in 73ms
+ GET /api/loans 200 in 130ms
+ GET /api/bills/instances?upcoming=true 200 in 132ms
+ GET /api/goals/stats 200 in 146ms
+ GET /api/goals?status=ACTIVE 200 in 167ms
+ GET /api/transactions/stats 200 in 171ms
+ GET /api/loans/stats 200 in 169ms
+ GET /api/investments/portfolio 200 in 121ms
+ GET /api/categories 200 in 153ms
+ GET /api/transactions?page=1&limit=20 200 in 155ms
+ GET /api/bills/instances?overdue=true 200 in 188ms
+ GET /api/bills/instances?upcoming=true 200 in 196ms
+ GET /api/loans 200 in 200ms
+ GET /api/goals/stats 200 in 120ms
+ GET /api/goals?status=ACTIVE 200 in 148ms
+ GET /api/loans/stats 200 in 130ms
+ GET /api/investments/portfolio 200 in 128ms
+ GET /api/categories 200 in 130ms
+ GET /api/transactions/stats 200 in 163ms
+ GET /api/transactions?page=1&limit=20 200 in 52ms
+ GET /api/bills/instances?overdue=true 200 in 40ms
+ GET / 200 in 37ms
+ ○ Compiling /bills ...
+ ✓ Compiled /bills in 733ms (3217 modules)
+ GET /bills 200 in 849ms
+ ✓ Compiled /api/bills/stats in 206ms (1639 modules)
+ ✓ Compiled (1641 modules)
+ GET /api/bills/instances?upcoming=true 200 in 647ms
+ GET /api/bills 200 in 679ms
+ GET /api/bills/stats 200 in 687ms
+ GET /api/bills/instances?overdue=true 200 in 75ms
+ GET /api/bills/instances?upcoming=true 200 in 60ms
+ GET /api/bills 200 in 73ms
+ GET /api/bills/stats 200 in 72ms
+ GET /api/bills/instances?overdue=true 200 in 30ms
+ ○ Compiling /goals ...
+ ✓ Compiled /goals in 652ms (3251 modules)
+ GET /goals 200 in 760ms
+ GET /api/goals 200 in 40ms
+ GET /api/goals/stats 200 in 46ms
+ GET /api/goals 200 in 26ms
+ GET /api/goals/stats 200 in 31ms
+ ○ Compiling /loans ...
+ ✓ Compiled /loans in 1087ms (3253 modules)
+ GET /loans 200 in 1171ms
+ GET /api/loans 200 in 40ms
+ GET /api/loans/stats 200 in 45ms
+ GET /api/loans 200 in 39ms
+ GET /api/loans/stats 200 in 39ms
+ ✓ Compiled /investments in 302ms (1668 modules)
+ GET /investments 200 in 384ms
+ ✓ Compiled /api/investments in 238ms (1670 modules)
+ GET /api/investments/portfolio 200 in 617ms
+ GET /api/investments 200 in 619ms
+ GET /api/investments/portfolio 200 in 28ms
+ GET /api/investments 200 in 33ms
+ ✓ Compiled /_not-found in 472ms (3278 modules)
+ GET /transactions 404 in 521ms
+ ✓ Compiled in 431ms (1619 modules)
+ GET /transactions 404 in 141ms
+ ✓ Compiled in 922ms (3224 modules)
+ ○ Compiling /transactions ...
+ ✓ Compiled /transactions in 1238ms (3234 modules)
+ ✓ Compiled /api/categories in 306ms (1655 modules)
+ ✓ Compiled (1657 modules)
+ GET /api/transactions 200 in 643ms
+ GET /api/categories 200 in 644ms
+ GET /api/categories 200 in 37ms
+ GET /api/transactions 200 in 44ms
+ GET /transactions 200 in 142ms
+ GET /api/transactions 200 in 68ms
+ GET /api/categories 200 in 80ms
+ GET /api/transactions 200 in 60ms
+ GET /api/categories 200 in 65ms
+ GET /bills 200 in 68ms
+ ✓ Compiled /api/bills/stats in 282ms (1658 modules)
+ ✓ Compiled (1662 modules)
+ GET /api/bills 200 in 1008ms
+ GET /api/bills/instances?upcoming=true 200 in 1011ms
+ GET /api/bills/stats 200 in 1011ms
+ GET /api/bills 200 in 57ms
+ GET /api/bills/instances?upcoming=true 200 in 56ms
+ GET /api/bills/stats 200 in 59ms
+ GET /api/bills/instances?overdue=true 200 in 59ms
+ GET /api/bills/instances?overdue=true 200 in 25ms
+ GET /api/bills/stats 200 in 26ms
+ GET /bills 200 in 71ms
+ GET /api/bills/instances?upcoming=true 200 in 43ms
+ GET /api/bills 200 in 50ms
+ GET /api/bills/stats 200 in 50ms
+ GET /api/bills/instances?overdue=true 200 in 28ms
+ GET /api/bills/instances?upcoming=true 200 in 37ms
+ GET /api/bills 200 in 46ms
+ GET /api/bills/stats 200 in 48ms
+ GET /api/bills/instances?overdue=true 200 in 22ms
+ ✓ Compiled /api/investments/calculators/sip in 303ms (1664 modules)
+ GET /api/investments/calculators/sip 405 in 357ms
+ POST /api/investments/calculators/sip 400 in 24ms
+ POST /api/investments/calculators/sip 200 in 24ms
+ ✓ Compiled /api/investments/calculators/growth in 301ms (1662 modules)
+ POST /api/investments/calculators/growth 200 in 354ms
+ ✓ Compiled /api/investments in 251ms (1664 modules)
+ POST /api/investments 500 in 304ms
+ POST /api/investments 201 in 30ms
+ ✓ Compiled /api/transactions in 236ms (1666 modules)
+ POST /api/transactions 200 in 284ms
+ GET / 200 in 153ms
+ GET /bills 200 in 51ms
+ GET /goals 200 in 45ms
+ GET /loans 200 in 45ms
+ GET /investments 200 in 47ms
+ GET /transactions 200 in 42ms
+ ✓ Compiled /api/goals in 268ms (1662 modules)
+ GET /api/goals 200 in 318ms
+ ✓ Compiled /api/loans in 229ms (1664 modules)
+ GET /api/loans 200 in 289ms
+ ✓ Compiled /api/investments/portfolio in 225ms (1666 modules)
+ GET /api/investments/portfolio 200 in 272ms
+ GET / 200 in 91ms
+ ✓ Compiled /api/loans/stats in 438ms (1666 modules)
+ ✓ Compiled (1672 modules)
+ GET /api/loans 200 in 956ms
+ GET /api/bills/instances?upcoming=true 200 in 961ms
+ GET /api/loans/stats 200 in 971ms
+ GET /api/goals/stats 200 in 973ms
+ GET /api/goals?status=ACTIVE 200 in 975ms
+ GET /api/transactions/stats 200 in 987ms
+ ✓ Compiled /api/categories in 346ms (1674 modules)
+ GET /api/transactions?page=1&limit=20 200 in 676ms
+ GET /api/investments/portfolio 200 in 678ms
+ GET /api/bills/instances?upcoming=true 200 in 668ms
+ GET /api/loans 200 in 670ms
+ GET /api/bills/instances?overdue=true 200 in 675ms
+ GET /api/categories 200 in 703ms
+ GET /api/goals?status=ACTIVE 200 in 74ms
+ GET /api/goals/stats 200 in 77ms
+ GET /api/transactions/stats 200 in 90ms
+ GET /api/loans/stats 200 in 81ms
+ GET /api/investments/portfolio 200 in 94ms
+ GET /api/transactions?page=1&limit=20 200 in 91ms
+ GET /api/categories 200 in 44ms
+ GET /api/bills/instances?overdue=true 200 in 58ms
+ ✓ Compiled in 876ms (3279 modules)
+[?25h

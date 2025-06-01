@@ -1,0 +1,43 @@
+yarn run v1.22.22
+$ next dev
+  ▲ Next.js 14.2.28
+  - Local:        http://localhost:3000
+  - Environments: .env
+  - Experiments (use with caution):
+    · outputFileTracingRoot
+
+ ✓ Starting...
+ ✓ Ready in 2.4s
+ ○ Compiling / ...
+ ✓ Compiled / in 6s (3028 modules)
+ GET / 200 in 6461ms
+ GET / 200 in 6540ms
+ ✓ Compiled in 617ms (1515 modules)
+ GET / 200 in 82ms
+ ✓ Compiled /api/transactions in 383ms (1538 modules)
+ ✓ Compiled (1542 modules)
+ GET /api/categories 200 in 801ms
+ GET /api/transactions?page=1&limit=20 200 in 770ms
+ GET /api/transactions/stats 200 in 816ms
+ GET /api/categories 200 in 20ms
+ GET /api/transactions?page=1&limit=20 200 in 29ms
+ GET /api/transactions/stats 200 in 35ms
+ GET /api/categories 200 in 20ms
+ GET /api/categories 200 in 16ms
+ ✓ Compiled in 1089ms (3021 modules)
+ ✓ Compiled in 1010ms (3021 modules)
+ ✓ Compiled in 470ms (1515 modules)
+ ✓ Compiled in 261ms (1515 modules)
+ ✓ Compiled in 1041ms (3021 modules)
+ ✓ Compiled in 474ms (3025 modules)
+ ✓ Compiled in 473ms (3025 modules)
+ ✓ Compiled in 405ms (3025 modules)
+ ✓ Compiled in 494ms (3025 modules)
+ ✓ Compiled in 446ms (3025 modules)
+ ✓ Compiled in 412ms (3025 modules)
+ ✓ Compiled in 569ms (3037 modules)
+ ✓ Compiled in 807ms (3037 modules)
+ ✓ Compiled /api/bills/generate in 246ms (1547 modules)
+ ✓ Compiled /api/bills/[id] in 149ms (1549 modules)
+ POST /api/bills/generate 405 in 765ms
+[?25h

@@ -1,0 +1,49 @@
+{
+  "name": "finplanner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A comprehensive personal finance management application",
+  "keywords": ["finance", "budgeting", "expense-tracker", "investment", "nextjs"],
+  "author": "FinPlanner Team",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:reset": "prisma migrate reset",
+    "db:push": "prisma db push",
+    "db:pull": "prisma db pull",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio",
+    "db:backup": "pg_dump $DATABASE_URL > backup-$(date +%Y%m%d-%H%M%S).sql",
+    "docker:build": "docker build -t finplanner .",
+    "docker:run": "docker run -p 3000:3000 finplanner",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "deploy:prod": "npm run build && npm run db:migrate:deploy",
+    "deploy:staging": "NODE_ENV=staging npm run build && npm run db:migrate:deploy",
+    "health-check": "curl -f http://localhost:3000/api/health || exit 1",
+    "clean": "rm -rf .next node_modules/.cache",
+    "analyze": "ANALYZE=true npm run build",
+    "export": "next export",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  }
+}

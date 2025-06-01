@@ -1,0 +1,63 @@
+yarn run v1.22.22
+$ next dev
+  ▲ Next.js 14.2.28
+  - Local:        http://localhost:3000
+  - Environments: .env
+  - Experiments (use with caution):
+    · outputFileTracingRoot
+
+ ✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+ ✓ Ready in 1293ms
+ ✓ Compiled /api/categories/seed in 332ms (59 modules)
+ POST /api/categories/seed 200 in 565ms
+ ✓ Compiled /api/categories in 86ms (61 modules)
+ GET /api/categories 200 in 119ms
+ ✓ Compiled /api/transactions/stats in 70ms (63 modules)
+ GET /api/transactions/stats 200 in 148ms
+ ○ Compiling / ...
+ ✓ Compiled / in 6.2s (3065 modules)
+ GET / 200 in 6674ms
+ ✓ Compiled in 613ms (1515 modules)
+ GET /api/categories 200 in 59ms
+ GET /api/transactions/stats 200 in 66ms
+ ○ Compiling /api/transactions ...
+ ✓ Compiled /api/transactions in 2.9s (1545 modules)
+ GET /api/categories 200 in 3058ms
+ GET /api/transactions?page=1&limit=20 200 in 3136ms
+ GET /api/transactions/stats 200 in 3053ms
+ GET /api/transactions?page=1&limit=20 200 in 17ms
+ ✓ Compiled /api/transactions/parse in 182ms (1548 modules)
+ POST /api/transactions/parse 200 in 227ms
+ POST /api/transactions 500 in 23ms
+ GET /api/categories 200 in 15ms
+ POST /api/transactions 500 in 20ms
+ GET /api/categories 200 in 17ms
+ POST /api/transactions 200 in 19ms
+ POST /api/transactions 500 in 19ms
+ GET /api/categories 200 in 14ms
+ POST /api/transactions 200 in 19ms
+ GET /api/categories 200 in 15ms
+ POST /api/transactions 200 in 16ms
+ GET /api/categories 200 in 13ms
+ POST /api/transactions 200 in 17ms
+ GET /api/categories 200 in 13ms
+ POST /api/transactions 200 in 16ms
+ GET /api/transactions/stats 200 in 25ms
+ GET / 200 in 136ms
+ ✓ Compiled /api/transactions/export in 200ms (1548 modules)
+ GET /api/transactions/export 200 in 267ms
+ POST /api/transactions/parse 200 in 18ms
+ POST /api/transactions/parse 200 in 14ms
+ POST /api/transactions/parse 200 in 13ms
+ ✓ Compiled in 496ms (3051 modules)
+ ✓ Compiled in 763ms (3063 modules)
+ ✓ Compiled in 445ms (3063 modules)
+ ✓ Compiled in 149ms (1544 modules)
+ ✓ Compiled in 153ms (1542 modules)
+ ✓ Compiled in 169ms (1540 modules)
+[?25h

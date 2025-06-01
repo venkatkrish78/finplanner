@@ -1,0 +1,77 @@
+yarn run v1.22.22
+$ next build
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+  ▲ Next.js 14.2.28
+  - Experiments (use with caution):
+    · outputFileTracingRoot
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Skipping linting
+   Checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/8) ...
+   Generating static pages (2/8) 
+   Generating static pages (4/8) 
+   Generating static pages (6/8) 
+ ✓ Generating static pages (8/8)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    45.4 kB         281 kB
+├ ○ /_not-found                          873 B          88.1 kB
+├ ƒ /api/bills                           0 B                0 B
+├ ƒ /api/bills/[id]                      0 B                0 B
+├ ƒ /api/bills/analytics                 0 B                0 B
+├ ƒ /api/bills/export                    0 B                0 B
+├ ƒ /api/bills/generate                  0 B                0 B
+├ ƒ /api/bills/instances                 0 B                0 B
+├ ƒ /api/bills/instances/[id]            0 B                0 B
+├ ƒ /api/bills/stats                     0 B                0 B
+├ ƒ /api/categories                      0 B                0 B
+├ ƒ /api/categories/seed                 0 B                0 B
+├ ƒ /api/goals                           0 B                0 B
+├ ƒ /api/goals/[id]                      0 B                0 B
+├ ƒ /api/goals/calculator                0 B                0 B
+├ ƒ /api/goals/contributions             0 B                0 B
+├ ƒ /api/goals/stats                     0 B                0 B
+├ ƒ /api/investments                     0 B                0 B
+├ ƒ /api/investments/[id]                0 B                0 B
+├ ƒ /api/investments/analytics           0 B                0 B
+├ ƒ /api/investments/calculators/growth  0 B                0 B
+├ ƒ /api/investments/calculators/sip     0 B                0 B
+├ ƒ /api/investments/portfolio           0 B                0 B
+├ ƒ /api/investments/sips                0 B                0 B
+├ ƒ /api/investments/sips/[id]           0 B                0 B
+├ ƒ /api/investments/transactions        0 B                0 B
+├ ƒ /api/investments/transactions/[id]   0 B                0 B
+├ ƒ /api/loans                           0 B                0 B
+├ ƒ /api/loans/[id]                      0 B                0 B
+├ ƒ /api/loans/amortization/[id]         0 B                0 B
+├ ƒ /api/loans/calculator                0 B                0 B
+├ ƒ /api/loans/payments                  0 B                0 B
+├ ƒ /api/loans/stats                     0 B                0 B
+├ ƒ /api/transactions                    0 B                0 B
+├ ƒ /api/transactions/[id]               0 B                0 B
+├ ƒ /api/transactions/export             0 B                0 B
+├ ƒ /api/transactions/parse              0 B                0 B
+├ ƒ /api/transactions/stats              0 B                0 B
+├ ○ /bills                               10.3 kB         249 kB
+├ ○ /goals                               10.3 kB         169 kB
+├ ○ /investments                         11 kB           247 kB
+└ ○ /loans                               11.7 kB         171 kB
++ First Load JS shared by all            87.2 kB
+  ├ chunks/364-bed91d5074fddfb0.js       31.6 kB
+  ├ chunks/618f8807-f0b02fe8dc831021.js  53.6 kB
+  └ other shared chunks (total)          2.02 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+Done in 35.15s.

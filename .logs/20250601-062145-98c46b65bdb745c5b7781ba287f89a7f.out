@@ -1,0 +1,113 @@
+yarn install v1.22.22
+[1/4] Resolving packages...
+success Already up-to-date.
+Done in 0.68s.
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+
+✔ Generated Prisma Client (v6.7.0) to ./../node_modules/.prisma/client in 517ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
+
+yarn run v1.22.22
+$ next dev
+  ▲ Next.js 14.2.28
+  - Local:        http://localhost:3000
+  - Environments: .env
+  - Experiments (use with caution):
+    · outputFileTracingRoot
+
+ ✓ Starting...
+ ✓ Ready in 1985ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.9s (1279 modules)
+ GET / 200 in 3366ms
+ ✓ Compiled in 576ms (645 modules)
+ GET / 200 in 111ms
+ GET / 200 in 123ms
+ GET / 200 in 42ms
+ ✓ Compiled /api/investments in 306ms (666 modules)
+ ✓ Compiled (674 modules)
+ GET /api/loans 200 in 740ms
+ GET /api/investments 200 in 724ms
+ GET /api/bills 200 in 733ms
+ GET /api/transactions 200 in 745ms
+ GET /api/goals 200 in 757ms
+ GET /api/goals 200 in 49ms
+ GET /api/loans 200 in 54ms
+ GET /api/bills 200 in 58ms
+ GET /api/investments 200 in 64ms
+ GET /api/transactions 200 in 60ms
+ ○ Compiling /transactions ...
+ ✓ Compiled /transactions in 1547ms (3057 modules)
+ ✓ Compiled /api/categories in 204ms (1552 modules)
+ GET /api/transactions 200 in 425ms
+ GET /api/categories 200 in 443ms
+ GET /api/categories 200 in 27ms
+ GET /api/transactions 200 in 32ms
+ ○ Compiling /bills ...
+ ✓ Compiled /bills in 625ms (3071 modules)
+ GET /api/bills 200 in 42ms
+ ✓ Compiled /api/bills/stats in 197ms (1561 modules)
+ GET /api/bills/stats 200 in 251ms
+ GET /api/bills 200 in 26ms
+ GET /api/bills/stats 200 in 28ms
+ ✓ Compiled /goals in 421ms (3081 modules)
+ GET /api/goals 200 in 30ms
+ GET /api/goals 200 in 27ms
+ ○ Compiling /loans ...
+ ✓ Compiled /loans in 596ms (3091 modules)
+ GET /api/loans 200 in 28ms
+ GET /api/loans 200 in 25ms
+ ✓ Compiled /investments in 463ms (3101 modules)
+ GET /api/investments 200 in 29ms
+ ✓ Compiled /api/investments/portfolio in 209ms (1580 modules)
+ GET /api/investments/portfolio 200 in 270ms
+ GET /api/investments 200 in 25ms
+ GET /api/investments/portfolio 200 in 26ms
+ GET / 200 in 125ms
+ GET /api/investments 200 in 44ms
+ GET /api/bills 200 in 62ms
+ GET /api/goals 200 in 63ms
+ GET /api/loans 200 in 64ms
+ GET /api/transactions 200 in 75ms
+ GET /api/investments 200 in 28ms
+ GET /api/goals 200 in 46ms
+ GET /api/bills 200 in 48ms
+ GET /api/transactions 200 in 49ms
+ GET /api/loans 200 in 54ms
+ GET /api/transactions 200 in 39ms
+ GET /api/categories 200 in 47ms
+ GET /api/transactions 200 in 33ms
+ GET /api/categories 200 in 31ms
+ GET /api/categories 200 in 32ms
+ GET / 200 in 44ms
+ ✓ Compiled in 1170ms (3064 modules)
+ ✓ Compiled in 633ms (3064 modules)
+ ✓ Compiled in 611ms (3064 modules)
+ ✓ Compiled in 769ms (3064 modules)
+ ✓ Compiled in 1316ms (3070 modules)
+ ✓ Compiled in 907ms (3070 modules)
+ ✓ Compiled in 572ms (3070 modules)
+ ✓ Compiled in 545ms (3070 modules)
+ ✓ Compiled in 666ms (3070 modules)
+ ✓ Compiled in 758ms (3072 modules)
+ ✓ Compiled in 487ms (1539 modules)
+ ✓ Compiled in 519ms (1539 modules)
+ ✓ Compiled in 387ms (1539 modules)
+ ✓ Compiled in 401ms (1539 modules)
+ ✓ Compiled in 717ms (1540 modules)
+ ✓ Compiled in 785ms (3073 modules)
+ ✓ Compiled in 670ms (3073 modules)
+ ✓ Compiled in 536ms (3073 modules)
+ ✓ Compiled in 506ms (3073 modules)
+ ✓ Compiled in 858ms (3075 modules)
+ ✓ Compiled in 589ms (3075 modules)
+ ✓ Compiled in 645ms (3075 modules)
+ ✓ Compiled in 512ms (3075 modules)
+ ✓ Compiled in 409ms (1541 modules)
+ ✓ Compiled in 470ms (1541 modules)
+ ✓ Compiled in 342ms (1541 modules)
+[?25h

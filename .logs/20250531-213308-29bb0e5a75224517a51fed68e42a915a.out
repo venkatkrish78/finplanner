@@ -1,0 +1,125 @@
+yarn run v1.22.22
+$ next dev
+  ▲ Next.js 14.2.28
+  - Local:        http://localhost:3000
+  - Environments: .env
+  - Experiments (use with caution):
+    · outputFileTracingRoot
+
+ ✓ Starting...
+ ✓ Ready in 1635ms
+ ○ Compiling / ...
+ ✓ Compiled / in 3.1s (3037 modules)
+ GET / 200 in 3560ms
+ GET / 200 in 3609ms
+ ✓ Compiled in 605ms (1523 modules)
+ GET / 200 in 41ms
+ ✓ Compiled /api/bills/instances in 372ms (1546 modules)
+ ✓ Compiled (1552 modules)
+ GET /api/transactions?page=1&limit=20 200 in 834ms
+ GET /api/categories 200 in 833ms
+ GET /api/bills/instances?upcoming=true 200 in 833ms
+ GET /api/transactions/stats 200 in 855ms
+ GET /api/transactions?page=1&limit=20 200 in 30ms
+ GET /api/bills/instances?overdue=true 200 in 30ms
+ GET /api/bills/instances?upcoming=true 200 in 31ms
+ GET /api/categories 200 in 36ms
+ GET /api/transactions/stats 200 in 37ms
+ GET /api/bills/instances?overdue=true 200 in 17ms
+ ○ Compiling /bills ...
+ ✓ Compiled /bills in 871ms (3101 modules)
+ ✓ Compiled /api/bills in 179ms (1574 modules)
+ ✓ Compiled (1576 modules)
+ GET /api/bills 200 in 468ms
+ GET /api/bills/instances?upcoming=true 200 in 470ms
+ GET /api/bills/stats 200 in 476ms
+ GET /api/bills/instances?upcoming=true 200 in 16ms
+ GET / 200 in 130ms
+ GET / 200 in 30ms
+ GET / 200 in 30ms
+ GET /api/categories 200 in 31ms
+ GET /api/bills/instances?upcoming=true 200 in 46ms
+ GET /api/transactions?page=1&limit=20 200 in 43ms
+ GET /api/transactions/stats 200 in 53ms
+ GET /api/bills/instances?overdue=true 200 in 21ms
+ GET /api/categories 200 in 36ms
+ GET /api/transactions?page=1&limit=20 200 in 33ms
+ GET /api/transactions/stats 200 in 44ms
+ GET /api/bills/instances?upcoming=true 200 in 35ms
+ GET /api/bills/instances?overdue=true 200 in 16ms
+ ✓ Compiled /api/bills/instances/[id] in 191ms (1578 modules)
+ PUT /api/bills/instances/cmbcqydil000azmjja5iey2c9 200 in 507ms
+ GET /api/bills/instances?upcoming=true 200 in 17ms
+ GET /api/bills/instances?overdue=true 200 in 15ms
+ GET /api/bills/instances?upcoming=true 200 in 30ms
+ GET /api/bills/stats 200 in 33ms
+ GET /api/bills 200 in 38ms
+ GET /api/bills/stats 200 in 38ms
+ GET /api/bills/instances?overdue=true 200 in 19ms
+ GET /api/bills/instances?upcoming=true 200 in 22ms
+ GET /api/bills 200 in 17ms
+ GET /api/bills/instances?overdue=true 200 in 16ms
+ GET /api/categories 200 in 19ms
+ GET / 200 in 59ms
+ GET /api/bills/instances?upcoming=true 200 in 28ms
+ GET /api/categories 200 in 28ms
+ GET /api/transactions?page=1&limit=20 200 in 38ms
+ GET /api/transactions/stats 200 in 48ms
+ GET /api/bills/instances?upcoming=true 200 in 22ms
+ GET /api/categories 200 in 35ms
+ GET /api/bills/instances?overdue=true 200 in 35ms
+ GET /api/transactions/stats 200 in 42ms
+ GET /api/transactions?page=1&limit=20 200 in 39ms
+ GET /api/bills/instances?overdue=true 200 in 17ms
+ GET /api/categories 200 in 17ms
+ GET /api/bills/instances?upcoming=true 200 in 19ms
+ GET /api/bills/stats 200 in 30ms
+ GET /api/bills 200 in 29ms
+ GET /api/bills 200 in 25ms
+ GET /api/bills/instances?upcoming=true 200 in 25ms
+ GET /api/bills/instances?overdue=true 200 in 26ms
+ GET /api/bills/stats 200 in 30ms
+ GET /api/bills/instances?overdue=true 200 in 14ms
+ GET / 200 in 41ms
+ GET /api/transactions?page=1&limit=20 200 in 31ms
+ GET /api/categories 200 in 32ms
+ GET /api/transactions/stats 200 in 39ms
+ GET /api/bills/instances?upcoming=true 200 in 31ms
+ GET /api/bills/instances?upcoming=true 200 in 14ms
+ GET /api/bills/instances?overdue=true 200 in 24ms
+ GET /api/categories 200 in 27ms
+ GET /api/transactions?page=1&limit=20 200 in 27ms
+ GET /api/transactions/stats 200 in 36ms
+ GET /api/bills/instances?overdue=true 200 in 14ms
+ GET /api/bills 200 in 23ms
+ GET /api/bills/instances?upcoming=true 200 in 23ms
+ GET /api/bills/stats 200 in 29ms
+ GET /api/bills/instances?upcoming=true 200 in 17ms
+ GET /api/bills/instances?overdue=true 200 in 20ms
+ GET /api/bills 200 in 29ms
+ GET /api/bills/stats 200 in 27ms
+ GET /api/bills/instances?overdue=true 200 in 16ms
+ GET /api/bills/instances?month=6&year=2025 200 in 19ms
+ GET /api/bills/instances?month=6&year=2025 200 in 17ms
+ ✓ Compiled /api/bills/analytics in 329ms (1578 modules)
+ GET /api/bills/analytics 200 in 381ms
+ GET /api/bills/analytics 200 in 16ms
+ ✓ Compiled in 612ms (3063 modules)
+ ✓ Compiled in 866ms (3075 modules)
+ ✓ Compiled in 941ms (3075 modules)
+ ✓ Compiled in 890ms (3075 modules)
+ ✓ Compiled in 479ms (1541 modules)
+ ✓ Compiled in 280ms (1541 modules)
+ ✓ Compiled in 459ms (1541 modules)
+ ✓ Compiled in 277ms (1541 modules)
+ ✓ Compiled in 495ms (1541 modules)
+ ✓ Compiled in 294ms (1541 modules)
+ ✓ Compiled in 516ms (1541 modules)
+ ✓ Compiled in 280ms (1541 modules)
+ ✓ Compiled in 1328ms (3075 modules)
+ ✓ Compiled in 959ms (3079 modules)
+ ✓ Compiled in 420ms (1543 modules)
+ ✓ Compiled in 316ms (1543 modules)
+ ✓ Compiled in 923ms (3079 modules)
+ ✓ Compiled in 1027ms (3093 modules)
+[?25h

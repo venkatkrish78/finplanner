@@ -1,0 +1,93 @@
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: finplanner-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: finplanner
+      POSTGRES_USER: finplanner
+      POSTGRES_PASSWORD: finplanner_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - finplanner-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finplanner -d finplanner"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # FinPlanner Application
+  finplanner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: finplanner-app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://finplanner:finplanner_password@postgres:5432/finplanner
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=your-production-secret-key-change-this
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - finplanner-network
+    volumes:
+      - ./app/uploads:/app/uploads
+    command: >
+      sh -c "
+        npx prisma migrate deploy &&
+        npx prisma db seed &&
+        node server.js
+      "
+
+  # Redis (Optional - for caching and sessions)
+  redis:
+    image: redis:7-alpine
+    container_name: finplanner-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - finplanner-network
+    command: redis-server --appendonly yes
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    container_name: finplanner-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - finplanner
+    networks:
+      - finplanner-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  finplanner-network:
+    driver: bridge
