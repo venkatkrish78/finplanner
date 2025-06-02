@@ -65,6 +65,8 @@ enum TransactionType {
   INCOME
   EXPENSE
   TRANSFER
+  INVESTMENT_BUY
+  INVESTMENT_SELL
 }
 
 enum TransactionStatus {
@@ -78,6 +80,7 @@ enum TransactionSource {
   SMS
   EMAIL
   BANK_STATEMENT
+  BILL
 }
 
 enum BillFrequency {

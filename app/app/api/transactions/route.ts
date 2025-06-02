@@ -70,10 +70,13 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // Get all transaction sources
-    const [regularTransactions, billInstances, loanPayments, investmentTransactions] = await Promise.all([
+    // Get all transaction sources (excluding investment transactions)
+    const [regularTransactions, billInstances, loanPayments] = await Promise.all([
       prisma.transaction.findMany({
-        where: transactionWhere,
+        where: {
+          ...transactionWhere,
+          type: { notIn: ['INVESTMENT_BUY', 'INVESTMENT_SELL'] }
+        },
         include: {
           category: true
         }
@@ -96,17 +99,6 @@ export async function GET(request: NextRequest) {
         },
         include: { 
           loan: { include: { category: true } },
-          transaction: true 
-        }
-      }),
-      // Get investment transactions
-      prisma.investmentTransaction.findMany({
-        where: {
-          ...(Object.keys(dateFilter).length > 0 && { date: dateFilter }),
-          type: { in: ['BUY', 'SELL'] }
-        },
-        include: { 
-          investment: { include: { category: true } },
           transaction: true 
         }
       })
@@ -165,30 +157,8 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Add investment transactions that don't have corresponding transactions
-    investmentTransactions.forEach(invTxn => {
-      if (!invTxn.transaction) {
-        const investmentTransaction = {
-          id: `investment-${invTxn.id}`,
-          amount: invTxn.amount,
-          type: invTxn.type === 'BUY' ? 'EXPENSE' : 'INCOME' as const,
-          description: `Investment ${invTxn.type.toLowerCase()}: ${invTxn.investment.name}`,
-          merchant: invTxn.investment.name,
-          date: invTxn.date,
-          category: invTxn.investment.category,
-          categoryId: invTxn.investment.categoryId,
-          status: 'SUCCESS',
-          source: 'INVESTMENT',
-          transactionId: `INV-${invTxn.id}`,
-          accountNumber: null,
-          balance: null,
-          rawMessage: null,
-          createdAt: invTxn.createdAt,
-          updatedAt: invTxn.updatedAt
-        };
-        allTransactions.push(investmentTransaction);
-      }
-    });
+    // Note: Investment transactions are now handled separately and not included in regular transactions
+    // This prevents investment purchases from appearing as expenses in transaction lists and calculations
 
     // Apply additional filters to combined transactions
     let filteredTransactions = allTransactions;

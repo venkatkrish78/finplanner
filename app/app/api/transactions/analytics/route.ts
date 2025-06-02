@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       
       // Get all transactions including related transactions from bills, loans, investments
       const [incomeData, expenseData, billPayments, loanPayments, investmentTransactions] = await Promise.all([
-        // Regular income transactions
+        // Regular income transactions (excluding investment transactions)
         prisma.transaction.aggregate({
           where: {
             date: { gte: startOfMonth, lte: endOfMonth },
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
           _sum: { amount: true },
           _count: true
         }),
-        // Regular expense transactions
+        // Regular expense transactions (excluding investment transactions)
         prisma.transaction.aggregate({
           where: {
             date: { gte: startOfMonth, lte: endOfMonth },
@@ -65,21 +65,13 @@ export async function GET(request: NextRequest) {
         })
       ]);
       
-      // Calculate additional income/expenses from related transactions
+      // Calculate additional income/expenses from related transactions (excluding investments)
       let additionalIncome = 0;
       let additionalExpenses = 0;
       let additionalCount = 0;
 
-      // Add investment sell transactions as income (if not already counted)
-      investmentTransactions.forEach(invTxn => {
-        if (invTxn.type === 'SELL' && !invTxn.transaction) {
-          additionalIncome += invTxn.amount;
-          additionalCount++;
-        } else if (invTxn.type === 'BUY' && !invTxn.transaction) {
-          additionalExpenses += invTxn.amount;
-          additionalCount++;
-        }
-      });
+      // Note: Investment transactions are intentionally excluded from regular income/expense calculations
+      // They are tracked separately in investment-specific analytics
 
       // Add bill payments that might not be in regular transactions
       billPayments.forEach(bill => {
@@ -119,9 +111,12 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    // Get all transactions for the period
+    // Get all transactions for the period (excluding investment transactions)
     const transactions = await prisma.transaction.findMany({
-      where: dateFilter,
+      where: {
+        ...dateFilter,
+        type: { notIn: ['INVESTMENT_BUY', 'INVESTMENT_SELL'] }
+      },
       include: { category: true }
     });
 
@@ -191,20 +186,8 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Add investment transactions that don't have corresponding transactions
-    investmentTransactions.forEach(invTxn => {
-      if (!invTxn.transaction) {
-        allTransactionData.push({
-          id: `investment-${invTxn.id}`,
-          amount: invTxn.amount,
-          type: invTxn.type === 'BUY' ? 'EXPENSE' : 'INCOME' as const,
-          description: `Investment ${invTxn.type.toLowerCase()}: ${invTxn.investment.name}`,
-          date: invTxn.date,
-          category: invTxn.investment.category,
-          categoryId: invTxn.investment.categoryId
-        } as any);
-      }
-    });
+    // Note: Investment transactions are intentionally excluded from regular expense/income analytics
+    // They are tracked separately in investment-specific reports
 
     // Build category breakdown from all transaction data
     const categoryBreakdown = allTransactionData.reduce((acc: any[], transaction) => {

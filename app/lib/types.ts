@@ -19,7 +19,9 @@ export type Category = {
 export enum TransactionType {
   INCOME = 'INCOME',
   EXPENSE = 'EXPENSE',
-  TRANSFER = 'TRANSFER'
+  TRANSFER = 'TRANSFER',
+  INVESTMENT_BUY = 'INVESTMENT_BUY',
+  INVESTMENT_SELL = 'INVESTMENT_SELL'
 }
 
 export enum TransactionStatus {
@@ -32,7 +34,8 @@ export enum TransactionSource {
   MANUAL = 'MANUAL',
   SMS = 'SMS',
   EMAIL = 'EMAIL',
-  BANK_STATEMENT = 'BANK_STATEMENT'
+  BANK_STATEMENT = 'BANK_STATEMENT',
+  BILL = 'BILL'
 }
 
 export type Transaction = {

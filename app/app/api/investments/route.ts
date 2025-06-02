@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
 
     // Create initial buy transaction
     if (quantity > 0 && purchasePrice > 0) {
-      await prisma.investmentTransaction.create({
+      const investmentTransaction = await prisma.investmentTransaction.create({
         data: {
           investmentId: investment.id,
           type: 'BUY',
@@ -147,6 +147,26 @@ export async function POST(request: NextRequest) {
           date: purchaseDate ? new Date(purchaseDate) : new Date(),
           notes: 'Initial purchase'
         }
+      })
+
+      // Create corresponding main transaction for cash flow tracking
+      const mainTransaction = await prisma.transaction.create({
+        data: {
+          amount: totalInvested,
+          type: 'INVESTMENT_BUY',
+          description: `Investment purchase: ${name}`,
+          merchant: name,
+          date: purchaseDate ? new Date(purchaseDate) : new Date(),
+          categoryId: categoryId || '',
+          status: 'SUCCESS',
+          source: 'MANUAL'
+        }
+      })
+
+      // Link the investment transaction to the main transaction
+      await prisma.investmentTransaction.update({
+        where: { id: investmentTransaction.id },
+        data: { transactionId: mainTransaction.id }
       })
     }
 

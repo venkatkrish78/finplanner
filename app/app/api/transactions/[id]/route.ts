@@ -11,21 +11,90 @@ export async function GET(
   try {
     const { id } = params;
 
-    const transaction = await prisma.transaction.findUnique({
+    // First try to find a regular transaction
+    let transaction = await prisma.transaction.findUnique({
       where: { id },
       include: {
         category: true
       }
     });
 
-    if (!transaction) {
-      return NextResponse.json(
-        { error: 'Transaction not found' },
-        { status: 404 }
-      );
+    if (transaction) {
+      return NextResponse.json(transaction);
     }
 
-    return NextResponse.json(transaction);
+    // If not found, check if it's a virtual bill transaction
+    if (id.startsWith('bill-')) {
+      const billInstanceId = id.replace('bill-', '');
+      const billInstance = await prisma.billInstance.findUnique({
+        where: { id: billInstanceId },
+        include: { 
+          bill: { include: { category: true } },
+          transaction: true 
+        }
+      });
+
+      if (billInstance && billInstance.status === 'PAID') {
+        const virtualTransaction = {
+          id: `bill-${billInstance.id}`,
+          amount: billInstance.amount,
+          type: 'EXPENSE' as const,
+          description: `Bill payment: ${billInstance.bill.name}`,
+          merchant: billInstance.bill.name,
+          date: billInstance.paidDate!,
+          category: billInstance.bill.category,
+          categoryId: billInstance.bill.categoryId,
+          status: 'SUCCESS',
+          source: 'BILL',
+          transactionId: `BILL-${billInstance.id}`,
+          accountNumber: null,
+          balance: null,
+          rawMessage: null,
+          createdAt: billInstance.createdAt,
+          updatedAt: billInstance.updatedAt
+        };
+        return NextResponse.json(virtualTransaction);
+      }
+    }
+
+    // If not found, check if it's a virtual loan transaction
+    if (id.startsWith('loan-')) {
+      const loanPaymentId = id.replace('loan-', '');
+      const loanPayment = await prisma.loanPayment.findUnique({
+        where: { id: loanPaymentId },
+        include: { 
+          loan: { include: { category: true } },
+          transaction: true 
+        }
+      });
+
+      if (loanPayment) {
+        const virtualTransaction = {
+          id: `loan-${loanPayment.id}`,
+          amount: loanPayment.amount,
+          type: 'EXPENSE' as const,
+          description: `Loan payment: ${loanPayment.loan.name}`,
+          merchant: loanPayment.loan.name,
+          date: loanPayment.paymentDate,
+          category: loanPayment.loan.category,
+          categoryId: loanPayment.loan.categoryId,
+          status: 'SUCCESS',
+          source: 'LOAN',
+          transactionId: `LOAN-${loanPayment.id}`,
+          accountNumber: null,
+          balance: null,
+          rawMessage: null,
+          createdAt: loanPayment.createdAt,
+          updatedAt: loanPayment.createdAt
+        };
+        return NextResponse.json(virtualTransaction);
+      }
+    }
+
+    return NextResponse.json(
+      { error: 'Transaction not found' },
+      { status: 404 }
+    );
   } catch (error) {
     console.error('Error fetching transaction:', error);
     return NextResponse.json(
@@ -75,11 +144,38 @@ export async function DELETE(
   try {
     const { id } = params;
 
-    await prisma.transaction.delete({
-      where: { id }
-    });
+    // First try to delete a regular transaction
+    try {
+      await prisma.transaction.delete({
+        where: { id }
+      });
+      return NextResponse.json({ success: true });
+    } catch (error) {
+      // If regular transaction not found, check for virtual transactions
+    }
 
-    return NextResponse.json({ success: true });
+    // If it's a virtual bill transaction, delete the bill instance
+    if (id.startsWith('bill-')) {
+      const billInstanceId = id.replace('bill-', '');
+      await prisma.billInstance.delete({
+        where: { id: billInstanceId }
+      });
+      return NextResponse.json({ success: true });
+    }
+
+    // If it's a virtual loan transaction, delete the loan payment
+    if (id.startsWith('loan-')) {
+      const loanPaymentId = id.replace('loan-', '');
+      await prisma.loanPayment.delete({
+        where: { id: loanPaymentId }
+      });
+      return NextResponse.json({ success: true });
+    }
+
+    return NextResponse.json(
+      { error: 'Transaction not found' },
+      { status: 404 }
+    );
   } catch (error) {
     console.error('Error deleting transaction:', error);
     return NextResponse.json(

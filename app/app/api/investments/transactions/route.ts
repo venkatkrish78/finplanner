@@ -57,8 +57,21 @@ export async function POST(request: NextRequest) {
 
     const amount = quantity * price
 
+    // Get investment details for transaction creation
+    const investment = await db.investment.findUnique({
+      where: { id: investmentId },
+      include: { category: true }
+    })
+
+    if (!investment) {
+      return NextResponse.json(
+        { error: 'Investment not found' },
+        { status: 404 }
+      )
+    }
+
     // Create the investment transaction
-    const transaction = await db.investmentTransaction.create({
+    const investmentTransaction = await db.investmentTransaction.create({
       data: {
         investmentId,
         type,
@@ -72,43 +85,66 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Update investment based on transaction type
-    const investment = await db.investment.findUnique({
-      where: { id: investmentId }
-    })
-
-    if (investment) {
-      let newQuantity = investment.quantity
-      let newTotalInvested = investment.totalInvested
-      let newAveragePrice = investment.averagePrice
-
-      if (type === 'BUY' || type === 'SIP_INSTALLMENT') {
-        // Calculate new average price
-        const totalCost = (investment.quantity * investment.averagePrice) + amount
-        newQuantity = investment.quantity + quantity
-        newTotalInvested = investment.totalInvested + amount
-        newAveragePrice = newQuantity > 0 ? totalCost / newQuantity : 0
-      } else if (type === 'SELL') {
-        newQuantity = Math.max(0, investment.quantity - quantity)
-        // Reduce total invested proportionally
-        const sellRatio = quantity / investment.quantity
-        newTotalInvested = investment.totalInvested * (1 - sellRatio)
-      }
-
-      const newCurrentValue = newQuantity * investment.currentPrice
-
-      await db.investment.update({
-        where: { id: investmentId },
+    // Create a corresponding main transaction for cash flow tracking (but with investment types)
+    let mainTransaction = null
+    if (type === 'BUY' || type === 'SELL') {
+      const transactionType = type === 'BUY' ? 'INVESTMENT_BUY' : 'INVESTMENT_SELL'
+      const description = `Investment ${type.toLowerCase()}: ${investment.name}`
+      
+      mainTransaction = await db.transaction.create({
         data: {
-          quantity: newQuantity,
-          totalInvested: newTotalInvested,
-          averagePrice: newAveragePrice,
-          currentValue: newCurrentValue
+          amount: amount + fees + tax, // Include fees and tax in cash flow
+          type: transactionType,
+          description,
+          merchant: investment.name,
+          date: new Date(date),
+          categoryId: investment.categoryId || '', // Use investment's category or default
+          status: 'SUCCESS',
+          source: 'MANUAL'
         }
+      })
+
+      // Link the investment transaction to the main transaction
+      await db.investmentTransaction.update({
+        where: { id: investmentTransaction.id },
+        data: { transactionId: mainTransaction.id }
       })
     }
 
-    return NextResponse.json(transaction, { status: 201 })
+    // Update investment based on transaction type
+    let newQuantity = investment.quantity
+    let newTotalInvested = investment.totalInvested
+    let newAveragePrice = investment.averagePrice
+
+    if (type === 'BUY' || type === 'SIP_INSTALLMENT') {
+      // Calculate new average price
+      const totalCost = (investment.quantity * investment.averagePrice) + amount
+      newQuantity = investment.quantity + quantity
+      newTotalInvested = investment.totalInvested + amount
+      newAveragePrice = newQuantity > 0 ? totalCost / newQuantity : 0
+    } else if (type === 'SELL') {
+      newQuantity = Math.max(0, investment.quantity - quantity)
+      // Reduce total invested proportionally
+      const sellRatio = quantity / investment.quantity
+      newTotalInvested = investment.totalInvested * (1 - sellRatio)
+    }
+
+    const newCurrentValue = newQuantity * investment.currentPrice
+
+    await db.investment.update({
+      where: { id: investmentId },
+      data: {
+        quantity: newQuantity,
+        totalInvested: newTotalInvested,
+        averagePrice: newAveragePrice,
+        currentValue: newCurrentValue
+      }
+    })
+
+    return NextResponse.json({
+      investmentTransaction,
+      mainTransaction
+    }, { status: 201 })
   } catch (error) {
     console.error('Error creating investment transaction:', error)
     return NextResponse.json(

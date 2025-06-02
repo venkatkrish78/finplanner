@@ -170,6 +170,10 @@ export default function TransactionDetailModal({
         return <FileSpreadsheet className="w-4 h-4" />
       case TransactionSource.MANUAL:
         return <User className="w-4 h-4" />
+      case TransactionSource.BILL:
+        return <Building2 className="w-4 h-4" />
+      case 'LOAN' as any:
+        return <CreditCard className="w-4 h-4" />
       default:
         return <FileText className="w-4 h-4" />
     }
@@ -185,6 +189,10 @@ export default function TransactionDetailModal({
         return 'Bank Statement'
       case TransactionSource.MANUAL:
         return 'Manual Entry'
+      case TransactionSource.BILL:
+        return 'Bill Payment'
+      case 'LOAN' as any:
+        return 'Loan Payment'
       default:
         return source
     }
