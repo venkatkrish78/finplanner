@@ -1,0 +1,76 @@
+app/hooks/use-toast.ts:93:      // ! Side effects ! - This could be extracted into a dismissToast() action,
+app/components/bill-reminders.tsx:29:      // Fetch upcoming bills (next 7 days)
+app/components/ui/use-toast.ts:93:      // ! Side effects ! - This could be extracted into a dismissToast() action,
+app/components/transaction-charts.tsx:123:  // Refresh when refreshTrigger changes (from parent component)
+app/.build/types/app/investments/page.ts:63:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/page.ts:63:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/investments/analytics/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/investments/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/investments/portfolio/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/investments/transactions/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/investments/transactions/[id]/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/investments/[id]/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/investments/[id]/goals/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/investments/calculators/sip/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/investments/calculators/growth/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/investments/sips/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/investments/sips/[id]/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/dashboard/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/bills/instances/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/bills/instances/[id]/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/bills/analytics/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/bills/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/bills/export/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/bills/[id]/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/bills/[id]/payment/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/bills/generate/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/bills/stats/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/goals/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/goals/calculator/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/goals/[id]/investments/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/goals/[id]/investments/[linkId]/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/goals/[id]/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/goals/contributions/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/goals/stats/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/health/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/categories/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/categories/seed/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/transactions/analytics/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/transactions/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/transactions/export/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/transactions/summary/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/transactions/[id]/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/transactions/parse/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/transactions/stats/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/loans/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/loans/calculator/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/loans/payments/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/loans/amortization/[id]/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/loans/[id]/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/api/loans/stats/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/bills/page.ts:63:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/goals/page.ts:63:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/goals/[id]/page.ts:63:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/transactions/page.ts:63:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.build/types/app/loans/page.ts:63:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/app/api/investments/analytics/route.ts:63:    // Calculate current value for each month (simplified - using current prices)
+app/app/api/investments/route.ts:60:      // Add direct goal link (backward compatibility)
+app/app/api/investments/[id]/route.ts:63:    // Add direct goal link (backward compatibility)
+app/app/api/investments/[id]/goals/route.ts:55:    // Add direct goal link (backward compatibility)
+app/app/api/dashboard/route.ts:177:      // Calculate from direct goal links (backward compatibility)
+app/app/api/bills/instances/[id]/route.ts:8:// PUT /api/bills/instances/[id] - Update bill instance (mark as paid, etc.)
+app/app/api/bills/stats/route.ts:16:    // Total monthly bills (instances in current month)
+app/app/api/goals/route.ts:69:      // Calculate from direct goal links (backward compatibility)
+app/app/api/goals/[id]/investments/route.ts:62:      // Direct links (backward compatibility)
+app/app/api/goals/[id]/route.ts:59:    // Calculate from direct goal links (backward compatibility)
+app/app/api/transactions/analytics/route.ts:43:        // Bill payments (these are already included in transactions but let's ensure completeness)
+app/app/api/transactions/analytics/route.ts:51:        // Loan payments (these are already included in transactions but let's ensure completeness)
+app/app/api/transactions/analytics/route.ts:73:      // Add investment sell transactions as income (if not already counted)
+app/app/api/transactions/summary/route.ts:56:      // Bill payments (these are already included in transactions but let's ensure completeness)
+app/app/api/transactions/summary/route.ts:64:      // Loan payments (these are already included in transactions but let's ensure completeness)
+app/app/api/transactions/summary/route.ts:87:    // Add investment sell transactions as income (if not already counted)
+app/app/api/loans/route.ts:52:    // Calculate EMI using the formula: EMI = [P x R x (1+R)^N] / [(1+R)^N-1]
+app/app/api/loans/calculator/route.ts:15:    // Calculate EMI using the formula: EMI = [P x R x (1+R)^N] / [(1+R)^N-1]
+app/.next/types/app/page.ts:63:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.next/types/app/api/dashboard/route.ts:323:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.
+app/.next/types/app/layout.ts:63:// If T is unknown or any, it will be an empty {} type. Otherwise, it will be the same as Omit<T, keyof Base>.

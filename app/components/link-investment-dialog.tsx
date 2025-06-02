@@ -96,7 +96,7 @@ export function LinkInvestmentDialog({ open, onOpenChange, goalId, onInvestmentL
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedInvestmentId) {
+    if (!selectedInvestmentId || selectedInvestmentId === 'no-investments') {
       toast.error('Please select an investment')
       return
     }
@@ -136,7 +136,7 @@ export function LinkInvestmentDialog({ open, onOpenChange, goalId, onInvestmentL
     }
   }
 
-  const selectedInvestment = investments.find(inv => inv.id === selectedInvestmentId)
+  const selectedInvestment = investments.find(inv => inv.id === selectedInvestmentId && selectedInvestmentId !== 'no-investments')
   const allocatedValue = selectedInvestment ? (selectedInvestment.currentValue * (parseFloat(allocation) / 100)) : 0
 
   return (
@@ -158,9 +158,11 @@ export function LinkInvestmentDialog({ open, onOpenChange, goalId, onInvestmentL
               </SelectTrigger>
               <SelectContent>
                 {investments.length === 0 ? (
-                  <div className="p-2 text-center text-sm text-slate-500">
-                    No available investments
-                  </div>
+                  <SelectItem value="no-investments" disabled>
+                    <div className="p-2 text-center text-sm text-slate-500">
+                      No available investments
+                    </div>
+                  </SelectItem>
                 ) : (
                   investments.map((investment) => (
                     <SelectItem key={investment.id} value={investment.id}>
@@ -253,7 +255,7 @@ export function LinkInvestmentDialog({ open, onOpenChange, goalId, onInvestmentL
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || !selectedInvestmentId}>
+            <Button type="submit" disabled={loading || !selectedInvestmentId || selectedInvestmentId === 'no-investments'}>
               {loading ? 'Linking...' : 'Link Investment'}
             </Button>
           </div>

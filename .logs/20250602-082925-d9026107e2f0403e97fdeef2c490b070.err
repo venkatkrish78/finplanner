@@ -1,0 +1,2 @@
+warning workspace-aggregator-973966ce-1762-44fc-b214-172cfe988cf9 > finplanner > jest > @jest/core > @jest/transform > babel-plugin-istanbul > test-exclude > glob@7.2.3: Glob versions prior to v9 are no longer supported
+error https://registry.yarnpkg.com/ts-jest/-/ts-jest-29.3.4.tgz: Extracting tar content of undefined failed, the file appears to be corrupt: "ENOENT: no such file or directory, chmod '/opt/hostedapp/node/yarn/cache/v6/npm-ts-jest-29.3.4-9354472aceae1d3867a80e8e02014ea5901aee41-integrity/node_modules/ts-jest/.lintstagedrc'"

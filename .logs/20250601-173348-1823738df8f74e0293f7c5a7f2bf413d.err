@@ -1,0 +1,20 @@
+warning workspace-aggregator-e4af5624-5e0e-48d5-b900-803d435e7932 > finplanner > jest > @jest/core > @jest/transform > babel-plugin-istanbul > test-exclude > glob@7.2.3: Glob versions prior to v9 are no longer supported
+error Error: ENOENT: no such file or directory, open '/opt/hostedapp/node/yarn/cache/v6/npm-@types-jest-29.5.14-2b910912fa1d6856cadcd0c1f95af7df1d6049e5-integrity/node_modules/@types/jest/.yarn-metadata.json'
+ ⨯ Failed to start server
+Error: listen EADDRINUSE: address already in use :::3000
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at /home/ubuntu/moneymitra/node_modules/next/dist/server/lib/start-server.js:280:16
+    at new Promise (<anonymous>)
+    at startServer (/home/ubuntu/moneymitra/node_modules/next/dist/server/lib/start-server.js:191:11)
+    at /home/ubuntu/moneymitra/node_modules/next/dist/server/lib/start-server.js:310:52
+    at Span.traceAsyncFn (/home/ubuntu/moneymitra/node_modules/next/dist/trace/trace.js:154:26)
+    at process.<anonymous> (/home/ubuntu/moneymitra/node_modules/next/dist/server/lib/start-server.js:310:35)
+    at process.emit (node:events:518:28) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 3000
+}

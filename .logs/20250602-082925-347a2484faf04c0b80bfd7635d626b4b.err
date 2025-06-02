@@ -1,0 +1,20 @@
+warning workspace-aggregator-7ea43844-526f-4b89-952f-7d695f9ad400 > finplanner > jest > @jest/core > @jest/transform > babel-plugin-istanbul > test-exclude > glob@7.2.3: Glob versions prior to v9 are no longer supported
+error https://registry.yarnpkg.com/dom-accessibility-api/-/dom-accessibility-api-0.6.3.tgz: Extracting tar content of undefined failed, the file appears to be corrupt: "EEXIST: file already exists, mkdir '/opt/hostedapp/node/yarn/cache/v6/npm-dom-accessibility-api-0.6.3-993e925cc1d73f2c662e7d75dd5a5445259a8fd8-integrity/node_modules/dom-accessibility-api/dist'"
+ ⨯ Failed to start server
+Error: listen EADDRINUSE: address already in use :::3000
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at /home/ubuntu/moneymitra/node_modules/next/dist/server/lib/start-server.js:280:16
+    at new Promise (<anonymous>)
+    at startServer (/home/ubuntu/moneymitra/node_modules/next/dist/server/lib/start-server.js:191:11)
+    at /home/ubuntu/moneymitra/node_modules/next/dist/server/lib/start-server.js:310:52
+    at Span.traceAsyncFn (/home/ubuntu/moneymitra/node_modules/next/dist/trace/trace.js:154:26)
+    at process.<anonymous> (/home/ubuntu/moneymitra/node_modules/next/dist/server/lib/start-server.js:310:35)
+    at process.emit (node:events:518:28) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 3000
+}

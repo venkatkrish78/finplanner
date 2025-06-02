@@ -6,6 +6,25 @@ All notable changes to FinPlanner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2025-06-01
+
+### 📊 Application Assessment & Documentation Enhancement
+
+#### ✨ New Features
+- **APPLICATION_ASSESSMENT.md**: Comprehensive application scale and complexity analysis
+  - Detailed metrics: 205,848+ lines of code, 442 files, 105+ React components
+  - Industry comparisons and enterprise-level classification
+  - Technical architecture breakdown and development characteristics
+  - Professional formatting with tables, metrics, and visual elements
+- **Enhanced README.md**: Added Application Assessment section with key metrics summary
+- **Documentation Cross-References**: Updated documentation links and references
+
+#### 📈 Assessment Highlights
+- **Enterprise-Scale Classification**: Confirmed as large-scale, enterprise-grade application
+- **Comprehensive Metrics**: Complete codebase analysis with industry benchmarking
+- **Technical Complexity**: Detailed breakdown of architectural sophistication
+- **Development Insights**: Professional development practices and maintainability assessment
+
 ## [2.0.0] - 2024-06-01
 
 ### 🎉 Major Release - Comprehensive Enhancement Update

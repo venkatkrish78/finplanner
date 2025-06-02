@@ -1,0 +1,22 @@
+npm warn exec The following package was not found and will be installed: ts-prune@0.10.3
+/home/ubuntu/.npm/_npx/1532855dfcb86dac/node_modules/@ts-morph/common/dist/ts-morph-common.js:1897
+            throw this.getFileNotFoundErrorIfNecessary(err, filePath);
+            ^
+
+Error: EISDIR: illegal operation on a directory, read
+    at Object.readFileSync (node:fs:442:20)
+    at NodeRuntimeFileSystem.readFileSync (/home/ubuntu/.npm/_npx/1532855dfcb86dac/node_modules/@ts-morph/common/dist/ts-morph-common.js:1191:30)
+    at RealFileSystemHost.readFileSync (/home/ubuntu/.npm/_npx/1532855dfcb86dac/node_modules/@ts-morph/common/dist/ts-morph-common.js:1894:23)
+    at TransactionalFileSystem.readFileSync (/home/ubuntu/.npm/_npx/1532855dfcb86dac/node_modules/@ts-morph/common/dist/ts-morph-common.js:2431:32)
+    at TsConfigResolver.getTsConfigFileJson (/home/ubuntu/.npm/_npx/1532855dfcb86dac/node_modules/@ts-morph/common/dist/ts-morph-common.js:2985:38)
+    at TsConfigResolver.decorator (/home/ubuntu/.npm/_npx/1532855dfcb86dac/node_modules/@ts-morph/common/dist/ts-morph-common.js:2811:46)
+    at TsConfigResolver.parseJsonConfigFileContent (/home/ubuntu/.npm/_npx/1532855dfcb86dac/node_modules/@ts-morph/common/dist/ts-morph-common.js:2981:70)
+    at TsConfigResolver.decorator (/home/ubuntu/.npm/_npx/1532855dfcb86dac/node_modules/@ts-morph/common/dist/ts-morph-common.js:2811:46)
+    at TsConfigResolver.getCompilerOptions (/home/ubuntu/.npm/_npx/1532855dfcb86dac/node_modules/@ts-morph/common/dist/ts-morph-common.js:2950:21)
+    at TsConfigResolver.decorator (/home/ubuntu/.npm/_npx/1532855dfcb86dac/node_modules/@ts-morph/common/dist/ts-morph-common.js:2811:46) {
+  errno: -21,
+  code: 'EISDIR',
+  syscall: 'read'
+}
+
+Node.js v22.14.0

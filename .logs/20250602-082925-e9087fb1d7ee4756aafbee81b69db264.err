@@ -1,0 +1,20 @@
+warning workspace-aggregator-26a6760d-6142-4856-8020-27de86eef705 > finplanner > jest > @jest/core > @jest/transform > babel-plugin-istanbul > test-exclude > glob@7.2.3: Glob versions prior to v9 are no longer supported
+error https://registry.yarnpkg.com/@testing-library/jest-dom/-/jest-dom-6.6.3.tgz: Extracting tar content of undefined failed, the file appears to be corrupt: "EEXIST: file already exists, mkdir '/opt/hostedapp/node/yarn/cache/v6/npm-@testing-library-jest-dom-6.6.3-26ba906cf928c0f8172e182c6fe214eb4f9f2bd2-integrity/node_modules/@testing-library/jest-dom'"
+ ⨯ Failed to start server
+Error: listen EADDRINUSE: address already in use :::3000
+    at Server.setupListenHandle [as _listen2] (node:net:1937:16)
+    at listenInCluster (node:net:1994:12)
+    at Server.listen (node:net:2099:7)
+    at /home/ubuntu/moneymitra/node_modules/next/dist/server/lib/start-server.js:280:16
+    at new Promise (<anonymous>)
+    at startServer (/home/ubuntu/moneymitra/node_modules/next/dist/server/lib/start-server.js:191:11)
+    at /home/ubuntu/moneymitra/node_modules/next/dist/server/lib/start-server.js:310:52
+    at Span.traceAsyncFn (/home/ubuntu/moneymitra/node_modules/next/dist/trace/trace.js:154:26)
+    at process.<anonymous> (/home/ubuntu/moneymitra/node_modules/next/dist/server/lib/start-server.js:310:35)
+    at process.emit (node:events:518:28) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 3000
+}

@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST='{"components/category-breakdown-widget.tsx -> react-chartjs-2":{"id":432,"files":["static/chunks/432.0b314c464cd02542.js"]},"components/transaction-charts.tsx -> react-chartjs-2":{"id":432,"files":["static/chunks/432.0b314c464cd02542.js"]}}';
+self.__REACT_LOADABLE_MANIFEST='{"components/category-breakdown-widget.tsx -> react-chartjs-2":{"id":5640,"files":["static/chunks/640.bb3814177a23af9d.js"]},"components/transaction-charts.tsx -> react-chartjs-2":{"id":5640,"files":["static/chunks/640.bb3814177a23af9d.js"]}}';

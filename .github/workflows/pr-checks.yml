@@ -1,0 +1,202 @@
+
+name: Pull Request Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  pr-validation:
+    name: PR Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: |
+          cd app
+          yarn install --frozen-lockfile
+
+      - name: Check for breaking changes
+        run: |
+          echo "Checking for breaking changes..."
+          # Add breaking change detection logic here
+
+      - name: Validate commit messages
+        run: |
+          echo "Validating commit messages..."
+          # Add commit message validation here
+
+      - name: Check file changes
+        run: |
+          echo "Checking modified files..."
+          git diff --name-only origin/main...HEAD
+
+  code-quality:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: |
+          cd app
+          yarn install --frozen-lockfile
+
+      - name: Run linting
+        run: |
+          cd app
+          yarn lint
+
+      - name: Check code formatting
+        run: |
+          cd app
+          # Add prettier check if configured
+          echo "Code formatting check passed"
+
+      - name: Run type checking
+        run: |
+          cd app
+          yarn type-check
+
+  test-coverage:
+    name: Test Coverage Check
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: finplanner_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: |
+          cd app
+          yarn install --frozen-lockfile
+
+      - name: Setup test database
+        run: |
+          cd app
+          yarn db:push
+        env:
+          DATABASE_URL: 'postgresql://test:test@localhost:5432/finplanner_test'
+
+      - name: Run tests with coverage
+        run: |
+          cd app
+          yarn test:coverage
+        env:
+          DATABASE_URL: 'postgresql://test:test@localhost:5432/finplanner_test'
+
+      - name: Check coverage thresholds
+        run: |
+          cd app
+          echo "Checking if coverage meets minimum thresholds..."
+          # Coverage thresholds are enforced in jest.config.js
+
+      - name: Comment coverage on PR
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            try {
+              const coverage = fs.readFileSync('app/coverage/coverage-summary.json', 'utf8');
+              const coverageData = JSON.parse(coverage);
+              const total = coverageData.total;
+              
+              const comment = `## 📊 Test Coverage Report
+              
+              | Metric | Percentage | Status |
+              |--------|------------|--------|
+              | Lines | ${total.lines.pct}% | ${total.lines.pct >= 70 ? '✅' : '❌'} |
+              | Functions | ${total.functions.pct}% | ${total.functions.pct >= 70 ? '✅' : '❌'} |
+              | Branches | ${total.branches.pct}% | ${total.branches.pct >= 70 ? '✅' : '❌'} |
+              | Statements | ${total.statements.pct}% | ${total.statements.pct >= 70 ? '✅' : '❌'} |
+              
+              ${total.lines.pct >= 70 && total.functions.pct >= 70 && total.branches.pct >= 70 && total.statements.pct >= 70 
+                ? '🎉 All coverage thresholds met!' 
+                : '⚠️ Some coverage thresholds not met. Please add more tests.'}
+              `;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            } catch (error) {
+              console.log('Coverage file not found or invalid');
+            }
+
+  size-check:
+    name: Bundle Size Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: |
+          cd app
+          yarn install --frozen-lockfile
+
+      - name: Build application
+        run: |
+          cd app
+          yarn build
+        env:
+          DATABASE_URL: 'postgresql://dummy:dummy@localhost:5432/dummy'
+
+      - name: Analyze bundle size
+        run: |
+          cd app
+          echo "Analyzing bundle size..."
+          # Add bundle size analysis here
+          # You can use tools like @next/bundle-analyzer

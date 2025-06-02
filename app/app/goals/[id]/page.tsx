@@ -1,5 +1,4 @@
 
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -23,6 +22,10 @@ import {
 } from 'lucide-react'
 import { formatCurrency } from '@/lib/currency'
 import { GoalType, GoalStatus } from '@/lib/types'
+import { AddGoalContributionDialog } from '@/components/add-goal-contribution-dialog'
+import { EditGoalDialog } from '@/components/edit-goal-dialog'
+import { LinkInvestmentDialog } from '@/components/link-investment-dialog'
+import { toast } from 'sonner'
 
 interface GoalDetail {
   id: string
@@ -33,6 +36,7 @@ interface GoalDetail {
   currentAmount: number
   targetDate?: string
   status: GoalStatus
+  categoryId?: string
   category?: {
     id: string
     name: string
@@ -44,6 +48,8 @@ interface GoalDetail {
   linkedInvestmentValue: number
   dynamicProgress: number
   totalProgress: number
+  createdAt: string
+  updatedAt: string
 }
 
 const goalTypeColors = {
@@ -64,6 +70,11 @@ export default function GoalDetailPage() {
   const [goal, setGoal] = useState<GoalDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [availableInvestments, setAvailableInvestments] = useState<any[]>([])
+  
+  // Dialog states
+  const [showContributionDialog, setShowContributionDialog] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showLinkDialog, setShowLinkDialog] = useState(false)
 
   useEffect(() => {
     if (params.id) {
@@ -79,9 +90,12 @@ export default function GoalDetailPage() {
       if (response.ok) {
         const goalData = await response.json()
         setGoal(goalData)
+      } else {
+        toast.error('Failed to load goal details')
       }
     } catch (error) {
       console.error('Error fetching goal detail:', error)
+      toast.error('Error loading goal details')
     } finally {
       setLoading(false)
     }
@@ -110,9 +124,13 @@ export default function GoalDetailPage() {
       if (response.ok) {
         fetchGoalDetail()
         fetchAvailableInvestments()
+        toast.success('Investment linked successfully!')
+      } else {
+        toast.error('Failed to link investment')
       }
     } catch (error) {
       console.error('Error linking investment:', error)
+      toast.error('Error linking investment')
     }
   }
 
@@ -125,9 +143,35 @@ export default function GoalDetailPage() {
       if (response.ok) {
         fetchGoalDetail()
         fetchAvailableInvestments()
+        toast.success('Investment unlinked successfully!')
+      } else {
+        toast.error('Failed to unlink investment')
       }
     } catch (error) {
       console.error('Error unlinking investment:', error)
+      toast.error('Error unlinking investment')
+    }
+  }
+
+  const handleDeleteGoal = async () => {
+    if (!confirm('Are you sure you want to delete this goal? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/goals/${params.id}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        toast.success('Goal deleted successfully!')
+        router.push('/goals')
+      } else {
+        toast.error('Failed to delete goal')
+      }
+    } catch (error) {
+      console.error('Error deleting goal:', error)
+      toast.error('Error deleting goal')
     }
   }
 
@@ -215,11 +259,18 @@ export default function GoalDetailPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline">
+            <Button 
+              variant="outline"
+              onClick={() => setShowEditDialog(true)}
+            >
               <Edit className="h-4 w-4 mr-2" />
               Edit Goal
             </Button>
-            <Button variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
+            <Button 
+              variant="outline" 
+              className="text-red-600 border-red-600 hover:bg-red-50"
+              onClick={handleDeleteGoal}
+            >
               <Trash2 className="h-4 w-4 mr-2" />
               Delete
             </Button>
@@ -285,15 +336,28 @@ export default function GoalDetailPage() {
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button className="w-full">
+                <Button 
+                  className="w-full"
+                  onClick={() => setShowContributionDialog(true)}
+                  disabled={goal.status !== 'ACTIVE'}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Contribution
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => setShowLinkDialog(true)}
+                  disabled={goal.status !== 'ACTIVE'}
+                >
                   <Link className="h-4 w-4 mr-2" />
                   Link Investment
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => setShowEditDialog(true)}
+                >
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Goal
                 </Button>
@@ -307,7 +371,11 @@ export default function GoalDetailPage() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Linked Investments ({linkedInvestments.length})</CardTitle>
-              <Button variant="outline">
+              <Button 
+                variant="outline"
+                onClick={() => setShowLinkDialog(true)}
+                disabled={goal.status !== 'ACTIVE'}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Link Investment
               </Button>
@@ -319,7 +387,10 @@ export default function GoalDetailPage() {
                 <Target className="h-12 w-12 text-slate-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-slate-900 mb-2">No investments linked</h3>
                 <p className="text-slate-600 mb-4">Link investments to track their contribution to this goal</p>
-                <Button>
+                <Button 
+                  onClick={() => setShowLinkDialog(true)}
+                  disabled={goal.status !== 'ACTIVE'}
+                >
                   <Link className="h-4 w-4 mr-2" />
                   Link Investment
                 </Button>
@@ -376,7 +447,10 @@ export default function GoalDetailPage() {
                 <Plus className="h-12 w-12 text-slate-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-slate-900 mb-2">No contributions yet</h3>
                 <p className="text-slate-600 mb-4">Start contributing to reach your goal faster</p>
-                <Button>
+                <Button 
+                  onClick={() => setShowContributionDialog(true)}
+                  disabled={goal.status !== 'ACTIVE'}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Contribution
                 </Button>
@@ -401,7 +475,52 @@ export default function GoalDetailPage() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Dialogs */}
+      {goal && (
+        <>
+          <AddGoalContributionDialog
+            open={showContributionDialog}
+            onOpenChange={setShowContributionDialog}
+            goal={{
+              ...goal,
+              targetDate: goal.targetDate ? new Date(goal.targetDate) : undefined,
+              createdAt: new Date(goal.createdAt),
+              updatedAt: new Date(goal.updatedAt),
+              contributions: goal.contributions || []
+            }}
+            onContributionAdded={() => {
+              fetchGoalDetail()
+              setShowContributionDialog(false)
+            }}
+          />
+          <EditGoalDialog
+            open={showEditDialog}
+            onOpenChange={setShowEditDialog}
+            goal={{
+              ...goal,
+              targetDate: goal.targetDate ? new Date(goal.targetDate) : undefined,
+              createdAt: new Date(goal.createdAt),
+              updatedAt: new Date(goal.updatedAt),
+              contributions: goal.contributions || []
+            }}
+            onGoalUpdated={() => {
+              fetchGoalDetail()
+              setShowEditDialog(false)
+            }}
+          />
+          <LinkInvestmentDialog
+            open={showLinkDialog}
+            onOpenChange={setShowLinkDialog}
+            goalId={goal.id}
+            onInvestmentLinked={() => {
+              fetchGoalDetail()
+              fetchAvailableInvestments()
+              setShowLinkDialog(false)
+            }}
+          />
+        </>
+      )}
     </div>
   )
 }
-

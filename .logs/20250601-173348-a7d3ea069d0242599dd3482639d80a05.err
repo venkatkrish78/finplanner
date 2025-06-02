@@ -1,0 +1,2 @@
+warning workspace-aggregator-de696dc9-57b2-4d4b-811d-4f7879ccdb1f > finplanner > jest > @jest/core > @jest/transform > babel-plugin-istanbul > test-exclude > glob@7.2.3: Glob versions prior to v9 are no longer supported
+error Error: ENOENT: no such file or directory, open '/opt/hostedapp/node/yarn/cache/v6/npm-@types-jest-29.5.14-2b910912fa1d6856cadcd0c1f95af7df1d6049e5-integrity/node_modules/@types/jest/.yarn-tarball.tgz'

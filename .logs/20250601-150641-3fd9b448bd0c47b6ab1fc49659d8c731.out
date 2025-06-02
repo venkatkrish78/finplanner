@@ -1,0 +1,76 @@
+yarn run v1.22.22
+$ next dev
+  ▲ Next.js 14.2.28
+  - Local:        http://localhost:3000
+  - Environments: .env
+  - Experiments (use with caution):
+    · outputFileTracingRoot
+
+ ✓ Starting...
+ ✓ Ready in 2s
+ ○ Compiling / ...
+ ✓ Compiled / in 6.1s (1347 modules)
+ GET / 200 in 6743ms
+ GET / 200 in 6750ms
+ ✓ Compiled in 677ms (674 modules)
+ GET / 200 in 72ms
+ ✓ Compiled /api/dashboard in 299ms (697 modules)
+Dashboard API called, testing Prisma connection...
+Dashboard API called, testing Prisma connection...
+Transaction count: 0
+Transaction count: 0
+ GET /api/dashboard?_t=1748790467269 200 in 567ms
+ GET /api/dashboard?_t=1748790467272 200 in 567ms
+ GET / 200 in 129ms
+ GET / 200 in 42ms
+ GET / 200 in 39ms
+Dashboard API called, testing Prisma connection...
+Transaction count: 0
+Dashboard API called, testing Prisma connection...
+Transaction count: 0
+ GET /api/dashboard?_t=1748790491817 200 in 47ms
+ GET /api/dashboard?_t=1748790491813 200 in 46ms
+ GET / 200 in 46ms
+ GET / 200 in 45ms
+ GET / 200 in 39ms
+Dashboard API called, testing Prisma connection...
+Dashboard API called, testing Prisma connection...
+Transaction count: 0
+Transaction count: 0
+ GET /api/dashboard?_t=1748790792959 200 in 72ms
+ GET /api/dashboard?_t=1748790792963 200 in 71ms
+ ○ Compiling /goals ...
+ ✓ Compiled /goals in 3.3s (3113 modules)
+ ✓ Compiled /api/goals in 221ms (1578 modules)
+ GET /api/goals?includeInvestments=true 200 in 368ms
+ GET /api/goals?includeInvestments=true 200 in 28ms
+ ✓ Compiled /api/investments in 237ms (1580 modules)
+ GET /api/investments?includeGoals=true 200 in 300ms
+ GET /api/investments?includeGoals=true 200 in 32ms
+ ○ Compiling /goals/[id] ...
+ ✓ Compiled /goals/[id] in 538ms (3130 modules)
+ ✓ Compiled /api/goals/[id] in 212ms (1589 modules)
+ GET /api/investments?includeGoals=true 200 in 493ms
+ GET /api/investments?includeGoals=true 200 in 29ms
+ GET /api/goals/cmbdsra9l0001pc01h49cnudb 200 in 913ms
+ GET /api/goals/cmbdsra9l0001pc01h49cnudb 200 in 39ms
+ ○ Compiling /investments ...
+ ✓ Compiled /investments in 943ms (3154 modules)
+ ✓ Compiled /api/investments/portfolio in 218ms (1601 modules)
+ GET /api/investments?includeGoals=true 200 in 467ms
+ GET /api/investments/portfolio 200 in 479ms
+ GET /api/investments/portfolio 200 in 34ms
+ GET /api/investments?includeGoals=true 200 in 40ms
+ ✓ Compiled /api/goals in 314ms (1601 modules)
+ GET /api/goals?includeInvestments=true 200 in 368ms
+ GET /api/goals?includeInvestments=true 200 in 26ms
+ ✓ Compiled /api/categories in 281ms (1603 modules)
+ GET /api/categories 200 in 338ms
+ GET /api/categories 200 in 26ms
+ ✓ Compiled in 1820ms (3132 modules)
+ ✓ Compiled in 652ms (3132 modules)
+ ✓ Compiled in 615ms (3132 modules)
+ ✓ Compiled in 654ms (3132 modules)
+ ✓ Compiled in 587ms (3132 modules)
+ ✓ Compiled in 556ms (3132 modules)
+[?25h

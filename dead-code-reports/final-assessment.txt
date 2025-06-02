@@ -1,0 +1,45 @@
+=== DETAILED UNUSED COMPONENT ANALYSIS ===
+UNUSED: accordion
+UNUSED: aspect-ratio
+UNUSED: asset-allocation-chart
+UNUSED: avatar
+UNUSED: bill-analytics
+UNUSED: bill-calendar
+UNUSED: bill-reminders
+UNUSED: breadcrumb
+UNUSED: carousel
+UNUSED: collapsible
+UNUSED: command
+UNUSED: context-menu
+UNUSED: dashboard-charts
+UNUSED: dashboard-stats
+UNUSED: date-range-picker
+UNUSED: drawer
+UNUSED: edit-transaction-dialog
+UNUSED: emi-calculator
+UNUSED: goal-calculator
+UNUSED: goal-progress-chart
+UNUSED: goals-summary
+UNUSED: hover-card
+UNUSED: input-otp
+UNUSED: investment-calculators
+UNUSED: investment-performance-chart
+UNUSED: investments-summary
+UNUSED: loan-analytics
+UNUSED: loans-summary
+UNUSED: menubar
+UNUSED: navigation-menu
+UNUSED: portfolio-summary
+UNUSED: radio-group
+UNUSED: resizable
+UNUSED: sip-management
+UNUSED: slider
+UNUSED: task-card
+UNUSED: toggle-group
+
+=== BUILD ARTIFACTS ANALYSIS ===
+Build directory size: 422M
+Build files count: 358
+
+=== PACKAGE.JSON ANALYSIS ===
+Package.json is a symlink to: /opt/hostedapp/node/root/package.json

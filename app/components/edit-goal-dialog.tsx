@@ -1,5 +1,4 @@
 
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -61,10 +60,11 @@ export function EditGoalDialog({ open, onOpenChange, goal, onGoalUpdated }: Edit
       const response = await fetch('/api/categories')
       if (response.ok) {
         const data = await response.json()
-        setCategories(data)
+        setCategories(Array.isArray(data) ? data : [])
       }
     } catch (error) {
       console.error('Error fetching categories:', error)
+      setCategories([])
     }
   }
 
@@ -83,7 +83,7 @@ export function EditGoalDialog({ open, onOpenChange, goal, onGoalUpdated }: Edit
           targetAmount: parseFloat(formData.targetAmount),
           targetDate: formData.targetDate?.toISOString(),
           status: formData.status,
-          categoryId: formData.categoryId || undefined
+          categoryId: formData.categoryId === 'no-category' ? undefined : formData.categoryId || undefined
         })
       })
 
@@ -216,7 +216,7 @@ export function EditGoalDialog({ open, onOpenChange, goal, onGoalUpdated }: Edit
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No category</SelectItem>
+                <SelectItem value="no-category">No category</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
                     <div className="flex items-center gap-2">
@@ -250,4 +250,3 @@ export function EditGoalDialog({ open, onOpenChange, goal, onGoalUpdated }: Edit
     </Dialog>
   )
 }
-

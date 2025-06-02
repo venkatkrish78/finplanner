@@ -30,3 +30,21 @@ Transaction count: 17
 Dashboard API called, testing Prisma connection...
 Transaction count: 17
  GET /api/dashboard?_t=1748785063975 200 in 42ms
+ GET / 200 in 42ms
+ GET / 200 in 40ms
+ GET / 200 in 37ms
+Dashboard API called, testing Prisma connection...
+Dashboard API called, testing Prisma connection...
+Transaction count: 17
+Transaction count: 17
+ GET /api/dashboard?_t=1748785233129 200 in 76ms
+ GET /api/dashboard?_t=1748785233133 200 in 73ms
+ ✓ Compiled in 648ms (674 modules)
+ ✓ Compiled in 439ms (674 modules)
+ ✓ Compiled in 1061ms (1340 modules)
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+[?25h

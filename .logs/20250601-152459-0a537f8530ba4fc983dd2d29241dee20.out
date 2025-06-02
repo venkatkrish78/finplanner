@@ -1,0 +1,132 @@
+yarn run v1.22.22
+$ next dev
+  ▲ Next.js 14.2.28
+  - Local:        http://localhost:3000
+  - Environments: .env
+  - Experiments (use with caution):
+    · outputFileTracingRoot
+
+ ✓ Starting...
+ ✓ Ready in 2.4s
+ ○ Compiling / ...
+ ✓ Compiled / in 5.7s (1347 modules)
+ GET / 200 in 5858ms
+ GET / 200 in 6223ms
+ ✓ Compiled in 594ms (674 modules)
+ GET / 200 in 56ms
+ ✓ Compiled /api/dashboard in 262ms (697 modules)
+Dashboard API called, testing Prisma connection...
+Dashboard API called, testing Prisma connection...
+Transaction count: 0
+Transaction count: 0
+ GET /api/dashboard?_t=1748791557796 200 in 503ms
+ GET /api/dashboard?_t=1748791557792 200 in 515ms
+ ○ Compiling /transactions ...
+ ✓ Compiled /transactions in 3.2s (3191 modules)
+ ✓ Compiled /api/transactions in 195ms (1617 modules)
+ ✓ Compiled (1623 modules)
+ GET /api/transactions/summary?year=2025&month=6&_t=1748791573302 200 in 533ms
+ GET /api/categories 200 in 557ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 537ms
+ GET /api/transactions/summary?year=2025&month=6&_t=1748791573301 200 in 553ms
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748791573301 200 in 563ms
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748791573302 200 in 563ms
+ GET /api/categories 200 in 29ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 38ms
+ GET / 200 in 129ms
+ GET / 200 in 39ms
+ GET / 200 in 38ms
+Dashboard API called, testing Prisma connection...
+Dashboard API called, testing Prisma connection...
+Transaction count: 0
+Transaction count: 0
+ GET /api/dashboard?_t=1748791585511 200 in 123ms
+ GET /api/dashboard?_t=1748791585514 200 in 101ms
+ GET /api/transactions/summary?year=2025&month=6&_t=1748791594270 200 in 53ms
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748791594271 200 in 73ms
+ GET /api/categories 200 in 67ms
+ GET /api/transactions/summary?year=2025&month=6&_t=1748791594271 200 in 68ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 78ms
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748791594271 200 in 94ms
+ GET /api/categories 200 in 24ms
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 25ms
+ ✓ Compiled /api/transactions/[id] in 255ms (1625 modules)
+ GET /api/transactions/investment-cmbdssres0005pc01a7u7b3bs 404 in 772ms
+ GET /api/transactions/investment-cmbdssres0005pc01a7u7b3bs 404 in 36ms
+ GET /api/transactions/investment-cmbdssres0005pc01a7u7b3bs 404 in 34ms
+ ○ Compiling /bills ...
+ ✓ Compiled /bills in 949ms (3228 modules)
+ ✓ Compiled /api/bills in 210ms (1641 modules)
+ ✓ Compiled (1643 modules)
+ GET /api/bills 200 in 459ms
+ GET /api/bills/stats 200 in 479ms
+ GET /api/bills/stats 200 in 31ms
+ GET /api/bills 200 in 29ms
+ GET /api/bills 200 in 24ms
+ GET /api/bills 200 in 24ms
+ GET /api/bills/stats 200 in 33ms
+ GET /api/bills?view=monthly&year=2025&month=6 200 in 26ms
+ GET /api/bills?view=yearly&year=2025 200 in 28ms
+ GET /api/bills/stats 200 in 33ms
+ GET /api/bills 200 in 29ms
+ GET /api/bills/stats 200 in 37ms
+ GET /api/bills 200 in 26ms
+ GET /api/bills 200 in 29ms
+ ○ Compiling /goals ...
+ ✓ Compiled /goals in 662ms (3262 modules)
+ ✓ Compiled /api/goals in 201ms (1652 modules)
+ GET /api/goals?includeInvestments=true 200 in 255ms
+ GET /api/goals?includeInvestments=true 200 in 27ms
+ ✓ Compiled /api/categories in 185ms (1654 modules)
+ GET /api/categories 200 in 232ms
+ GET /api/categories 200 in 25ms
+ ○ Compiling /goals/[id] ...
+ ✓ Compiled /goals/[id] in 516ms (3270 modules)
+ ✓ Compiled /api/goals/[id] in 237ms (1663 modules)
+ ✓ Compiled (1665 modules)
+ GET /api/investments?includeGoals=true 200 in 560ms
+ GET /api/investments?includeGoals=true 200 in 30ms
+ GET /api/goals/cmbdsra9l0001pc01h49cnudb 200 in 931ms
+ GET /api/goals/cmbdsra9l0001pc01h49cnudb 200 in 41ms
+ GET /api/investments?includeGoals=true 200 in 29ms
+ GET /api/categories 200 in 32ms
+ ○ Compiling /loans ...
+ ✓ Compiled /loans in 1025ms (3298 modules)
+ ✓ Compiled /api/loans in 293ms (1679 modules)
+ GET /api/loans 200 in 367ms
+ GET /api/loans 200 in 28ms
+ GET /api/categories 200 in 32ms
+ ○ Compiling /investments ...
+ ✓ Compiled /investments in 638ms (3298 modules)
+ GET /api/investments?includeGoals=true 200 in 38ms
+ ✓ Compiled /api/investments/portfolio in 245ms (1670 modules)
+ GET /api/investments/portfolio 200 in 310ms
+ GET /api/investments?includeGoals=true 200 in 27ms
+ GET /api/investments/portfolio 200 in 29ms
+ GET /api/goals 200 in 39ms
+ GET /api/categories 200 in 41ms
+ GET /api/goals 200 in 42ms
+ GET /api/categories 200 in 37ms
+ ✓ Compiled /api/transactions/summary in 232ms (1668 modules)
+ ✓ Compiled (1670 modules)
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 599ms
+ GET /api/transactions/summary?year=2025&month=6&_t=1748791720134 200 in 592ms
+ ✓ Compiled /api/transactions/analytics in 254ms (1672 modules)
+ GET /api/transactions?page=1&limit=20&sortBy=date&sortOrder=desc&year=2025&month=6 200 in 358ms
+ GET /api/transactions/summary?year=2025&month=6&_t=1748791720135 200 in 481ms
+ GET /api/categories 200 in 508ms
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748791720135 200 in 585ms
+ GET /api/transactions/analytics?year=2025&month=6&_t=1748791720134 200 in 562ms
+ GET /api/categories 200 in 27ms
+ ✓ Compiled /api/transactions/[id] in 226ms (1661 modules)
+ GET /api/transactions/investment-cmbdssres0005pc01a7u7b3bs 404 in 299ms
+ GET /api/transactions/investment-cmbdssres0005pc01a7u7b3bs 404 in 59ms
+ ○ Compiling / ...
+ ✓ Compiled / in 756ms (1665 modules)
+ ✓ Compiled /api/dashboard in 431ms (1667 modules)
+Dashboard API called, testing Prisma connection...
+Transaction count: 0
+ GET /api/dashboard?_t=1748791899847 200 in 582ms
+Dashboard API called, testing Prisma connection...
+Transaction count: 0
+ GET /api/dashboard?_t=1748791899846 200 in 35ms

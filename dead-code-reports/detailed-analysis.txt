@@ -1,0 +1,29 @@
+=== LARGE FILES (>500 lines) ===
+app/lib/types.ts (603 lines)
+app/app/bills/page.tsx (597 lines)
+app/components/enhanced-transaction-list.tsx (536 lines)
+
+=== UNUSED IMPORTS ANALYSIS ===
+--- app/hooks/use-toast.ts ---
+Imports: 2
+--- app/prisma/seed.ts ---
+Imports: 1
+--- app/next-env.d.ts ---
+Imports: 0
+--- app/components/financial-overview-cards.tsx ---
+Imports: 4
+--- app/components/add-goal-contribution-dialog.tsx ---
+Imports: 9
+--- app/components/loan-list.tsx ---
+Imports: 13
+--- app/components/edit-goal-dialog.tsx ---
+Imports: 13
+--- app/components/investments-summary.tsx ---
+Imports: 8
+--- app/components/investment-performance-chart.tsx ---
+Imports: 6
+--- app/components/transaction-summary-cards.tsx ---
+Imports: 6
+
+=== DEPENDENCY USAGE SUMMARY ===
+Total dependencies: 2
