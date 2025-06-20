@@ -1,17 +1,26 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const year = parseInt(searchParams.get('year') || new Date().getFullYear().toString());
     const monthParam = searchParams.get('month');
     const month = monthParam ? parseInt(monthParam) : null;
 
-    // Get monthly trends for the year including all transaction sources
+    // Get monthly trends for the year including all transaction sources - user filtered
     const startOfYear = new Date(year, 0, 1);
     const endOfYear = new Date(year, 11, 31, 23, 59, 59);
     
@@ -20,44 +29,49 @@ export async function GET(request: NextRequest) {
       const startOfMonth = new Date(year, monthNum - 1, 1);
       const endOfMonth = new Date(year, monthNum, 0, 23, 59, 59);
       
-      // Get all transactions including related transactions from bills, loans, investments
+      // Get all transactions including related transactions from bills, loans, investments - user filtered
       const [incomeData, expenseData, billPayments, loanPayments, investmentTransactions] = await Promise.all([
-        // Regular income transactions (excluding investment transactions)
+        // Regular income transactions (excluding investment transactions) - user filtered
         prisma.transaction.aggregate({
           where: {
+            userId: currentUser.id,
             date: { gte: startOfMonth, lte: endOfMonth },
             type: 'INCOME'
           },
           _sum: { amount: true },
           _count: true
         }),
-        // Regular expense transactions (excluding investment transactions)
+        // Regular expense transactions (excluding investment transactions) - user filtered
         prisma.transaction.aggregate({
           where: {
+            userId: currentUser.id,
             date: { gte: startOfMonth, lte: endOfMonth },
             type: 'EXPENSE'
           },
           _sum: { amount: true },
           _count: true
         }),
-        // Bill payments (these are already included in transactions but let's ensure completeness)
+        // Bill payments (these are already included in transactions but let's ensure completeness) - user filtered
         prisma.billInstance.findMany({
           where: {
+            userId: currentUser.id,
             paidDate: { gte: startOfMonth, lte: endOfMonth },
             status: 'PAID'
           },
           include: { transaction: true }
         }),
-        // Loan payments (these are already included in transactions but let's ensure completeness)
+        // Loan payments (these are already included in transactions but let's ensure completeness) - user filtered
         prisma.loanPayment.findMany({
           where: {
+            userId: currentUser.id,
             paymentDate: { gte: startOfMonth, lte: endOfMonth }
           },
           include: { transaction: true }
         }),
-        // Investment transactions that affect cash flow
+        // Investment transactions that affect cash flow - user filtered
         prisma.investmentTransaction.findMany({
           where: {
+            userId: currentUser.id,
             date: { gte: startOfMonth, lte: endOfMonth },
             type: { in: ['BUY', 'SELL'] } // Only transactions that affect cash flow
           },
@@ -98,8 +112,9 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get category breakdown including all transaction sources
+    // Get category breakdown including all transaction sources - user filtered
     let dateFilter = {
+      userId: currentUser.id,
       date: { gte: startOfYear, lte: endOfYear }
     };
     
@@ -107,11 +122,12 @@ export async function GET(request: NextRequest) {
       const startOfMonth = new Date(year, month - 1, 1);
       const endOfMonth = new Date(year, month, 0, 23, 59, 59);
       dateFilter = {
+        userId: currentUser.id,
         date: { gte: startOfMonth, lte: endOfMonth }
       };
     }
 
-    // Get all transactions for the period (excluding investment transactions)
+    // Get all transactions for the period (excluding investment transactions) - user filtered
     const transactions = await prisma.transaction.findMany({
       where: {
         ...dateFilter,
@@ -120,10 +136,11 @@ export async function GET(request: NextRequest) {
       include: { category: true }
     });
 
-    // Get additional transactions from bills, loans, and investments for the same period
+    // Get additional transactions from bills, loans, and investments for the same period - user filtered
     const [billInstances, loanPayments, investmentTransactions] = await Promise.all([
       prisma.billInstance.findMany({
         where: {
+          userId: currentUser.id,
           paidDate: dateFilter.date,
           status: 'PAID'
         },
@@ -134,6 +151,7 @@ export async function GET(request: NextRequest) {
       }),
       prisma.loanPayment.findMany({
         where: {
+          userId: currentUser.id,
           paymentDate: dateFilter.date
         },
         include: { 
@@ -143,6 +161,7 @@ export async function GET(request: NextRequest) {
       }),
       prisma.investmentTransaction.findMany({
         where: {
+          userId: currentUser.id,
           date: dateFilter.date,
           type: { in: ['BUY', 'SELL'] }
         },

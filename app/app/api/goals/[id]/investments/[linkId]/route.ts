@@ -1,9 +1,8 @@
-
-
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth-helpers';
 
 // Update investment-goal link
 export async function PUT(
@@ -11,6 +10,15 @@ export async function PUT(
   { params }: { params: { id: string; linkId: string } }
 ) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { linkId } = params;
     const body = await request.json();
     const { allocation, notes } = body;
@@ -26,9 +34,27 @@ export async function PUT(
     if (allocation !== undefined) updateData.allocation = allocation;
     if (notes !== undefined) updateData.notes = notes;
 
-    const link = await prisma.investmentGoalLink.update({
-      where: { id: linkId },
-      data: updateData,
+    const result = await prisma.investmentGoalLink.updateMany({
+      where: { 
+        id: linkId,
+        userId: currentUser.id
+      },
+      data: updateData
+    });
+
+    if (result.count === 0) {
+      return NextResponse.json(
+        { error: 'Investment-goal link not found or unauthorized' },
+        { status: 404 }
+      );
+    }
+
+    // Fetch the updated link
+    const link = await prisma.investmentGoalLink.findFirst({
+      where: { 
+        id: linkId,
+        userId: currentUser.id
+      },
       include: {
         investment: {
           include: {
@@ -55,11 +81,30 @@ export async function DELETE(
   { params }: { params: { id: string; linkId: string } }
 ) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { linkId } = params;
 
-    await prisma.investmentGoalLink.delete({
-      where: { id: linkId }
+    const result = await prisma.investmentGoalLink.deleteMany({
+      where: { 
+        id: linkId,
+        userId: currentUser.id
+      }
     });
+
+    if (result.count === 0) {
+      return NextResponse.json(
+        { error: 'Investment-goal link not found or unauthorized' },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -70,4 +115,3 @@ export async function DELETE(
     );
   }
 }
-

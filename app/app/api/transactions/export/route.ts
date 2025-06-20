@@ -1,11 +1,20 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
     const categoryId = searchParams.get('categoryId');
@@ -15,7 +24,9 @@ export async function GET(request: NextRequest) {
     const year = searchParams.get('year');
     const month = searchParams.get('month');
 
-    const where: any = {};
+    const where: any = {
+      userId: currentUser.id // Filter by user
+    };
 
     if (type && type !== 'all') {
       where.type = type;

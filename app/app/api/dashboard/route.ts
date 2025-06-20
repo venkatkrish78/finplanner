@@ -1,18 +1,27 @@
-
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('Dashboard API called, testing Prisma connection...');
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    console.log('Dashboard API called for user:', currentUser.email);
     
     // Test basic Prisma connection first
-    const transactionCount = await prisma.transaction.count();
-    console.log('Transaction count:', transactionCount);
+    const transactionCount = await prisma.transaction.count({
+      where: { userId: currentUser.id }
+    });
+    console.log('Transaction count for user:', transactionCount);
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -20,9 +29,10 @@ export async function GET(request: NextRequest) {
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
-    // Get basic data with error handling
+    // Get basic data with error handling - all filtered by user
     const currentMonthIncome = await prisma.transaction.aggregate({
       where: {
+        userId: currentUser.id,
         type: 'INCOME',
         date: { gte: startOfMonth, lte: endOfMonth }
       },
@@ -31,6 +41,7 @@ export async function GET(request: NextRequest) {
 
     const currentMonthExpenses = await prisma.transaction.aggregate({
       where: {
+        userId: currentUser.id,
         type: 'EXPENSE',
         date: { gte: startOfMonth, lte: endOfMonth }
       },
@@ -39,6 +50,7 @@ export async function GET(request: NextRequest) {
 
     const lastMonthIncome = await prisma.transaction.aggregate({
       where: {
+        userId: currentUser.id,
         type: 'INCOME',
         date: { gte: startOfLastMonth, lte: endOfLastMonth }
       },
@@ -47,6 +59,7 @@ export async function GET(request: NextRequest) {
 
     const lastMonthExpenses = await prisma.transaction.aggregate({
       where: {
+        userId: currentUser.id,
         type: 'EXPENSE',
         date: { gte: startOfLastMonth, lte: endOfLastMonth }
       },
@@ -54,24 +67,30 @@ export async function GET(request: NextRequest) {
     }).catch(() => ({ _sum: { amount: 0 } }));
 
     const totalAssets = await prisma.investment.aggregate({
+      where: { userId: currentUser.id },
       _sum: { currentValue: true }
     }).catch(() => ({ _sum: { currentValue: 0 } }));
 
     const totalLiabilities = await prisma.loan.aggregate({
+      where: { userId: currentUser.id },
       _sum: { currentBalance: true }
     }).catch(() => ({ _sum: { currentBalance: 0 } }));
 
     const recentTransactions = await prisma.transaction.findMany({
+      where: { userId: currentUser.id },
       take: 5,
       orderBy: { date: 'desc' },
       include: { category: true }
     }).catch(() => []);
 
-    // Enhanced Goals Progress Calculation with Linked Investments
+    // Enhanced Goals Progress Calculation with Linked Investments - user filtered
     const topGoals = await prisma.financialGoal.findMany({
+      where: { 
+        userId: currentUser.id,
+        status: 'ACTIVE' 
+      },
       take: 3,
       orderBy: { targetAmount: 'desc' },
-      where: { status: 'ACTIVE' },
       include: {
         contributions: true,
         investmentLinks: {
@@ -98,15 +117,18 @@ export async function GET(request: NextRequest) {
     }).catch(() => []);
 
     const activeLoans = await prisma.loan.findMany({
+      where: { userId: currentUser.id },
       orderBy: { endDate: 'asc' }
     }).catch(() => []);
 
     const investments = await prisma.investment.findMany({
+      where: { userId: currentUser.id },
       orderBy: { currentValue: 'desc' }
     }).catch(() => []);
 
     const upcomingBills = await prisma.bill.findMany({
       where: {
+        userId: currentUser.id,
         nextDueDate: {
           gte: now,
           lte: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
@@ -119,6 +141,7 @@ export async function GET(request: NextRequest) {
     const categoryBreakdown = await prisma.transaction.groupBy({
       by: ['categoryId'],
       where: {
+        userId: currentUser.id,
         type: 'EXPENSE',
         date: { gte: startOfMonth, lte: endOfMonth }
       },
@@ -141,10 +164,16 @@ export async function GET(request: NextRequest) {
     const liabilities = totalLiabilities._sum.currentBalance || 0;
     const netWorth = assets - liabilities;
 
-    // Get category names for breakdown
+    // Get category names for breakdown - user filtered
     const categoryIds = categoryBreakdown.map(item => item.categoryId).filter(Boolean);
     const categories = categoryIds.length > 0 ? await prisma.category.findMany({
-      where: { id: { in: categoryIds } }
+      where: { 
+        id: { in: categoryIds },
+        OR: [
+          { userId: currentUser.id },
+          { isDefault: true, userId: null }
+        ]
+      }
     }).catch(() => []) : [];
 
     const categoryMap = categories.reduce((acc, cat) => {

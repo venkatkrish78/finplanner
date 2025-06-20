@@ -1,9 +1,8 @@
-
-
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth-helpers';
 
 // Get investments linked to a specific goal
 export async function GET(
@@ -11,11 +10,23 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const goalId = params.id;
 
-    // Get goal with linked investments
-    const goal = await prisma.financialGoal.findUnique({
-      where: { id: goalId },
+    // Get goal with linked investments - user filtered
+    const goal = await prisma.financialGoal.findFirst({
+      where: { 
+        id: goalId,
+        userId: currentUser.id
+      },
       include: {
         investmentLinks: {
           include: {
@@ -93,6 +104,15 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const goalId = params.id;
     const body = await request.json();
     const { investmentId, allocation = 100, notes } = body;
@@ -111,9 +131,12 @@ export async function POST(
       );
     }
 
-    // Check if goal exists
-    const goal = await prisma.financialGoal.findUnique({
-      where: { id: goalId }
+    // Check if goal exists and belongs to user
+    const goal = await prisma.financialGoal.findFirst({
+      where: { 
+        id: goalId,
+        userId: currentUser.id
+      }
     });
 
     if (!goal) {
@@ -123,9 +146,12 @@ export async function POST(
       );
     }
 
-    // Check if investment exists
-    const investment = await prisma.investment.findUnique({
-      where: { id: investmentId }
+    // Check if investment exists and belongs to user
+    const investment = await prisma.investment.findFirst({
+      where: { 
+        id: investmentId,
+        userId: currentUser.id
+      }
     });
 
     if (!investment) {
@@ -136,12 +162,11 @@ export async function POST(
     }
 
     // Check if link already exists
-    const existingLink = await prisma.investmentGoalLink.findUnique({
+    const existingLink = await prisma.investmentGoalLink.findFirst({
       where: {
-        investmentId_goalId: {
-          investmentId,
-          goalId
-        }
+        investmentId,
+        goalId,
+        userId: currentUser.id
       }
     });
 
@@ -152,13 +177,14 @@ export async function POST(
       );
     }
 
-    // Create the link
+    // Create the link - user filtered
     const link = await prisma.investmentGoalLink.create({
       data: {
         investmentId,
         goalId,
         allocation,
-        notes
+        notes,
+        userId: currentUser.id
       },
       include: {
         investment: {
@@ -179,4 +205,3 @@ export async function POST(
     );
   }
 }
-

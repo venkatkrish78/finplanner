@@ -1,11 +1,20 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     // Get last 6 months of data for trends
     const endDate = new Date();
     const startDate = new Date();
@@ -18,6 +27,7 @@ export async function GET(request: NextRequest) {
     const [incomeResult, expenseResult, totalTransactions, categoryStats] = await Promise.all([
       prisma.transaction.aggregate({
         where: {
+          userId: currentUser.id,
           type: 'INCOME',
           date: { gte: currentMonthStart, lte: currentMonthEnd }
         },
@@ -25,15 +35,19 @@ export async function GET(request: NextRequest) {
       }),
       prisma.transaction.aggregate({
         where: {
+          userId: currentUser.id,
           type: 'EXPENSE',
           date: { gte: currentMonthStart, lte: currentMonthEnd }
         },
         _sum: { amount: true }
       }),
-      prisma.transaction.count(),
+      prisma.transaction.count({
+        where: { userId: currentUser.id }
+      }),
       prisma.transaction.groupBy({
         by: ['categoryId'],
         where: {
+          userId: currentUser.id,
           type: 'EXPENSE',
           date: { gte: currentMonthStart, lte: currentMonthEnd }
         },
@@ -41,10 +55,16 @@ export async function GET(request: NextRequest) {
       })
     ]);
 
-    // Get category details for stats
+    // Get category details for stats - user filtered
     const categoryIds = categoryStats.map(stat => stat.categoryId);
     const categories = await prisma.category.findMany({
-      where: { id: { in: categoryIds } }
+      where: { 
+        id: { in: categoryIds },
+        OR: [
+          { userId: currentUser.id },
+          { isDefault: true, userId: null }
+        ]
+      }
     });
 
     const categoryMap = categories.reduce((acc, cat) => {
@@ -56,7 +76,7 @@ export async function GET(request: NextRequest) {
     const totalExpenses = expenseResult._sum.amount || 0;
     const balance = totalIncome - totalExpenses;
 
-    // Generate monthly data for the last 6 months
+    // Generate monthly data for the last 6 months - user filtered
     const monthlyData = [];
     for (let i = 5; i >= 0; i--) {
       const date = new Date();
@@ -67,6 +87,7 @@ export async function GET(request: NextRequest) {
       const [monthIncome, monthExpense] = await Promise.all([
         prisma.transaction.aggregate({
           where: {
+            userId: currentUser.id,
             type: 'INCOME',
             date: { gte: monthStart, lte: monthEnd }
           },
@@ -74,6 +95,7 @@ export async function GET(request: NextRequest) {
         }),
         prisma.transaction.aggregate({
           where: {
+            userId: currentUser.id,
             type: 'EXPENSE',
             date: { gte: monthStart, lte: monthEnd }
           },

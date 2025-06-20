@@ -1,20 +1,30 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { getCurrentUser } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
 // GET /api/bills/analytics - Get bill analytics data
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const today = new Date()
     const sixMonthsAgo = new Date()
     sixMonthsAgo.setMonth(today.getMonth() - 6)
 
-    // Monthly spending for last 6 months
+    // Monthly spending for last 6 months - user filtered
     const monthlySpending = await prisma.billInstance.groupBy({
       by: ['dueDate'],
       where: {
+        userId: currentUser.id,
         status: 'PAID',
         paidDate: {
           gte: sixMonthsAgo
@@ -43,12 +53,13 @@ export async function GET(request: NextRequest) {
       amount: amount as number
     }))
 
-    // Category breakdown for current month
+    // Category breakdown for current month - user filtered
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
     const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
 
     const categoryBreakdown = await prisma.billInstance.findMany({
       where: {
+        userId: currentUser.id,
         status: 'PAID',
         paidDate: {
           gte: startOfMonth,

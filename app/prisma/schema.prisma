@@ -13,6 +13,9 @@ model Category {
   name        String   @unique
   color       String   @default("#3B82F6")
   isDefault   Boolean  @default(false)
+  userId String?
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
@@ -21,7 +24,8 @@ model Category {
   financialGoals FinancialGoal[]
   loans          Loan[]
   investments    Investment[]
-  
+  @@unique([name, userId])
+ 
   @@map("categories")
 }
 
@@ -40,8 +44,10 @@ model Transaction {
   rawMessage      String?     // Store original SMS/email for reference
   
   categoryId      String
+  userId String 
   category        Category    @relation(fields: [categoryId], references: [id])
-  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
   // Link to bill instance if this transaction is a bill payment
   billInstance    BillInstance?
   
@@ -144,8 +150,10 @@ model Bill {
   isActive    Boolean       @default(true)
   
   categoryId  String
+  userId String
   category    Category      @relation(fields: [categoryId], references: [id])
-  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
   // Next due date for generating instances
   nextDueDate DateTime
   
@@ -166,8 +174,11 @@ model BillInstance {
   notes       String?
   
   billId      String
+  userId      String
+
   bill        Bill        @relation(fields: [billId], references: [id], onDelete: Cascade)
-  
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   // Link to transaction when paid
   transactionId String?   @unique
   transaction   Transaction? @relation(fields: [transactionId], references: [id])
@@ -188,7 +199,10 @@ model FinancialGoal {
   targetDate    DateTime?
   status        GoalStatus        @default(ACTIVE)
   categoryId    String?
+  userId String
   category      Category?         @relation(fields: [categoryId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   contributions GoalContribution[]
   investments   Investment[]
   investmentLinks InvestmentGoalLink[]
@@ -201,7 +215,10 @@ model FinancialGoal {
 model GoalContribution {
   id        String        @id @default(cuid())
   goalId    String
+  userId    String
   goal      FinancialGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   amount    Float
   note      String?
   transactionId String?   @unique
@@ -224,7 +241,10 @@ model Loan {
   endDate         DateTime?
   description     String?
   categoryId      String?
+  userId String
   category        Category?     @relation(fields: [categoryId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   payments        LoanPayment[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -235,7 +255,10 @@ model Loan {
 model LoanPayment {
   id            String          @id @default(cuid())
   loanId        String
+  userId        String
   loan          Loan            @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   amount        Float
   paymentType   LoanPaymentType @default(EMI)
   principalPaid Float
@@ -333,7 +356,9 @@ model Investment {
   
   // Category for transaction linking
   categoryId      String?
+  userId String
   category        Category?         @relation(fields: [categoryId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   transactions    InvestmentTransaction[]
   sips            SIP[]
@@ -347,8 +372,10 @@ model Investment {
 model InvestmentTransaction {
   id              String                    @id @default(cuid())
   investmentId    String
+  userId          String
   investment      Investment                @relation(fields: [investmentId], references: [id], onDelete: Cascade)
-  
+  user            User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
   type            InvestmentTransactionType
   quantity        Float
   price           Float
@@ -405,4 +432,72 @@ model InvestmentGoalLink {
   
   @@unique([investmentId, goalId])
   @@map("investment_goal_links")
+}
+
+// User Management Models for NextAuth.js
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // For credentials login
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+
+  // Link user to their financial data
+  categories     Category[]
+  transactions   Transaction[]
+  bills          Bill[]
+  billInstances         BillInstance[]           
+  financialGoals FinancialGoal[]
+  goalContributions     GoalContribution[]       
+  loans          Loan[]
+  loanPayments          LoanPayment[]            
+  investments    Investment[]
+  investmentTransactions InvestmentTransaction[] 
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
 }

@@ -1,6 +1,6 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth-helpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,11 +9,23 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { id } = params;
 
-    // First try to find a regular transaction
-    let transaction = await prisma.transaction.findUnique({
-      where: { id },
+    // First try to find a regular transaction - user filtered
+    let transaction = await prisma.transaction.findFirst({
+      where: { 
+        id,
+        userId: currentUser.id
+      },
       include: {
         category: true
       }
@@ -23,11 +35,14 @@ export async function GET(
       return NextResponse.json(transaction);
     }
 
-    // If not found, check if it's a virtual bill transaction
+    // If not found, check if it's a virtual bill transaction - user filtered
     if (id.startsWith('bill-')) {
       const billInstanceId = id.replace('bill-', '');
-      const billInstance = await prisma.billInstance.findUnique({
-        where: { id: billInstanceId },
+      const billInstance = await prisma.billInstance.findFirst({
+        where: { 
+          id: billInstanceId,
+          userId: currentUser.id
+        },
         include: { 
           bill: { include: { category: true } },
           transaction: true 
@@ -57,11 +72,14 @@ export async function GET(
       }
     }
 
-    // If not found, check if it's a virtual loan transaction
+    // If not found, check if it's a virtual loan transaction - user filtered
     if (id.startsWith('loan-')) {
       const loanPaymentId = id.replace('loan-', '');
-      const loanPayment = await prisma.loanPayment.findUnique({
-        where: { id: loanPaymentId },
+      const loanPayment = await prisma.loanPayment.findFirst({
+        where: { 
+          id: loanPaymentId,
+          userId: currentUser.id
+        },
         include: { 
           loan: { include: { category: true } },
           transaction: true 
@@ -109,11 +127,43 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const data = await request.json();
     const { id } = params;
 
-    const transaction = await prisma.transaction.update({
-      where: { id },
+    // Verify category belongs to user if provided
+    if (data.categoryId) {
+      const category = await prisma.category.findFirst({
+        where: {
+          id: data.categoryId,
+          OR: [
+            { userId: currentUser.id },
+            { isDefault: true, userId: null }
+          ]
+        }
+      });
+
+      if (!category) {
+        return NextResponse.json(
+          { error: 'Invalid category' },
+          { status: 400 }
+        );
+      }
+    }
+
+    const transaction = await prisma.transaction.updateMany({
+      where: { 
+        id,
+        userId: currentUser.id // Ensure user can only update their own transactions
+      },
       data: {
         amount: data.amount,
         type: data.type,
@@ -121,13 +171,28 @@ export async function PUT(
         merchant: data.merchant,
         date: new Date(data.date),
         categoryId: data.categoryId
+      }
+    });
+
+    if (transaction.count === 0) {
+      return NextResponse.json(
+        { error: 'Transaction not found or unauthorized' },
+        { status: 404 }
+      );
+    }
+
+    // Fetch the updated transaction
+    const updatedTransaction = await prisma.transaction.findFirst({
+      where: { 
+        id,
+        userId: currentUser.id
       },
       include: {
         category: true
       }
     });
 
-    return NextResponse.json(transaction);
+    return NextResponse.json(updatedTransaction);
   } catch (error) {
     console.error('Error updating transaction:', error);
     return NextResponse.json(
@@ -142,38 +207,65 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { id } = params;
 
-    // First try to delete a regular transaction
+    // First try to delete a regular transaction - user filtered
     try {
-      await prisma.transaction.delete({
-        where: { id }
+      const result = await prisma.transaction.deleteMany({
+        where: { 
+          id,
+          userId: currentUser.id
+        }
       });
-      return NextResponse.json({ success: true });
+      
+      if (result.count > 0) {
+        return NextResponse.json({ success: true });
+      }
     } catch (error) {
       // If regular transaction not found, check for virtual transactions
     }
 
-    // If it's a virtual bill transaction, delete the bill instance
+    // If it's a virtual bill transaction, delete the bill instance - user filtered
     if (id.startsWith('bill-')) {
       const billInstanceId = id.replace('bill-', '');
-      await prisma.billInstance.delete({
-        where: { id: billInstanceId }
+      const result = await prisma.billInstance.deleteMany({
+        where: { 
+          id: billInstanceId,
+          userId: currentUser.id
+        }
       });
-      return NextResponse.json({ success: true });
+      
+      if (result.count > 0) {
+        return NextResponse.json({ success: true });
+      }
     }
 
-    // If it's a virtual loan transaction, delete the loan payment
+    // If it's a virtual loan transaction, delete the loan payment - user filtered
     if (id.startsWith('loan-')) {
       const loanPaymentId = id.replace('loan-', '');
-      await prisma.loanPayment.delete({
-        where: { id: loanPaymentId }
+      const result = await prisma.loanPayment.deleteMany({
+        where: { 
+          id: loanPaymentId,
+          userId: currentUser.id
+        }
       });
-      return NextResponse.json({ success: true });
+      
+      if (result.count > 0) {
+        return NextResponse.json({ success: true });
+      }
     }
 
     return NextResponse.json(
-      { error: 'Transaction not found' },
+      { error: 'Transaction not found or unauthorized' },
       { status: 404 }
     );
   } catch (error) {

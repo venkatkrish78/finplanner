@@ -1,18 +1,28 @@
-
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { GoalType, GoalStatus } from '@prisma/client';
+import { getCurrentUser } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') as GoalStatus | null;
     const type = searchParams.get('type') as GoalType | null;
     const includeInvestments = searchParams.get('includeInvestments') === 'true';
 
-    const where: any = {};
+    const where: any = {
+      userId: currentUser.id // Filter by user
+    };
     if (status) where.status = status;
     if (type) where.goalType = type;
 
@@ -99,6 +109,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const {
       name,
@@ -116,6 +134,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Verify category belongs to user if provided
+    if (categoryId) {
+      const category = await prisma.category.findFirst({
+        where: {
+          id: categoryId,
+          OR: [
+            { userId: currentUser.id },
+            { isDefault: true, userId: null }
+          ]
+        }
+      });
+
+      if (!category) {
+        return NextResponse.json(
+          { error: 'Invalid category' },
+          { status: 400 }
+        );
+      }
+    }
+
     const goal = await prisma.financialGoal.create({
       data: {
         name,
@@ -125,7 +163,8 @@ export async function POST(request: NextRequest) {
         currentAmount: 0,
         status: 'ACTIVE',
         targetDate: targetDate ? new Date(targetDate) : null,
-        categoryId: categoryId || null
+        categoryId: categoryId || null,
+        userId: currentUser.id // Link to current user
       },
       include: {
         category: true,

@@ -1,27 +1,55 @@
-
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth-helpers';
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { goalId, amount, note, createTransaction } = body;
 
+    // Verify goal belongs to user
+    const goalExists = await prisma.financialGoal.findFirst({
+      where: {
+        id: goalId,
+        userId: currentUser.id
+      }
+    });
+
+    if (!goalExists) {
+      return NextResponse.json(
+        { error: 'Goal not found or unauthorized' },
+        { status: 404 }
+      );
+    }
+
     const result = await prisma.$transaction(async (tx) => {
-      // Create the contribution
+      // Create the contribution - user filtered
       const contribution = await tx.goalContribution.create({
         data: {
           goalId,
           amount: parseFloat(amount),
-          note
+          note,
+          userId: currentUser.id
         }
       });
 
-      // Update goal current amount
+      // Update goal current amount - user filtered
       const goal = await tx.financialGoal.update({
-        where: { id: goalId },
+        where: { 
+          id: goalId,
+          userId: currentUser.id
+        },
         data: {
           currentAmount: {
             increment: parseFloat(amount)
@@ -32,7 +60,10 @@ export async function POST(request: NextRequest) {
       // Check if goal is completed
       if (goal.currentAmount >= goal.targetAmount) {
         await tx.financialGoal.update({
-          where: { id: goalId },
+          where: { 
+            id: goalId,
+            userId: currentUser.id
+          },
           data: { status: 'COMPLETED' }
         });
       }
@@ -40,9 +71,15 @@ export async function POST(request: NextRequest) {
       // Create transaction if requested
       let transaction = null;
       if (createTransaction) {
-        // Find or create a default savings category
+        // Find or create a default savings category - user filtered
         let category = await tx.category.findFirst({
-          where: { name: 'Savings' }
+          where: { 
+            name: 'Savings',
+            OR: [
+              { userId: currentUser.id },
+              { isDefault: true, userId: null }
+            ]
+          }
         });
 
         if (!category) {
@@ -50,7 +87,8 @@ export async function POST(request: NextRequest) {
             data: {
               name: 'Savings',
               color: '#10B981',
-              isDefault: true
+              isDefault: false,
+              userId: currentUser.id
             }
           });
         }
@@ -62,7 +100,8 @@ export async function POST(request: NextRequest) {
             description: `Goal contribution: ${goal.name}`,
             date: new Date(),
             categoryId: category.id,
-            source: 'MANUAL'
+            source: 'MANUAL',
+            userId: currentUser.id
           }
         });
 

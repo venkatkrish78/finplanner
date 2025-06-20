@@ -1,13 +1,25 @@
-
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/db'
+import { getCurrentUser } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    const investments = await db.investment.findMany({
-      where: { isActive: true },
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const investments = await prisma.investment.findMany({
+      where: { 
+        isActive: true,
+        userId: currentUser.id
+      },
       include: {
         transactions: true
       }

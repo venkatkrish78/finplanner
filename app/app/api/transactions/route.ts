@@ -1,11 +1,34 @@
-
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
 import { prisma } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
+async function getCurrentUser() {
+  const session = await getServerSession();
+  
+  if (!session?.user?.email) {
+    return null;
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email }
+  });
+
+  return user;
+}
+
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
@@ -42,8 +65,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Get regular transactions
-    const transactionWhere: any = {};
+    // Get regular transactions (user-specific)
+    const transactionWhere: any = {
+      userId: currentUser.id // Add user filter
+    };
+    
     if (Object.keys(dateFilter).length > 0) {
       transactionWhere.date = dateFilter;
     }
@@ -70,7 +96,7 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // Get all transaction sources (excluding investment transactions)
+    // Get all transaction sources (excluding investment transactions) - user-specific
     const [regularTransactions, billInstances, loanPayments] = await Promise.all([
       prisma.transaction.findMany({
         where: {
@@ -81,9 +107,10 @@ export async function GET(request: NextRequest) {
           category: true
         }
       }),
-      // Get bill payments
+      // Get bill payments (user-specific)
       prisma.billInstance.findMany({
         where: {
+          bill: { userId: currentUser.id }, // Filter by user
           ...(Object.keys(dateFilter).length > 0 && { paidDate: dateFilter }),
           status: 'PAID'
         },
@@ -92,9 +119,10 @@ export async function GET(request: NextRequest) {
           transaction: true 
         }
       }),
-      // Get loan payments
+      // Get loan payments (user-specific)
       prisma.loanPayment.findMany({
         where: {
+          loan: { userId: currentUser.id }, // Filter by user
           ...(Object.keys(dateFilter).length > 0 && { paymentDate: dateFilter })
         },
         include: { 
@@ -104,7 +132,7 @@ export async function GET(request: NextRequest) {
       })
     ]);
 
-    // Combine all transactions
+    // Rest of the logic remains the same...
     const allTransactions: any[] = [...regularTransactions];
 
     // Add bill payments that don't have corresponding transactions
@@ -156,9 +184,6 @@ export async function GET(request: NextRequest) {
         allTransactions.push(loanTransaction);
       }
     });
-
-    // Note: Investment transactions are now handled separately and not included in regular transactions
-    // This prevents investment purchases from appearing as expenses in transaction lists and calculations
 
     // Apply additional filters to combined transactions
     let filteredTransactions = allTransactions;
@@ -237,6 +262,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const data = await request.json();
 
     const transaction = await prisma.transaction.create({
@@ -252,7 +286,8 @@ export async function POST(request: NextRequest) {
         status: data.status || 'SUCCESS',
         source: data.source || 'MANUAL',
         rawMessage: data.rawMessage,
-        categoryId: data.categoryId
+        categoryId: data.categoryId,
+        userId: currentUser.id // Add userId
       },
       include: {
         category: true

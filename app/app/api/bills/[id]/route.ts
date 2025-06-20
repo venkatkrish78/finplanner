@@ -1,7 +1,7 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { BillFrequency } from '@/lib/types'
+import { getCurrentUser } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,8 +11,20 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const bill = await prisma.bill.findUnique({
-      where: { id: params.id },
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const bill = await prisma.bill.findFirst({
+      where: { 
+        id: params.id,
+        userId: currentUser.id
+      },
       include: {
         category: true,
         instances: {
@@ -44,11 +56,43 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json()
     const { name, amount, frequency, description, categoryId, nextDueDate, isActive } = body
 
-    const bill = await prisma.bill.update({
-      where: { id: params.id },
+    // Verify category belongs to user if provided
+    if (categoryId) {
+      const category = await prisma.category.findFirst({
+        where: {
+          id: categoryId,
+          OR: [
+            { userId: currentUser.id },
+            { isDefault: true, userId: null }
+          ]
+        }
+      });
+
+      if (!category) {
+        return NextResponse.json(
+          { error: 'Invalid category' },
+          { status: 400 }
+        );
+      }
+    }
+
+    const bill = await prisma.bill.updateMany({
+      where: { 
+        id: params.id,
+        userId: currentUser.id
+      },
       data: {
         name,
         amount: amount ? parseFloat(amount) : undefined,
@@ -57,13 +101,28 @@ export async function PUT(
         categoryId,
         nextDueDate: nextDueDate ? new Date(nextDueDate) : undefined,
         isActive
+      }
+    })
+
+    if (bill.count === 0) {
+      return NextResponse.json(
+        { error: 'Bill not found or unauthorized' },
+        { status: 404 }
+      )
+    }
+
+    // Fetch the updated bill
+    const updatedBill = await prisma.bill.findFirst({
+      where: { 
+        id: params.id,
+        userId: currentUser.id
       },
       include: {
         category: true
       }
     })
 
-    return NextResponse.json(bill)
+    return NextResponse.json(updatedBill)
   } catch (error) {
     console.error('Error updating bill:', error)
     return NextResponse.json(
@@ -79,9 +138,28 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    await prisma.bill.delete({
-      where: { id: params.id }
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const result = await prisma.bill.deleteMany({
+      where: { 
+        id: params.id,
+        userId: currentUser.id
+      }
     })
+
+    if (result.count === 0) {
+      return NextResponse.json(
+        { error: 'Bill not found or unauthorized' },
+        { status: 404 }
+      )
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

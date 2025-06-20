@@ -6,6 +6,59 @@ All notable changes to FinPlanner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+Add this new section at the top of your CHANGELOG.md:
+
+```markdown
+## [1.1.0] - 2025-06-21
+
+### 🔐 Authentication & Multi-User Features
+- **Added** NextAuth.js authentication system
+- **Added** User registration and login pages with modern UI
+- **Added** Secure session management with JWT tokens
+- **Added** Multi-user database architecture with data isolation
+
+### 🗄️ Database Updates
+- **Updated** All database models to include userId field
+- **Updated** 45 API routes with user authentication middleware
+- **Added** Prisma migrations for multi-user support
+- **Added** Demo user accounts with sample data
+- **Fixed** Database schema drift issues
+
+### 🎨 UI/UX Improvements
+- **Added** Colorful sign-in and sign-up pages
+- **Updated** Landing page to redirect based on auth status
+- **Fixed** Tailwind CSS configuration issues
+- **Added** User display in header with logout option
+- **Fixed** Currency formatting (removed duplicate $ symbols)
+
+### 🔒 Security Enhancements
+- **Added** User-based data filtering on all queries
+- **Added** Protected API routes with authentication checks
+- **Added** Secure user context in all database operations
+- **Added** Input validation and error handling
+- **Fixed** Data leakage between user accounts
+
+### 🐛 Bug Fixes
+- **Fixed** Transaction creation with proper user association
+- **Fixed** Bill instance creation with user context
+- **Fixed** Investment creation with category conflicts
+- **Fixed** Database unique constraint issues
+- **Fixed** Module not found errors in auth configuration
+
+### 🛠️ Technical Improvements
+- **Updated** All API endpoints to include user authentication
+- **Added** Auth helper functions for user session management
+- **Updated** Database seed script with multi-user data
+- **Added** Error handling for authentication failures
+- **Improved** Code organization and type safety
+
+## [1.0.0] - 2024-06-20
+### Initial Release
+- Complete financial management platform
+- Transaction, Bills, Goals, Loans, Investments tracking
+- Dashboard with analytics and visualizations
+- 38,140+ lines of production-ready code
+
 ## [2.1.0] - 2025-06-01
 
 ### 📊 Application Assessment & Documentation Enhancement

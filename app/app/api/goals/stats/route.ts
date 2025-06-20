@@ -1,18 +1,33 @@
-
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth-helpers';
 
 export async function GET() {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const [goals, totalStats] = await Promise.all([
       prisma.financialGoal.findMany({
+        where: {
+          userId: currentUser.id
+        },
         include: {
           contributions: true
         }
       }),
       prisma.financialGoal.aggregate({
+        where: {
+          userId: currentUser.id
+        },
         _sum: {
           targetAmount: true,
           currentAmount: true

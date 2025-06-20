@@ -1,12 +1,21 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { AssetClass, InvestmentPlatform } from '@/lib/types'
+import { getCurrentUser } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url)
     const goalId = searchParams.get('goalId')
     const assetClass = searchParams.get('assetClass')
@@ -14,7 +23,9 @@ export async function GET(request: NextRequest) {
     const isActive = searchParams.get('isActive')
     const includeGoals = searchParams.get('includeGoals') === 'true'
 
-    const where: any = {}
+    const where: any = {
+      userId: currentUser.id // Filter by user
+    }
     
     if (goalId) where.goalId = goalId
     if (assetClass) where.assetClass = assetClass
@@ -98,6 +109,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json()
     const {
       name,
@@ -112,6 +132,43 @@ export async function POST(request: NextRequest) {
       goalId,
       categoryId
     } = body
+
+    // Verify goal belongs to user if provided
+    if (goalId) {
+      const goal = await prisma.financialGoal.findFirst({
+        where: {
+          id: goalId,
+          userId: currentUser.id
+        }
+      });
+
+      if (!goal) {
+        return NextResponse.json(
+          { error: 'Invalid goal' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Verify category belongs to user if provided
+    if (categoryId) {
+      const category = await prisma.category.findFirst({
+        where: {
+          id: categoryId,
+          OR: [
+            { userId: currentUser.id },
+            { isDefault: true, userId: null }
+          ]
+        }
+      });
+
+      if (!category) {
+        return NextResponse.json(
+          { error: 'Invalid category' },
+          { status: 400 }
+        );
+      }
+    }
 
     // Calculate derived values
     const totalInvested = quantity * purchasePrice
@@ -131,7 +188,8 @@ export async function POST(request: NextRequest) {
         purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
         description,
         goalId: goalId || null,
-        categoryId: categoryId || null
+        categoryId: categoryId || null,
+        userId: currentUser.id
       }
     })
 
@@ -145,23 +203,53 @@ export async function POST(request: NextRequest) {
           price: purchasePrice,
           amount: totalInvested,
           date: purchaseDate ? new Date(purchaseDate) : new Date(),
-          notes: 'Initial purchase'
+          notes: 'Initial purchase',
+          userId: currentUser.id
         }
       })
 
-      // Create corresponding main transaction for cash flow tracking
-      const mainTransaction = await prisma.transaction.create({
-        data: {
-          amount: totalInvested,
-          type: 'INVESTMENT_BUY',
-          description: `Investment purchase: ${name}`,
-          merchant: name,
-          date: purchaseDate ? new Date(purchaseDate) : new Date(),
-          categoryId: categoryId || '',
-          status: 'SUCCESS',
-          source: 'MANUAL'
-        }
-      })
+// Create corresponding main transaction for cash flow tracking
+// If no categoryId provided, find or create a default "Investments" category
+let transactionCategoryId = categoryId;
+if (!transactionCategoryId) {
+  const investmentCategory = await prisma.category.findFirst({
+    where: {
+      name: 'Investment',
+      OR: [
+        { userId: currentUser.id },
+        { isDefault: true, userId: null }
+      ]
+    }
+  });
+
+  if (investmentCategory) {
+    transactionCategoryId = investmentCategory.id;
+  } else {
+    // Create a default Investments category for the user
+    const newCategory = await prisma.category.create({
+      data: {
+        name: 'Investment',
+        color: '#10b981',
+        userId: currentUser.id
+      }
+    });
+    transactionCategoryId = newCategory.id;
+  }
+}
+
+const mainTransaction = await prisma.transaction.create({
+  data: {
+    amount: totalInvested,
+    type: 'INVESTMENT_BUY',
+    description: `Investment purchase: ${name}`,
+    merchant: name,
+    date: purchaseDate ? new Date(purchaseDate) : new Date(),
+    categoryId: transactionCategoryId, // ✅ NOW IT'S GUARANTEED TO BE VALID
+    status: 'SUCCESS',
+    source: 'MANUAL',
+    userId: currentUser.id
+  }
+})
 
       // Link the investment transaction to the main transaction
       await prisma.investmentTransaction.update({

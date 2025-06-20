@@ -1,16 +1,28 @@
-
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth-helpers';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const goal = await prisma.financialGoal.findUnique({
-      where: { id: params.id },
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const goal = await prisma.financialGoal.findFirst({
+      where: { 
+        id: params.id,
+        userId: currentUser.id
+      },
       include: {
         category: true,
         contributions: {
@@ -91,6 +103,15 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const {
       name,
@@ -102,8 +123,31 @@ export async function PUT(
       categoryId
     } = body;
 
-    const goal = await prisma.financialGoal.update({
-      where: { id: params.id },
+    // Verify category belongs to user if provided
+    if (categoryId) {
+      const category = await prisma.category.findFirst({
+        where: {
+          id: categoryId,
+          OR: [
+            { userId: currentUser.id },
+            { isDefault: true, userId: null }
+          ]
+        }
+      });
+
+      if (!category) {
+        return NextResponse.json(
+          { error: 'Invalid category' },
+          { status: 400 }
+        );
+      }
+    }
+
+    const goal = await prisma.financialGoal.updateMany({
+      where: { 
+        id: params.id,
+        userId: currentUser.id
+      },
       data: {
         name,
         description,
@@ -112,6 +156,21 @@ export async function PUT(
         targetDate: targetDate ? new Date(targetDate) : null,
         status,
         categoryId: categoryId || null
+      }
+    });
+
+    if (goal.count === 0) {
+      return NextResponse.json(
+        { error: 'Goal not found or unauthorized' },
+        { status: 404 }
+      );
+    }
+
+    // Fetch the updated goal
+    const updatedGoal = await prisma.financialGoal.findFirst({
+      where: { 
+        id: params.id,
+        userId: currentUser.id
       },
       include: {
         category: true,
@@ -119,7 +178,7 @@ export async function PUT(
       }
     });
 
-    return NextResponse.json(goal);
+    return NextResponse.json(updatedGoal);
   } catch (error) {
     console.error('Error updating goal:', error);
     return NextResponse.json(
@@ -134,9 +193,28 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    await prisma.financialGoal.delete({
-      where: { id: params.id }
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const result = await prisma.financialGoal.deleteMany({
+      where: { 
+        id: params.id,
+        userId: currentUser.id
+      }
     });
+
+    if (result.count === 0) {
+      return NextResponse.json(
+        { error: 'Goal not found or unauthorized' },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

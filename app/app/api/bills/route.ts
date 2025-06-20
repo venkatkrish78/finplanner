@@ -1,7 +1,7 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { BillFrequency } from '@/lib/types'
+import { getCurrentUser } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,7 +41,7 @@ function shouldBillAppearInPeriod(bill: any, view: string, year: number, month?:
 }
 
 // Helper function to get payment status for a bill in a specific period
-async function getBillPaymentStatus(billId: string, view: string, year: number, month?: number) {
+async function getBillPaymentStatus(billId: string, view: string, year: number, month?: number, userId: string) {
   let startDate: Date
   let endDate: Date
 
@@ -62,6 +62,9 @@ async function getBillPaymentStatus(billId: string, view: string, year: number, 
       paidDate: {
         gte: startDate,
         lte: endDate
+      },
+      bill: {
+        userId // Ensure bill belongs to user
       }
     },
     orderBy: { paidDate: 'desc' }
@@ -76,6 +79,14 @@ async function getBillPaymentStatus(billId: string, view: string, year: number, 
 // GET /api/bills - List all bills with optional view filtering
 export async function GET(request: NextRequest) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url)
     const isActive = searchParams.get('active')
     const view = searchParams.get('view') // 'monthly', 'yearly', or null for default
@@ -83,7 +94,10 @@ export async function GET(request: NextRequest) {
     const month = searchParams.get('month') ? parseInt(searchParams.get('month')!) : new Date().getMonth() + 1
     
     const bills = await prisma.bill.findMany({
-      where: isActive !== null ? { isActive: isActive === 'true' } : undefined,
+      where: {
+        userId: currentUser.id, // Filter by user
+        ...(isActive !== null ? { isActive: isActive === 'true' } : {})
+      },
       include: {
         category: true,
         instances: {
@@ -100,7 +114,7 @@ export async function GET(request: NextRequest) {
       
       for (const bill of bills) {
         if (shouldBillAppearInPeriod(bill, view, year, month)) {
-          const paymentStatus = await getBillPaymentStatus(bill.id, view, year, month)
+          const paymentStatus = await getBillPaymentStatus(bill.id, view, year, month, currentUser.id)
           
           filteredBills.push({
             ...bill,
@@ -127,6 +141,14 @@ export async function GET(request: NextRequest) {
 // POST /api/bills - Create a new bill
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json()
     const { name, amount, frequency, description, categoryId, nextDueDate } = body
 
@@ -137,6 +159,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Verify category belongs to user
+    const category = await prisma.category.findFirst({
+      where: {
+        id: categoryId,
+        OR: [
+          { userId: currentUser.id },
+          { isDefault: true, userId: null }
+        ]
+      }
+    });
+
+    if (!category) {
+      return NextResponse.json(
+        { error: 'Invalid category' },
+        { status: 400 }
+      );
+    }
+
     const bill = await prisma.bill.create({
       data: {
         name,
@@ -145,7 +185,8 @@ export async function POST(request: NextRequest) {
         description,
         categoryId,
         nextDueDate: new Date(nextDueDate),
-        isActive: true
+        isActive: true,
+        userId: currentUser.id // Link to current user
       },
       include: {
         category: true
@@ -157,7 +198,8 @@ export async function POST(request: NextRequest) {
       data: {
         billId: bill.id,
         dueDate: new Date(nextDueDate),
-        amount: parseFloat(amount)
+        amount: parseFloat(amount),
+        userId: currentUser.id
       }
     })
 

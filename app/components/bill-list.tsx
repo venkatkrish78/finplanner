@@ -219,7 +219,6 @@ export default function BillList({ refreshTrigger, onBillUpdated }: BillListProp
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center text-2xl font-bold text-gray-900">
-                      <DollarSign className="w-5 h-5 mr-1" />
                       {formatCurrency(bill.amount)}
                     </div>
                     <Badge 

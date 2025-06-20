@@ -1,16 +1,27 @@
-
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { LoanType } from '@prisma/client';
+import { getCurrentUser } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') as LoanType | null;
 
-    const where: any = {};
+    const where: any = {
+      userId: currentUser.id
+    };
     if (type) where.loanType = type;
 
     const loans = await prisma.loan.findMany({
@@ -37,6 +48,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const {
       name,
@@ -48,6 +68,26 @@ export async function POST(request: NextRequest) {
       description,
       categoryId
     } = body;
+
+    // Verify category belongs to user if provided
+    if (categoryId) {
+      const category = await prisma.category.findFirst({
+        where: {
+          id: categoryId,
+          OR: [
+            { userId: currentUser.id },
+            { isDefault: true, userId: null }
+          ]
+        }
+      });
+
+      if (!category) {
+        return NextResponse.json(
+          { error: 'Invalid category' },
+          { status: 400 }
+        );
+      }
+    }
 
     // Calculate EMI using the formula: EMI = [P x R x (1+R)^N] / [(1+R)^N-1]
     const principal = parseFloat(principalAmount);
@@ -73,7 +113,8 @@ export async function POST(request: NextRequest) {
         startDate: new Date(startDate),
         endDate,
         description,
-        categoryId: categoryId || null
+        categoryId: categoryId || null,
+        userId: currentUser.id
       },
       include: {
         category: true,
