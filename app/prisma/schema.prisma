@@ -10,10 +10,10 @@ datasource db {
 
 model Category {
   id          String   @id @default(cuid())
-  name        String   @unique
+  name        String   
   color       String   @default("#3B82F6")
   isDefault   Boolean  @default(false)
-  userId String?
+  userId String
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime @default(now())
