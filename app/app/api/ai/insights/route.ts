@@ -16,6 +16,8 @@ export async function GET(req: NextRequest) {
     }
 
     const userId = session.user.id
+    console.log("🔍 Session user ID:", userId)
+    console.log("🔍 Expected user ID: cmc6o34760000g92xekuyaf2e")
 
     // Check for recent insights (less than 24 hours old)
     const existingInsights = await prisma.aIInsight.findMany({

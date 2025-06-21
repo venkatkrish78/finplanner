@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       include: {
         category: true,
         contributions: {
-          orderBy: { createdAt: 'desc' },
+          orderBy: { id: 'desc' },
           take: 5
         },
         investmentLinks: includeInvestments ? {
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
           }
         } : undefined
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { id: 'desc' }
     });
 
     // Calculate dynamic progress for each goal
