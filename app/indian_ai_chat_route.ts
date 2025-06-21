@@ -8,12 +8,11 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-// Enhanced Indian number parsing - FIXED VERSION
+// Enhanced Indian number parsing
 function parseIndianAmount(text: string): number | null {
   const lowerText = text.toLowerCase()
-  console.log('Parsing text:', text) // Debug log
 
-  // Handle Indian number formats - FIXED REGEX
+  // Handle Indian number formats
   const patterns = [
     // Lakhs: 2 lakhs, 2.5 lakhs, 2L, 2.5L
     { regex: /(\d+(?:\.\d+)?)\s*(?:lakhs?|lacs?|l)\b/i, multiplier: 100000 },
@@ -21,24 +20,20 @@ function parseIndianAmount(text: string): number | null {
     { regex: /(\d+(?:\.\d+)?)\s*(?:crores?|cr)\b/i, multiplier: 10000000 },
     // Thousands: 50k, 50K, 50 thousand
     { regex: /(\d+(?:\.\d+)?)\s*(?:thousands?|k)\b/i, multiplier: 1000 },
-    // Rs/₹ with numbers: Rs 2000, ₹2000, Rs. 2000
-    { regex: /(?:rs\.?|₹)\s*(\d+(?:,\d+)*(?:\.\d+)?)/i, multiplier: 1 },
-    // Regular numbers with commas: 2,00,000
-    { regex: /(\d{1,3}(?:,\d{2}){1,}(?:,\d{3})*)/g, multiplier: 1 },
-    // Simple numbers: 2000, 50000
-    { regex: /\b(\d+(?:\.\d+)?)\b/g, multiplier: 1 }
+    // Regular numbers with commas: ₹2,00,000 or 2,00,000
+    { regex: /₹?(\d{1,3}(?:,\d{2}){1,}(?:,\d{3})*)/g, multiplier: 1 },
+    // Regular numbers: ₹50000 or 50000
+    { regex: /₹?(\d+(?:\.\d+)?)/g, multiplier: 1 }
   ]
 
   for (const pattern of patterns) {
     const match = text.match(pattern.regex)
     if (match) {
       let amount = parseFloat(match[1].replace(/,/g, ''))
-      console.log('Found amount:', amount, 'multiplier:', pattern.multiplier) // Debug log
       return amount * pattern.multiplier
     }
   }
 
-  console.log('No amount found in:', text) // Debug log
   return null
 }
 
@@ -133,19 +128,14 @@ function formatIndianCurrency(amount: number): string {
 
 async function processUserRequest(message: string, userId: string, financialData: any) {
   const lowerMessage = message.toLowerCase()
-  console.log('Processing message:', message) // Debug log
 
-  // Enhanced transaction patterns - MORE FLEXIBLE
-  const transactionMatch = lowerMessage.match(/add|spent|expense|income|received|paid|bought|purchase|kharcha|paisa|spend/)
+  // Transaction patterns
+  const transactionMatch = lowerMessage.match(/add|spent|expense|income|received|paid|bought|purchase|kharcha|paisa/)
   const amount = parseIndianAmount(message)
-
-  console.log('Transaction match:', !!transactionMatch, 'Amount:', amount) // Debug log
 
   if (transactionMatch && amount && amount > 0) {
     const isIncome = lowerMessage.match(/received|income|salary|earned|got|bonus|freelance|kamaya|mila/)
     const type = isIncome ? 'INCOME' : 'EXPENSE'
-
-    console.log('Creating transaction:', { amount, type }) // Debug log
 
     // Enhanced Indian category detection
     let categoryName = 'Other'
@@ -179,7 +169,7 @@ async function processUserRequest(message: string, userId: string, financialData
         })
       }
 
-      const transaction = await prisma.transaction.create({
+      await prisma.transaction.create({
         data: {
           amount,
           type,
@@ -190,19 +180,16 @@ async function processUserRequest(message: string, userId: string, financialData
         }
       })
 
-      console.log('Transaction created:', transaction) // Debug log
-
-      const newBalance = (financialData?.totalBalance || 0) + (type === 'INCOME' ? amount : -amount)
-      const newNetWorth = (financialData?.netWorth || 0) + (type === 'INCOME' ? amount : -amount)
+      const newBalance = financialData?.totalBalance + (type === 'INCOME' ? amount : -amount)
+      const newNetWorth = financialData?.netWorth + (type === 'INCOME' ? amount : -amount)
 
       return {
         response: `✅ Added ${formatIndianCurrency(amount)} ${type.toLowerCase()} (${categoryName}). Balance: ${formatIndianCurrency(newBalance)}, Net Worth: ${formatIndianCurrency(newNetWorth)}`,
         success: true
       }
     } catch (error) {
-      console.error('Transaction creation error:', error)
       return {
-        response: `❌ Couldn't add transaction: ${error.message}. Try: "Add ₹100 coffee" or "Spent Rs 2000 on food"`,
+        response: `❌ Couldn't add transaction. Try: "Add ₹100 coffee" or "Spent 2 lakhs on car"`,
         success: false
       }
     }
@@ -339,7 +326,6 @@ export async function POST(request: NextRequest) {
     }
 
     const { message } = await request.json()
-    console.log('Received message:', message) // Debug log
 
     // Get comprehensive financial data including net worth
     const financialData = await getUserFinancialData(session.user.id)
@@ -348,7 +334,6 @@ export async function POST(request: NextRequest) {
     const directResult = await processUserRequest(message, session.user.id, financialData)
 
     if (directResult) {
-      console.log('Direct result:', directResult) // Debug log
       return NextResponse.json(directResult)
     }
 
@@ -393,14 +378,14 @@ IMPORTANT GUIDELINES:
     })
 
     return NextResponse.json({
-      response: completion.choices[0].message.content || "I can help you manage your finances! Try: 'Add ₹100 coffee', 'Spent Rs 2000 on food', 'Net worth', or 'How am I doing?'",
+      response: completion.choices[0].message.content || "I can help you manage your finances! Try: 'Add ₹100 coffee', 'Spent 2 lakhs on car', 'Net worth', or 'How am I doing?'",
       success: true
     })
 
   } catch (error) {
     console.error('AI Chat Error:', error)
     return NextResponse.json({
-      response: "I can help with your finances! Try: 'Add ₹100 coffee', 'Spent Rs 2000 on food', or 'How am I doing?'",
+      response: "I can help with your finances! Try: 'Add ₹100 coffee', 'Spent 2 lakhs on car', or 'How am I doing?'",
       success: true
     })
   }

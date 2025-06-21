@@ -1,0 +1,16 @@
+{
+  "name": "FinPlanner AI - AI Financial Coach",
+  "short_name": "FinPlanner AI",
+  "description": "Your intelligent financial planning companion powered by AI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    }
+  ]
+}

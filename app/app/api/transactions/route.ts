@@ -1,305 +1,129 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { prisma } from '@/lib/db';
-
-export const dynamic = 'force-dynamic';
-
-async function getCurrentUser() {
-  const session = await getServerSession();
-  
-  if (!session?.user?.email) {
-    return null;
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email }
-  });
-
-  return user;
-}
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const type = searchParams.get('type');
-    const categoryId = searchParams.get('categoryId');
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
-    const search = searchParams.get('search');
-    const sortBy = searchParams.get('sortBy') || 'date';
-    const sortOrder = searchParams.get('sortOrder') || 'desc';
-    const year = searchParams.get('year');
-    const month = searchParams.get('month');
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '50')
+    const type = searchParams.get('type')
+    const categoryId = searchParams.get('categoryId')
+    const startDate = searchParams.get('startDate')
+    const endDate = searchParams.get('endDate')
+    const year = searchParams.get('year')
+    const month = searchParams.get('month')
+    const search = searchParams.get('search')
 
-    // Build date filter
-    let dateFilter: any = {};
-    if (year) {
-      const yearNum = parseInt(year);
-      if (month) {
-        const monthNum = parseInt(month);
-        const startOfMonth = new Date(yearNum, monthNum - 1, 1);
-        const endOfMonth = new Date(yearNum, monthNum, 0, 23, 59, 59);
-        dateFilter = { gte: startOfMonth, lte: endOfMonth };
-      } else {
-        const startOfYear = new Date(yearNum, 0, 1);
-        const endOfYear = new Date(yearNum, 11, 31, 23, 59, 59);
-        dateFilter = { gte: startOfYear, lte: endOfYear };
+    const skip = (page - 1) * limit
+
+    // Build where clause
+    const where: any = {
+      userId: session.user.id
+    }
+
+    if (type && type !== 'all') {
+      where.type = type
+    }
+
+    if (categoryId && categoryId !== 'all') {
+      where.categoryId = categoryId
+    }
+
+    if (search) {
+      where.description = {
+        contains: search,
+        mode: 'insensitive'
       }
-    } else if (startDate || endDate) {
+    }
+
+    // Handle date filtering
+    if (year || month || startDate || endDate) {
+      where.date = {}
+      
+      if (year && month) {
+        // Monthly view
+        const startOfMonth = new Date(parseInt(year), parseInt(month) - 1, 1)
+        const endOfMonth = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59)
+        where.date.gte = startOfMonth
+        where.date.lte = endOfMonth
+      } else if (year) {
+        // Yearly view
+        const startOfYear = new Date(parseInt(year), 0, 1)
+        const endOfYear = new Date(parseInt(year), 11, 31, 23, 59, 59)
+        where.date.gte = startOfYear
+        where.date.lte = endOfYear
+      }
+      
       if (startDate) {
-        dateFilter.gte = new Date(startDate);
+        where.date.gte = new Date(startDate)
       }
       if (endDate) {
-        dateFilter.lte = new Date(endDate);
+        where.date.lte = new Date(endDate)
       }
     }
 
-    // Get regular transactions (user-specific)
-    const transactionWhere: any = {
-      userId: currentUser.id // Add user filter
-    };
-    
-    if (Object.keys(dateFilter).length > 0) {
-      transactionWhere.date = dateFilter;
-    }
-    if (type && type !== 'all') {
-      transactionWhere.type = type;
-    }
-    if (categoryId && categoryId !== 'all') {
-      transactionWhere.categoryId = categoryId;
-    }
-    if (search) {
-      transactionWhere.OR = [
-        {
-          description: {
-            contains: search,
-            mode: 'insensitive'
-          }
-        },
-        {
-          merchant: {
-            contains: search,
-            mode: 'insensitive'
-          }
-        }
-      ];
-    }
+    console.log('Transactions query where:', JSON.stringify(where, null, 2))
 
-    // Get all transaction sources (excluding investment transactions) - user-specific
-    const [regularTransactions, billInstances, loanPayments] = await Promise.all([
+    // Get transactions with pagination
+    const [transactions, totalCount] = await Promise.all([
       prisma.transaction.findMany({
-        where: {
-          ...transactionWhere,
-          type: { notIn: ['INVESTMENT_BUY', 'INVESTMENT_SELL'] }
-        },
+        where,
         include: {
           category: true
-        }
-      }),
-      // Get bill payments (user-specific)
-      prisma.billInstance.findMany({
-        where: {
-          bill: { userId: currentUser.id }, // Filter by user
-          ...(Object.keys(dateFilter).length > 0 && { paidDate: dateFilter }),
-          status: 'PAID'
         },
-        include: { 
-          bill: { include: { category: true } },
-          transaction: true 
-        }
-      }),
-      // Get loan payments (user-specific)
-      prisma.loanPayment.findMany({
-        where: {
-          loan: { userId: currentUser.id }, // Filter by user
-          ...(Object.keys(dateFilter).length > 0 && { paymentDate: dateFilter })
+        orderBy: {
+          date: 'desc'
         },
-        include: { 
-          loan: { include: { category: true } },
-          transaction: true 
-        }
-      })
-    ]);
+        skip,
+        take: limit
+      }),
+      prisma.transaction.count({ where })
+    ])
 
-    // Rest of the logic remains the same...
-    const allTransactions: any[] = [...regularTransactions];
-
-    // Add bill payments that don't have corresponding transactions
-    billInstances.forEach(billInstance => {
-      if (!billInstance.transaction) {
-        const billTransaction = {
-          id: `bill-${billInstance.id}`,
-          amount: billInstance.amount,
-          type: 'EXPENSE' as const,
-          description: `Bill payment: ${billInstance.bill.name}`,
-          merchant: billInstance.bill.name,
-          date: billInstance.paidDate!,
-          category: billInstance.bill.category,
-          categoryId: billInstance.bill.categoryId,
-          status: 'SUCCESS',
-          source: 'BILL',
-          transactionId: `BILL-${billInstance.id}`,
-          accountNumber: null,
-          balance: null,
-          rawMessage: null,
-          createdAt: billInstance.createdAt,
-          updatedAt: billInstance.updatedAt
-        };
-        allTransactions.push(billTransaction);
-      }
-    });
-
-    // Add loan payments that don't have corresponding transactions
-    loanPayments.forEach(payment => {
-      if (!payment.transaction) {
-        const loanTransaction = {
-          id: `loan-${payment.id}`,
-          amount: payment.amount,
-          type: 'EXPENSE' as const,
-          description: `Loan payment: ${payment.loan.name}`,
-          merchant: payment.loan.name,
-          date: payment.paymentDate,
-          category: payment.loan.category,
-          categoryId: payment.loan.categoryId,
-          status: 'SUCCESS',
-          source: 'LOAN',
-          transactionId: `LOAN-${payment.id}`,
-          accountNumber: null,
-          balance: null,
-          rawMessage: null,
-          createdAt: payment.createdAt,
-          updatedAt: payment.createdAt
-        };
-        allTransactions.push(loanTransaction);
-      }
-    });
-
-    // Apply additional filters to combined transactions
-    let filteredTransactions = allTransactions;
-
-    if (type && type !== 'all') {
-      filteredTransactions = filteredTransactions.filter(txn => txn.type === type);
-    }
-
-    if (categoryId && categoryId !== 'all') {
-      filteredTransactions = filteredTransactions.filter(txn => txn.categoryId === categoryId);
-    }
-
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filteredTransactions = filteredTransactions.filter(txn => 
-        (txn.description && txn.description.toLowerCase().includes(searchLower)) ||
-        (txn.merchant && txn.merchant.toLowerCase().includes(searchLower))
-      );
-    }
-
-    // Sort transactions
-    filteredTransactions.sort((a, b) => {
-      let aValue: any, bValue: any;
-      
-      switch (sortBy) {
-        case 'amount':
-          aValue = a.amount;
-          bValue = b.amount;
-          break;
-        case 'description':
-          aValue = a.description || '';
-          bValue = b.description || '';
-          break;
-        case 'category':
-          aValue = a.category?.name || '';
-          bValue = b.category?.name || '';
-          break;
-        case 'merchant':
-          aValue = a.merchant || '';
-          bValue = b.merchant || '';
-          break;
-        default:
-          aValue = new Date(a.date);
-          bValue = new Date(b.date);
-      }
-
-      if (sortOrder === 'desc') {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-      } else {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-      }
-    });
-
-    // Apply pagination
-    const total = filteredTransactions.length;
-    const skip = (page - 1) * limit;
-    const paginatedTransactions = filteredTransactions.slice(skip, skip + limit);
+    console.log(`Found ${transactions.length} transactions for user ${session.user.id}`)
 
     return NextResponse.json({
-      transactions: paginatedTransactions,
+      transactions: transactions.map(t => ({
+        id: t.id,
+        amount: t.amount,
+        type: t.type,
+        description: t.description,
+        date: t.date.toISOString(),
+        category: {
+          id: t.category.id,
+          name: t.category.name
+        },
+        createdAt: t.createdAt.toISOString(),
+        updatedAt: t.updatedAt.toISOString()
+      })),
       pagination: {
         page,
         limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching transactions:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch transactions' },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    // Check authentication
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const data = await request.json();
-
-    const transaction = await prisma.transaction.create({
-      data: {
-        amount: data.amount,
-        type: data.type,
-        description: data.description,
-        merchant: data.merchant,
-        accountNumber: data.accountNumber,
-        transactionId: data.transactionId,
-        date: new Date(data.date),
-        balance: data.balance,
-        status: data.status || 'SUCCESS',
-        source: data.source || 'MANUAL',
-        rawMessage: data.rawMessage,
-        categoryId: data.categoryId,
-        userId: currentUser.id // Add userId
+        totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        hasNext: page * limit < totalCount,
+        hasPrev: page > 1
       },
-      include: {
-        category: true
+      summary: {
+        totalIncome: totalIncome._sum.amount || 0,
+        totalExpenses: totalExpenses._sum.amount || 0,
+        balance,
+        transactionCount: totalCount
       }
-    });
+    })
 
-    return NextResponse.json(transaction);
   } catch (error) {
-    console.error('Error creating transaction:', error);
+    console.error('Error fetching transactions:', error)
     return NextResponse.json(
-      { error: 'Failed to create transaction' },
+      { error: 'Failed to fetch transactions', details: error.message },
       { status: 500 }
-    );
+    )
   }
 }

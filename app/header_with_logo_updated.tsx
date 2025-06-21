@@ -122,12 +122,12 @@ export default function Header() {
     <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo with clean icon + text */}
+          {/* Logo with your beautiful branding */}
           <Link href="/dashboard" className="flex items-center space-x-3 group hover:opacity-90 transition-opacity">
-            <div className="relative w-10 h-10 rounded-xl overflow-hidden">
+            <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-300">
               <Image
                 src="/logo.png"
-                alt="FinPlanner"
+                alt="FinPlanner AI"
                 width={40}
                 height={40}
                 className="object-contain"
@@ -135,9 +135,10 @@ export default function Header() {
               />
             </div>
             <div>
-              <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                FinPlanner
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                FinPlanner AI
               </span>
+              <div className="text-xs text-gray-500 -mt-1">AI Financial Coach</div>
             </div>
           </Link>
 
@@ -177,7 +178,7 @@ export default function Header() {
                   disabled={isLoggingOut}
                 >
                   <Avatar className="h-8 w-8 ring-2 ring-blue-200">
-                    <AvatarFallback className="bg-gradient-to-r from-green-500 to-blue-500 text-white text-sm font-semibold">
+                    <AvatarFallback className="bg-gradient-to-r from-blue-500 to-green-500 text-white text-sm font-semibold">
                       {session.user.name?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
@@ -185,7 +186,7 @@ export default function Header() {
                     <div className="text-sm font-medium text-gray-900">
                       {session.user.name}
                     </div>
-                    <div className="text-xs text-green-600 font-medium">Premium</div>
+                    <div className="text-xs text-blue-600 font-medium">AI Premium</div>
                   </div>
                   <ChevronDown className="h-4 w-4 text-gray-400" />
                 </Button>
@@ -210,6 +211,32 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+        </div>
+
+        {/* Mobile Navigation */}
+        <div className="md:hidden border-t border-gray-100 py-2">
+          <nav className="flex items-center justify-around">
+            {navigationItems.slice(0, 5).map((item) => {
+              const IconComponent = item.icon
+              const isActive = pathname === item.href
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`flex flex-col items-center space-y-1 p-2 rounded-lg transition-colors ${
+                    isActive ? 'text-blue-600' : 'text-gray-600'
+                  }`}
+                >
+                  <div className={`p-1 bg-gradient-to-r ${item.gradient} rounded-md ${
+                    isActive ? 'opacity-100' : 'opacity-70'
+                  }`}>
+                    <IconComponent className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="text-xs font-medium">{item.name}</span>
+                </Link>
+              )
+            })}
+          </nav>
         </div>
       </div>
     </header>

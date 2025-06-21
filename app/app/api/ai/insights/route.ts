@@ -16,16 +16,14 @@ export async function GET(req: NextRequest) {
     }
 
     const userId = session.user.id
-    console.log("🔍 Session user ID:", userId)
-    console.log("🔍 Expected user ID: cmc6o34760000g92xekuyaf2e")
 
-    // Check for recent insights (less than 24 hours old)
+    // Check for recent insights (less than 6 hours old)
     const existingInsights = await prisma.aIInsight.findMany({
       where: {
         userId,
         isRead: false,
         isArchived: false,
-        createdAt: { gt: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+        createdAt: { gt: new Date(Date.now() - 6 * 60 * 60 * 1000) }
       },
       orderBy: { createdAt: 'desc' }
     })
@@ -44,11 +42,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ insights: formattedInsights })
     }
 
-    // Fetch financial data for AI analysis
-    const [transactions, goals, investments, bills] = await Promise.all([
+    // Fetch financial data
+    const [transactions, goals, investments, bills, assets, loans] = await Promise.all([
       prisma.transaction.findMany({ 
         where: { userId }, 
-        take: 50, 
+        take: 30, 
         orderBy: { date: 'desc' },
         include: { category: true }
       }),
@@ -57,16 +55,17 @@ export async function GET(req: NextRequest) {
       prisma.bill.findMany({ 
         where: { userId },
         orderBy: { nextDueDate: 'asc' }
-      })
+      }),
+      prisma.asset.findMany({ where: { userId } }),
+      prisma.loan.findMany({ where: { userId } })
     ])
 
     if (transactions.length === 0) {
-      // Create welcome insight for new users
       const welcomeInsight = await prisma.aIInsight.create({
         data: {
           type: 'SAVINGS_OPPORTUNITY',
-          title: 'Getting Started',
-          description: 'Welcome to AI Insights! Add transactions, set goals, and track investments to get personalized financial advice.',
+          title: 'Welcome!',
+          description: 'Start adding transactions to get personalized insights.',
           priority: 1,
           data: { isWelcome: true },
           userId,
@@ -88,24 +87,28 @@ export async function GET(req: NextRequest) {
       })
     }
 
-    // Calculate financial metrics
+    // Quick calculations
     const totalIncome = transactions.filter(t => t.type === 'INCOME').reduce((sum, t) => sum + t.amount, 0)
-    const totalExpenses = Math.abs(transactions.filter(t => t.type === 'EXPENSE').reduce((sum, t) => sum + t.amount, 0))
-    const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome * 100) : 0
-    const totalInvestments = investments.reduce((sum, i) => sum + i.currentValue, 0)
+    const totalExpenses = transactions.filter(t => t.type === 'EXPENSE').reduce((sum, t) => sum + t.amount, 0)
+    const balance = totalIncome - totalExpenses
+    const savingsRate = totalIncome > 0 ? ((balance / totalIncome) * 100) : 0
 
-    // Spending by category
+    const totalAssets = assets.reduce((sum, a) => sum + a.value, 0)
+    const totalLoans = loans.reduce((sum, l) => sum + l.currentBalance, 0)
+    const totalInvestments = investments.reduce((sum, i) => sum + i.currentValue, 0)
+    const netWorth = balance + totalAssets + totalInvestments - totalLoans
+
+    // Top spending category
     const expensesByCategory = transactions
       .filter(t => t.type === 'EXPENSE')
       .reduce((acc, t) => {
         const categoryName = t.category?.name || 'Other'
-        acc[categoryName] = (acc[categoryName] || 0) + Math.abs(t.amount)
+        acc[categoryName] = (acc[categoryName] || 0) + t.amount
         return acc
       }, {} as Record<string, number>)
 
-    const topSpendingCategories = Object.entries(expensesByCategory)
-      .sort(([,a], [,b]) => b - a)
-      .slice(0, 3)
+    const topCategory = Object.entries(expensesByCategory)
+      .sort(([,a], [,b]) => b - a)[0]
 
     // Upcoming bills
     const upcomingBills = bills.filter(b => {
@@ -115,148 +118,123 @@ export async function GET(req: NextRequest) {
       return daysUntilDue <= 7 && daysUntilDue >= 0
     })
 
-    // Goal progress
-    const activeGoals = goals.filter(g => g.targetDate > new Date())
-    const goalProgress = activeGoals.map(g => ({
-      name: g.name,
-      progress: ((g.currentAmount / g.targetAmount) * 100).toFixed(1)
-    }))
+    // Generate concise insights
+    const insights = []
 
-    // Create financial context for AI
-    const financialContext = `
-FINANCIAL OVERVIEW:
-- Monthly Income: ₹${totalIncome.toLocaleString()}
-- Monthly Expenses: ₹${totalExpenses.toLocaleString()}
-- Savings Rate: ${savingsRate.toFixed(1)}%
-- Total Investments: ₹${totalInvestments.toLocaleString()}
-- Top Spending: ${topSpendingCategories.map(([cat, amt]) => `${cat} ₹${amt.toLocaleString()}`).join(', ')}
-- Active Goals: ${goalProgress.map(g => `${g.name} (${g.progress}% complete)`).join(', ') || 'None'}
-- Upcoming Bills: ${upcomingBills.length} bills due in next 7 days
-`
-
-    // Generate AI insights using OpenAI
-    const insightPrompts = [
-      {
-        type: 'SPENDING_PATTERN',
-        priority: savingsRate < 10 ? 3 : savingsRate < 20 ? 2 : 1,
-        prompt: `Analyze spending patterns and savings rate. Give specific, actionable advice in 1-2 sentences.`
-      },
-      {
+    // Balance insight
+    if (balance > 0) {
+      insights.push({
+        type: 'SAVINGS_OPPORTUNITY',
+        title: 'Great Balance!',
+        description: `You have ₹${balance.toFixed(0)} positive balance. Consider investing some of it.`,
+        priority: 1
+      })
+    } else if (balance < 0) {
+      insights.push({
         type: 'BUDGET_ALERT',
-        priority: 2,
-        prompt: `Identify the biggest spending concern and suggest a specific budget optimization in 1-2 sentences.`
-      },
-      {
+        title: 'Budget Alert',
+        description: `You're ₹${Math.abs(balance).toFixed(0)} over budget. Review your expenses.`,
+        priority: 3
+      })
+    }
+
+    // Savings rate insight
+    if (savingsRate < 10) {
+      insights.push({
+        type: 'SAVINGS_OPPORTUNITY',
+        title: 'Low Savings',
+        description: `Only ${savingsRate.toFixed(0)}% savings rate. Try to save at least 20%.`,
+        priority: 2
+      })
+    } else if (savingsRate > 30) {
+      insights.push({
         type: 'INVESTMENT_SUGGESTION',
-        priority: totalInvestments < 50000 ? 2 : 1,
-        prompt: `Provide investment advice based on current portfolio and income. Be specific and actionable in 1-2 sentences.`
-      }
-    ]
+        title: 'High Savings!',
+        description: `${savingsRate.toFixed(0)}% savings rate is excellent! Consider investing more.`,
+        priority: 1
+      })
+    }
 
+    // Top spending insight
+    if (topCategory && topCategory[1] > totalIncome * 0.3) {
+      insights.push({
+        type: 'SPENDING_PATTERN',
+        title: 'High Spending',
+        description: `₹${topCategory[1].toFixed(0)} spent on ${topCategory[0]}. That's ${((topCategory[1]/totalIncome)*100).toFixed(0)}% of income.`,
+        priority: 2
+      })
+    }
+
+    // Bill reminder
     if (upcomingBills.length > 0) {
-      insightPrompts.push({
+      const totalDue = upcomingBills.reduce((sum, b) => sum + b.amount, 0)
+      insights.push({
         type: 'BILL_REMINDER',
-        priority: 3,
-        prompt: `Create a helpful reminder about upcoming bills. Be encouraging and specific in 1-2 sentences.`
+        title: 'Bills Due',
+        description: `${upcomingBills.length} bills worth ₹${totalDue.toFixed(0)} due this week.`,
+        priority: 3
       })
     }
 
+    // Goal progress
+    const activeGoals = goals.filter(g => g.currentAmount < g.targetAmount)
     if (activeGoals.length > 0) {
-      insightPrompts.push({
-        type: 'GOAL_PROGRESS',
-        priority: 1,
-        prompt: `Motivate user about their financial goals progress. Be encouraging and specific in 1-2 sentences.`
-      })
-    }
+      const goalProgress = activeGoals.map(g => ({
+        name: g.name,
+        progress: ((g.currentAmount / g.targetAmount) * 100)
+      }))
 
-    const newInsights = []
-
-    // Generate AI insights
-    for (const insightPrompt of insightPrompts.slice(0, 4)) { // Limit to 4 insights
-      try {
-        const completion = await openai.chat.completions.create({
-          model: "gpt-3.5-turbo",
-          messages: [
-            {
-              role: "system",
-              content: `You are a professional financial advisor. Generate concise, actionable financial insights.
-
-${financialContext}
-
-RULES:
-- Keep responses under 100 words
-- Be specific with numbers when relevant
-- Give actionable advice
-- Be encouraging but realistic
-- Focus on ONE key insight per response
-- Use Indian currency format (₹)
-`
-            },
-            {
-              role: "user",
-              content: insightPrompt.prompt
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 150
+      const bestGoal = goalProgress.sort((a, b) => b.progress - a.progress)[0]
+      if (bestGoal.progress > 50) {
+        insights.push({
+          type: 'GOAL_PROGRESS',
+          title: 'Goal Progress',
+          description: `${bestGoal.name} is ${bestGoal.progress.toFixed(0)}% complete! Keep going!`,
+          priority: 1
         })
-
-        const aiResponse = completion.choices[0]?.message?.content || "Keep tracking your finances for better insights!"
-
-        // Generate title based on type
-        const titles = {
-          'SPENDING_PATTERN': 'Spending Analysis',
-          'BUDGET_ALERT': 'Budget Optimization',
-          'INVESTMENT_SUGGESTION': 'Investment Advice',
-          'BILL_REMINDER': 'Upcoming Bills',
-          'GOAL_PROGRESS': 'Goal Progress',
-          'SAVINGS_OPPORTUNITY': 'Savings Tip'
-        }
-
-        const insight = await prisma.aIInsight.create({
-          data: {
-            type: insightPrompt.type,
-            title: titles[insightPrompt.type as keyof typeof titles] || 'Financial Insight',
-            description: aiResponse,
-            priority: insightPrompt.priority,
-            data: {
-              generatedBy: 'OpenAI',
-              context: {
-                savingsRate,
-                totalIncome,
-                totalExpenses,
-                totalInvestments
-              }
-            },
-            userId,
-            isRead: false,
-            isArchived: false
-          }
-        })
-
-        newInsights.push(insight)
-
-      } catch (aiError) {
-        console.error('AI generation error:', aiError)
-        // Fallback to rule-based insight if AI fails
-        const fallbackInsight = await prisma.aIInsight.create({
-          data: {
-            type: insightPrompt.type,
-            title: 'Financial Insight',
-            description: `Your savings rate is ${savingsRate.toFixed(1)}%. ${savingsRate > 20 ? 'Great job maintaining financial discipline!' : 'Consider reviewing your expenses to improve savings.'}`,
-            priority: insightPrompt.priority,
-            data: { fallback: true },
-            userId,
-            isRead: false,
-            isArchived: false
-          }
-        })
-        newInsights.push(fallbackInsight)
       }
     }
 
-    // Format insights for response
-    const formattedInsights = newInsights.map(insight => ({
+    // Net worth insight
+    if (netWorth > 100000) {
+      insights.push({
+        type: 'INVESTMENT_SUGGESTION',
+        title: 'Net Worth',
+        description: `Your net worth is ₹${netWorth.toFixed(0)}. Great financial health!`,
+        priority: 1
+      })
+    }
+
+    // Limit to top 3 insights
+    const topInsights = insights
+      .sort((a, b) => b.priority - a.priority)
+      .slice(0, 3)
+
+    // Save to database
+    const savedInsights = []
+    for (const insight of topInsights) {
+      const saved = await prisma.aIInsight.create({
+        data: {
+          type: insight.type,
+          title: insight.title,
+          description: insight.description,
+          priority: insight.priority,
+          data: {
+            balance,
+            savingsRate,
+            netWorth,
+            generatedAt: new Date().toISOString()
+          },
+          userId,
+          isRead: false,
+          isArchived: false
+        }
+      })
+      savedInsights.push(saved)
+    }
+
+    // Format response
+    const formattedInsights = savedInsights.map(insight => ({
       id: insight.id,
       type: insight.type,
       title: insight.title,

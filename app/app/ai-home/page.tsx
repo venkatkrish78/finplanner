@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { redirect } from 'next/navigation'
-import EnhancedAIChat from '@/components/ai/enhanced-ai-chat'
+import UltimateAIChat from "@/components/ai/ultimate-ai-chat"
 import AIInsights from '@/components/ai/ai-insights'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Brain, MessageSquare, TrendingUp, Zap } from 'lucide-react'
@@ -95,7 +95,7 @@ export default function AIHomePage() {
                 Chat with your AI assistant to manage your finances naturally
               </p>
             </div>
-            <EnhancedAIChat />
+            <UltimateAIChat />
           </div>
 
           {/* AI Insights */}
