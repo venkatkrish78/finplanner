@@ -217,114 +217,146 @@ export default function EnhancedAIChat() {
   }
 
   return (
-    <Card className="h-[600px] flex flex-col">
-      <CardContent className="flex-1 flex flex-col p-4">
-        {/* Quick Actions */}
-        <div className="mb-4">
-          <p className="text-sm text-gray-600 mb-2">Quick actions:</p>
-          <div className="flex flex-wrap gap-2">
-            {quickActions.map((action, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                size="sm"
-                className={`${action.color} border-0`}
-                onClick={() => handleQuickAction(action.prompt)}
-              >
-                {action.icon}
-                <span className="ml-1">{action.label}</span>
-              </Button>
-            ))}
+    <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50">
+      <CardContent className="p-0">
+        {/* Fixed height container - KEY FIX */}
+        <div className="h-[650px] flex flex-col">
+          {/* Header with gradient */}
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white flex-shrink-0 rounded-t-lg">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 rounded-full">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold">AI Financial Assistant</h3>
+                <p className="text-sm text-blue-100">Natural language financial management</p>
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-            >
+          {/* Quick Actions */}
+          <div className="p-4 bg-gray-50 border-b flex-shrink-0">
+            <p className="text-sm text-gray-600 mb-2">Quick actions:</p>
+            <div className="flex flex-wrap gap-2">
+              {quickActions.map((action, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  size="sm"
+                  className={`${action.color} border-0 text-xs`}
+                  onClick={() => handleQuickAction(action.prompt)}
+                >
+                  {action.icon}
+                  <span className="ml-1">{action.label}</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Messages - KEY FIX: flex-1 with min-h-0 for proper scrolling */}
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white">
+            {messages.map((message) => (
               <div
-                className={`max-w-[80%] rounded-lg p-3 ${
-                  message.isUser
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-900'
-                }`}
+                key={message.id}
+                className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
               >
-                <div className="flex items-start space-x-2">
-                  {!message.isUser && (
-                    <Bot className="h-5 w-5 mt-0.5 text-blue-600" />
-                  )}
-                  {message.isUser && (
-                    <User className="h-5 w-5 mt-0.5 text-white" />
-                  )}
-                  <div className="flex-1">
-                    <p className="text-sm">{message.content}</p>
-                    <ActionFeedback message={message} />
-                    {message.error && (
-                      <div className="flex items-center space-x-1 mt-2">
-                        <AlertCircle className="h-4 w-4 text-red-500" />
-                        <span className="text-xs text-red-600">{message.error}</span>
-                      </div>
-                    )}
+                <div
+                  className={`max-w-[85%] rounded-2xl p-4 shadow-md ${
+                    message.isUser
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-br-md'
+                      : 'bg-white text-gray-900 border border-gray-100 rounded-bl-md'
+                  }`}
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                      message.isUser ? 'bg-white/20' : 'bg-blue-100'
+                    }`}>
+                      {message.isUser ? (
+                        <User className="h-4 w-4 text-white" />
+                      ) : (
+                        <Bot className="h-4 w-4 text-blue-600" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                      <ActionFeedback message={message} />
+                      {message.error && (
+                        <div className="flex items-center space-x-1 mt-2">
+                          <AlertCircle className="h-4 w-4 text-red-500" />
+                          <span className="text-xs text-red-600">{message.error}</span>
+                        </div>
+                      )}
+                      <p className="text-xs opacity-70 mt-2">
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-gray-100 rounded-lg p-3">
-                <div className="flex items-center space-x-2">
-                  <Bot className="h-5 w-5 text-blue-600" />
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            ))}
+            
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-white rounded-2xl rounded-bl-md p-4 shadow-md border border-gray-100">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                      <Bot className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input */}
-        <div className="flex space-x-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message or use voice input..."
-            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-            disabled={isLoading}
-            className="flex-1"
-          />
-          <Button
-            type="button"
-            variant={isListening ? "destructive" : "outline"}
-            size="sm"
-            onClick={isListening ? stopVoiceInput : startVoiceInput}
-            disabled={isLoading}
-          >
-            {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-          </Button>
-          <Button 
-            onClick={() => sendMessage()} 
-            disabled={!input.trim() || isLoading}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Voice indicator */}
-        {isListening && (
-          <div className="mt-2 flex items-center justify-center space-x-2 text-red-600">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-            <span className="text-sm">Listening...</span>
+            )}
+            <div ref={messagesEndRef} />
           </div>
-        )}
+
+          {/* Input Area - KEY FIX: flex-shrink-0 to prevent compression */}
+          <div className="border-t bg-white p-4 flex-shrink-0 rounded-b-lg">
+            <div className="flex space-x-2">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Type your message or use voice input..."
+                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                disabled={isLoading}
+                className="flex-1 border-2 border-gray-200 focus:border-blue-400 rounded-xl px-4 py-3"
+              />
+              <Button
+                type="button"
+                variant={isListening ? "destructive" : "outline"}
+                size="sm"
+                onClick={isListening ? stopVoiceInput : startVoiceInput}
+                disabled={isLoading}
+                className="rounded-xl px-4"
+              >
+                {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
+              <Button 
+                onClick={() => sendMessage()} 
+                disabled={!input.trim() || isLoading}
+                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-xl px-6 shadow-lg"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Voice indicator */}
+            {isListening && (
+              <div className="mt-2 flex items-center justify-center space-x-2 text-red-600">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="text-sm">Listening...</span>
+              </div>
+            )}
+            
+            <p className="text-xs text-gray-500 mt-2 text-center">
+              Press Enter to send • Use voice input for hands-free interaction
+            </p>
+          </div>
+        </div>
       </CardContent>
     </Card>
   )
