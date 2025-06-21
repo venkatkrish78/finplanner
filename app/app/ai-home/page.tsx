@@ -1,114 +1,144 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { redirect } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import AIChat from '@/components/ai/ai-chat';
-import AIInsights from '@/components/ai/ai-insights';
-import { 
-  Brain, 
-  TrendingUp, 
-  Zap, 
-  MessageCircle,
-  Lightbulb,
-  ArrowRight
-} from 'lucide-react';
-import Link from 'next/link';
+'use client'
 
-export default async function AIHomePage() {
-  const session = await getServerSession(authOptions);
-  
+import { useSession } from 'next-auth/react'
+import { redirect } from 'next/navigation'
+import EnhancedAIChat from '@/components/ai/enhanced-ai-chat'
+import AIInsights from '@/components/ai/ai-insights'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Brain, MessageSquare, TrendingUp, Zap } from 'lucide-react'
+
+export default function AIHomePage() {
+  const { data: session, status } = useSession()
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
   if (!session) {
-    redirect('/auth/signin');
+    redirect('/auth/signin')
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <div className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-lg">
+              <Brain className="h-8 w-8 text-white" />
+            </div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Welcome back, {session.user?.name?.split(' ')[0]}! 👋
+              AI Financial Assistant
             </h1>
-            <p className="text-gray-600 mt-2 text-lg">
-              Your AI-powered financial assistant is ready to help you make smarter money decisions
-            </p>
           </div>
-          <div className="flex gap-4">
-            <Link href="/dashboard">
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                Go to Dashboard
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Manage your finances with natural language. Add transactions, create goals, track bills, and get personalized insights.
+          </p>
         </div>
 
-        {/* AI Features Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Feature Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center space-x-2 text-blue-700">
+                <MessageSquare className="h-5 w-5" />
+                <span>Natural Language</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-blue-600">
+                Just say "Add ₹500 grocery expense" or "I want to save ₹50000 for vacation"
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center space-x-2 text-green-700">
+                <Zap className="h-5 w-5" />
+                <span>Voice Commands</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-green-600">
+                Use voice input to quickly add expenses and manage your finances hands-free
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center space-x-2 text-purple-700">
+                <TrendingUp className="h-5 w-5" />
+                <span>Smart Insights</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-purple-600">
+                Get personalized financial insights and recommendations based on your data
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* AI Chat */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
-                <MessageCircle className="h-6 w-6 text-white" />
-              </div>
-              <h2 className="text-2xl font-semibold text-gray-800">AI Financial Assistant</h2>
+          <div>
+            <div className="mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">AI Financial Assistant</h2>
+              <p className="text-gray-600">
+                Chat with your AI assistant to manage your finances naturally
+              </p>
             </div>
-            <AIChat />
+            <EnhancedAIChat />
           </div>
 
           {/* AI Insights */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg">
-                <Lightbulb className="h-6 w-6 text-white" />
-              </div>
-              <h2 className="text-2xl font-semibold text-gray-800">Personalized Insights</h2>
+          <div>
+            <div className="mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">AI Insights</h2>
+              <p className="text-gray-600">
+                Personalized insights and recommendations for your financial health
+              </p>
             </div>
             <AIInsights />
           </div>
         </div>
 
-        {/* Feature Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-xl transition-all duration-300">
+        {/* Examples Section */}
+        <div className="mt-12">
+          <Card className="border-0 shadow-lg">
             <CardHeader>
-              <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg w-fit mb-3">
-                <Brain className="h-8 w-8 text-white" />
-              </div>
-              <CardTitle className="text-xl text-gray-800">Smart Analysis</CardTitle>
-              <CardDescription className="text-gray-600">
-                AI analyzes your spending patterns and provides actionable insights to optimize your finances
-              </CardDescription>
+              <CardTitle className="text-center">Try These Examples</CardTitle>
             </CardHeader>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 hover:shadow-xl transition-all duration-300">
-            <CardHeader>
-              <div className="p-3 bg-gradient-to-r from-green-500 to-green-600 rounded-lg w-fit mb-3">
-                <TrendingUp className="h-8 w-8 text-white" />
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-900">💰 Transactions</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• "Add ₹1,200 grocery expense from yesterday"</li>
+                    <li>• "I received my salary of ₹75,000 today"</li>
+                    <li>• "Spent ₹150 on coffee this morning"</li>
+                  </ul>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-900">🎯 Goals & Bills</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• "I want to save ₹2 lakhs for a car by next year"</li>
+                    <li>• "My electricity bill is ₹2,400 due on 25th"</li>
+                    <li>• "Add ₹10,000 to my vacation savings goal"</li>
+                  </ul>
+                </div>
               </div>
-              <CardTitle className="text-xl text-gray-800">Predictive Insights</CardTitle>
-              <CardDescription className="text-gray-600">
-                Get predictions about your financial future and personalized recommendations for goal achievement
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 hover:shadow-xl transition-all duration-300">
-            <CardHeader>
-              <div className="p-3 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg w-fit mb-3">
-                <Zap className="h-8 w-8 text-white" />
-              </div>
-              <CardTitle className="text-xl text-gray-800">Real-time Advice</CardTitle>
-              <CardDescription className="text-gray-600">
-                Instant financial advice tailored to your specific situation and spending habits
-              </CardDescription>
-            </CardHeader>
+            </CardContent>
           </Card>
         </div>
       </div>
     </div>
-  );
+  )
 }
