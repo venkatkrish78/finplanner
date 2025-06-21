@@ -55,20 +55,19 @@ async function getBillPaymentStatus(billId: string, view: string, year: number, 
     return { isPaid: false, paidDate: null }
   }
 
+ 
   const paidInstance = await prisma.billInstance.findFirst({
-    where: {
-      billId,
-      status: 'PAID',
-      paidDate: {
-        gte: startDate,
-        lte: endDate
-      },
-      bill: {
-        userId // Ensure bill belongs to user
-      }
-    },
-    orderBy: { paidDate: 'desc' }
-  })
+  where: {
+    billId,
+    userId: userId, // Direct userId filter on billInstance
+    status: 'PAID',
+    paidDate: {
+      gte: startDate,
+      lte: endDate
+    }
+  },
+  orderBy: { paidDate: 'desc' }
+})
 
   return {
     isPaid: !!paidInstance,
@@ -159,16 +158,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify category belongs to user
-    const category = await prisma.category.findFirst({
-      where: {
-        id: categoryId,
-        OR: [
-          { userId: currentUser.id },
-          { isDefault: true, userId: null }
-        ]
-      }
-    });
+    // Verify category belongs to user or is a default category
+const category = await prisma.category.findUnique({
+  where: {
+    id: categoryId
+  }
+});
+
+if (!category) {
+  return NextResponse.json(
+    { error: 'Category not found' },
+    { status: 400 }
+  );
+}
+
+// Check if category belongs to current user or is a default category
+if (category.userId !== currentUser.id && !category.isDefault) {
+  return NextResponse.json(
+    { error: 'Access denied to this category' },
+    { status: 403 }
+  );
+}
 
     if (!category) {
       return NextResponse.json(

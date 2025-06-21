@@ -1,14 +1,26 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
 // POST /api/bills/[id]/payment - Mark a bill as paid for a specific period
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+   export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { id: billId } = params
-    const body = await request.json()
+    // Get authenticated user
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+    const userId = session.user.id
+
+   const { id: billId } = params 
+   const body = await request.json()
     const { view, year, month, amount, notes } = body
 
     if (!view || !year) {
@@ -25,11 +37,13 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       )
     }
 
-    // Get the bill to verify it exists
-    const bill = await prisma.bill.findUnique({
-      where: { id: billId }
-    })
-
+// Get the bill to verify it exists and belongs to user
+	const bill = await prisma.bill.findUnique({
+  	where: { 
+    	id: billId,
+    	userId: userId
+  	}
+})
     if (!bill) {
       return NextResponse.json(
         { error: 'Bill not found' },
@@ -59,17 +73,18 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       endDate = new Date(year, 11, 31, 23, 59, 59)
     }
 
-    const existingPaidInstance = await prisma.billInstance.findFirst({
-      where: {
-        billId,
-        status: 'PAID',
-        paidDate: {
-          gte: startDate,
-          lte: endDate
-        }
-      }
-    })
 
+    const existingPaidInstance = await prisma.billInstance.findFirst({
+ 	 where: {
+    billId,
+    userId: userId,
+    status: 'PAID',
+    paidDate: {
+      gte: startDate,
+      lte: endDate
+    }
+  }
+})
     if (existingPaidInstance) {
       return NextResponse.json(
         { error: 'Bill already marked as paid for this period' },
@@ -78,12 +93,14 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
 
     // Find existing instance or create new one
+
     let billInstance = await prisma.billInstance.findFirst({
-      where: {
-        billId,
-        dueDate
-      }
-    })
+  where: {
+    billId,
+    userId: userId,
+    dueDate
+  }
+})
 
     if (billInstance) {
       // Update existing instance
@@ -98,18 +115,18 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       })
     } else {
       // Create new instance
-      billInstance = await prisma.billInstance.create({
-        data: {
-          billId,
-          dueDate,
-          amount: amount || bill.amount,
-          status: 'PAID',
-          paidDate: new Date(),
-          notes
-        }
-      })
-    }
-
+   // Create new instance
+billInstance = await prisma.billInstance.create({
+  data: {
+    billId: billId,
+    userId: userId,
+    dueDate: dueDate,
+    amount: amount || bill.amount,
+    status: 'PAID',
+    paidDate: new Date(),
+    notes: notes || null
+  }
+})
     return NextResponse.json(billInstance, { status: 200 })
   } catch (error) {
     console.error('Error marking bill as paid:', error)
@@ -121,8 +138,18 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 }
 
 // DELETE /api/bills/[id]/payment - Unmark a bill as paid for a specific period
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+    export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    // Get authenticated user
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+    const userId = session.user.id
+
     const { id: billId } = params
     const { searchParams } = new URL(request.url)
     const view = searchParams.get('view')
@@ -156,15 +183,16 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     const paidInstance = await prisma.billInstance.findFirst({
-      where: {
-        billId,
-        status: 'PAID',
-        paidDate: {
-          gte: startDate,
-          lte: endDate
-        }
-      }
-    })
+  where: {
+    billId,
+    userId: userId,
+    status: 'PAID',
+    paidDate: {
+      gte: startDate,
+      lte: endDate
+    }
+  }
+})
 
     if (!paidInstance) {
       return NextResponse.json(
