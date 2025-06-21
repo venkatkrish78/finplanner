@@ -34,6 +34,7 @@ SUPPORTED ACTIONS:
 5. ADD_LOAN - Add loan
 6. UPDATE_GOAL - Update goal progress
 7. QUERY_ONLY - Just asking questions, no data changes
+8. NEED_CLARIFICATION - Need more information to proceed
 
 CATEGORIES for transactions:
 - Food & Dining
@@ -47,6 +48,30 @@ CATEGORIES for transactions:
 - Income
 - Other
 
+ASSET CLASSES (for investments):
+- STOCKS
+- MUTUAL_FUNDS
+- CRYPTO
+- REAL_ESTATE
+- GOLD
+- BONDS
+- PPF
+- EPF
+- NSC
+- ELSS
+
+INVESTMENT PLATFORMS:
+- ZERODHA
+- GROWW
+- ANGEL_ONE
+- UPSTOX
+- PAYTM_MONEY
+- KUVERA
+- COIN_DCBBANK
+- HDFC_SECURITIES
+- ICICI_DIRECT
+- KOTAK_SECURITIES
+
 Extract information in this JSON format:
 {
   "action": "ACTION_TYPE",
@@ -59,31 +84,30 @@ Extract information in this JSON format:
     "dueDate": "YYYY-MM-DD",
     "targetAmount": number,
     "targetDate": "YYYY-MM-DD",
-    "frequency": "MONTHLY|WEEKLY|YEARLY"
+    "frequency": "MONTHLY|WEEKLY|YEARLY",
+    "platform": "PLATFORM_NAME"
   },
-  "confidence": 0.0-1.0
+  "confidence": 0.0-1.0,
+  "missingInfo": ["field1", "field2"], // What information is missing
+  "clarificationNeeded": "What specific question to ask user"
 }
 
-Date parsing examples:
-- "today" → current date
-- "yesterday" → previous day
-- "last Monday" → calculate date
-- "25th" → 25th of current month
-- "next month" → first day of next month
-
-Amount parsing examples:
-- "₹500", "500 rupees", "five hundred" → 500
-- "₹1,200", "twelve hundred" → 1200
-- "₹2 lakhs" → 200000
+RULES:
+1. If amount is missing or unclear → action: "NEED_CLARIFICATION", clarificationNeeded: "How much did you invest/spend?"
+2. If investment platform is not mentioned → action: "NEED_CLARIFICATION", clarificationNeeded: "Which platform did you use? (Zerodha, Groww, Angel One, etc.)"
+3. If date is vague → action: "NEED_CLARIFICATION", clarificationNeeded: "When exactly did this happen?"
+4. If goal target date is missing → action: "NEED_CLARIFICATION", clarificationNeeded: "By when do you want to achieve this goal?"
 
 Examples:
+"I invested in mutual funds" → {"action": "NEED_CLARIFICATION", "clarificationNeeded": "How much did you invest and which platform did you use?", "confidence": 0.8}
+
+"I invested ₹10000 in mutual funds on Zerodha" → {"action": "ADD_INVESTMENT", "data": {"amount": 10000, "description": "mutual fund investment", "platform": "ZERODHA"}, "confidence": 0.9}
+
+"Add grocery expense" → {"action": "NEED_CLARIFICATION", "clarificationNeeded": "How much did you spend on groceries?", "confidence": 0.8}
+
 "Add ₹500 grocery expense from yesterday" → {"action": "ADD_TRANSACTION", "data": {"amount": 500, "description": "grocery shopping", "category": "Food & Dining", "type": "EXPENSE", "date": "2025-06-21"}, "confidence": 0.9}
 
-"I want to save ₹50000 for vacation by December" → {"action": "ADD_GOAL", "data": {"targetAmount": 50000, "description": "vacation fund", "targetDate": "2025-12-31"}, "confidence": 0.8}
-
-"My electricity bill is ₹2400 due on 25th" → {"action": "ADD_BILL", "data": {"amount": 2400, "description": "electricity bill", "dueDate": "2025-06-25", "frequency": "MONTHLY"}, "confidence": 0.9}
-
-If confidence < 0.7, set action to "QUERY_ONLY"`
+If confidence < 0.6, set action to "QUERY_ONLY"`
         },
         {
           role: "user",
@@ -91,7 +115,7 @@ If confidence < 0.7, set action to "QUERY_ONLY"`
         }
       ],
       temperature: 0.1,
-      max_tokens: 400
+      max_tokens: 500
     })
 
     let extractedData
@@ -99,6 +123,16 @@ If confidence < 0.7, set action to "QUERY_ONLY"`
       extractedData = JSON.parse(analysisCompletion.choices[0]?.message?.content || '{"action": "QUERY_ONLY"}')
     } catch {
       extractedData = { action: "QUERY_ONLY" }
+    }
+
+    // If clarification is needed, ask the user
+    if (extractedData.action === "NEED_CLARIFICATION") {
+      return NextResponse.json({
+        response: extractedData.clarificationNeeded || "I need more information to help you with that. Can you provide more details?",
+        actionPerformed: false,
+        needsClarification: true,
+        extractedData: extractedData.data || {}
+      })
     }
 
     // If high confidence action detected, execute it
@@ -112,15 +146,15 @@ If confidence < 0.7, set action to "QUERY_ONLY"`
           messages: [
             {
               role: "system",
-              content: "You are a helpful financial assistant. Confirm the action was completed successfully. Be brief, friendly, and specific about what was added."
+              content: "You are a helpful financial assistant. Confirm the action was completed successfully. Be brief, friendly, and specific about what was added. Also provide a helpful tip or insight related to what they just added."
             },
             {
               role: "user",
-              content: `I successfully ${extractedData.action.toLowerCase().replace('_', ' ')} with data: ${JSON.stringify(extractedData.data)}. Confirm this to the user in a natural way.`
+              content: `I successfully ${extractedData.action.toLowerCase().replace('_', ' ')} with data: ${JSON.stringify(extractedData.data)}. Confirm this to the user in a natural way and give a brief tip.`
             }
           ],
           temperature: 0.7,
-          max_tokens: 100
+          max_tokens: 150
         })
 
         return NextResponse.json({
@@ -154,6 +188,7 @@ User's Financial Summary:
 - Recent Expenses: ₹${userFinancialData.recentExpenses}
 - Active Goals: ${userFinancialData.goalCount}
 - Active Bills: ${userFinancialData.billCount}
+- Total Investments: ${userFinancialData.investmentCount}
 
 You can help users:
 1. Add transactions (expenses/income)
@@ -163,10 +198,16 @@ You can help users:
 5. Manage loans
 6. Provide financial insights
 
-If they want to add data, encourage them to use natural language like:
-- "Add ₹500 grocery expense"
-- "I paid my electricity bill ₹2400"
-- "Create a goal to save ₹50000 for vacation"
+IMPORTANT: If users mention wanting to add something but don't provide complete information, ask follow-up questions:
+- "How much?" for amounts
+- "When?" for dates
+- "Which platform?" for investments
+- "By when?" for goal deadlines
+
+Examples of good follow-ups:
+- "I'd be happy to help you add that investment! How much did you invest and which platform did you use?"
+- "Great! I can add that expense. How much did you spend?"
+- "I can help you set up that goal. What's your target amount and by when do you want to achieve it?"
 
 Be conversational and helpful!`
         },
@@ -182,7 +223,7 @@ Be conversational and helpful!`
     return NextResponse.json({
       response: completion.choices[0]?.message?.content,
       actionPerformed: false,
-      suggestion: extractedData.confidence > 0.5 ? "I detected you might want to add some financial data. Try being more specific with amounts and dates!" : null
+      suggestion: extractedData.confidence > 0.5 ? "I detected you might want to add some financial data. Feel free to provide more details!" : null
     })
 
   } catch (error) {
@@ -251,13 +292,43 @@ async function executeAction(userId: string, extractedData: any) {
         return { success: true, data: goal }
 
       case 'ADD_INVESTMENT':
+        // Determine asset class based on description
+        let assetClass = 'MUTUAL_FUNDS' // default
+        let platform = data.platform || 'ZERODHA' // Use provided platform or default
+        
+        const description = data.description.toLowerCase()
+        if (description.includes('stock') || description.includes('share')) {
+          assetClass = 'STOCKS'
+        } else if (description.includes('mutual fund') || description.includes('sip')) {
+          assetClass = 'MUTUAL_FUNDS'
+        } else if (description.includes('crypto') || description.includes('bitcoin')) {
+          assetClass = 'CRYPTO'
+        } else if (description.includes('gold')) {
+          assetClass = 'GOLD'
+        } else if (description.includes('bond')) {
+          assetClass = 'BONDS'
+        } else if (description.includes('real estate') || description.includes('property')) {
+          assetClass = 'REAL_ESTATE'
+        } else if (description.includes('ppf')) {
+          assetClass = 'PPF'
+        } else if (description.includes('epf')) {
+          assetClass = 'EPF'
+        } else if (description.includes('elss')) {
+          assetClass = 'ELSS'
+        }
+
         const investment = await prisma.investment.create({
           data: {
             name: data.description,
-            type: 'MUTUAL_FUND',
-            purchasePrice: data.amount,
-            currentValue: data.amount,
+            assetClass: assetClass,
+            platform: platform,
             quantity: 1,
+            averagePrice: data.amount,
+            currentPrice: data.amount,
+            totalInvested: data.amount,
+            currentValue: data.amount,
+            purchaseDate: new Date(data.date || new Date()),
+            description: data.description,
             userId
           }
         })
@@ -309,7 +380,7 @@ async function executeAction(userId: string, extractedData: any) {
 }
 
 async function getUserFinancialData(userId: string) {
-  const [transactionCount, recentExpenses, goalCount, billCount] = await Promise.all([
+  const [transactionCount, recentExpenses, goalCount, billCount, investmentCount] = await Promise.all([
     prisma.transaction.count({ where: { userId } }),
     prisma.transaction.aggregate({
       where: { 
@@ -320,13 +391,15 @@ async function getUserFinancialData(userId: string) {
       _sum: { amount: true }
     }),
     prisma.financialGoal.count({ where: { userId } }),
-    prisma.bill.count({ where: { userId } })
+    prisma.bill.count({ where: { userId } }),
+    prisma.investment.count({ where: { userId } })
   ])
 
   return {
     transactionCount,
     recentExpenses: Math.abs(recentExpenses._sum.amount || 0),
     goalCount,
-    billCount
+    billCount,
+    investmentCount
   }
 }
