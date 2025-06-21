@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -18,471 +17,291 @@ import {
   Building2,
   Hash,
   FileText,
-  Tag,
-  ArrowUpRight,
-  ArrowDownRight,
-  ArrowLeftRight,
-  CheckCircle,
   Clock,
-  XCircle,
-  Smartphone,
-  Mail,
-  FileSpreadsheet,
-  User
+  MapPin,
+  Tag
 } from 'lucide-react'
-import { formatCurrency } from '@/lib/currency'
-import { Transaction, TransactionType, TransactionStatus, TransactionSource } from '@/lib/types'
-import { toast } from 'sonner'
-import { AddTransactionDialog } from './add-transaction-dialog'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+
+interface Transaction {
+  id: string
+  amount: number
+  description: string
+  date: string | Date
+  type: 'INCOME' | 'EXPENSE'
+  category?: {
+    id: string
+    name: string
+    color?: string
+  }
+  account?: {
+    id: string
+    name: string
+    type: string
+  }
+  merchant?: string
+  location?: string
+  notes?: string
+  tags?: string[]
+  reference?: string
+}
 
 interface TransactionDetailModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  transactionId: string | null
-  onTransactionUpdated: () => void
+  transaction: Transaction | null
+  isOpen: boolean
+  onClose: () => void
+  onEdit?: (transaction: Transaction) => void
+  onDelete?: (transactionId: string) => void
 }
 
-interface TransactionWithDetails extends Transaction {
-  // Add any additional fields that might be included in detailed view
+// Client-safe time formatting
+function formatTime(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date
+  return d.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  })
 }
 
-export default function TransactionDetailModal({ 
-  open, 
-  onOpenChange, 
-  transactionId, 
-  onTransactionUpdated 
+function formatDate(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date
+  return d.toLocaleDateString('en-GB', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+export default function TransactionDetailModal({
+  transaction,
+  isOpen,
+  onClose,
+  onEdit,
+  onDelete
 }: TransactionDetailModalProps) {
-  const [transaction, setTransaction] = useState<TransactionWithDetails | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    if (open && transactionId) {
-      fetchTransactionDetails()
-    }
-  }, [open, transactionId])
+    setMounted(true)
+  }, [])
 
-  const fetchTransactionDetails = async () => {
-    if (!transactionId) return
-    
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/transactions/${transactionId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setTransaction(data)
-      } else {
-        toast.error('Failed to fetch transaction details')
-        onOpenChange(false)
-      }
-    } catch (error) {
-      console.error('Error fetching transaction details:', error)
-      toast.error('Failed to fetch transaction details')
-      onOpenChange(false)
-    } finally {
-      setLoading(false)
-    }
-  }
+  if (!transaction) return null
 
-  const handleDeleteTransaction = async () => {
-    if (!transaction) return
-
-    try {
-      const response = await fetch(`/api/transactions/${transaction.id}`, {
-        method: 'DELETE'
-      })
-
-      if (response.ok) {
-        toast.success('Transaction deleted successfully')
-        onTransactionUpdated()
-        onOpenChange(false)
-      } else {
-        toast.error('Failed to delete transaction')
-      }
-    } catch (error) {
-      console.error('Error deleting transaction:', error)
-      toast.error('Failed to delete transaction')
-    } finally {
-      setDeleteDialogOpen(false)
-    }
-  }
-
-  const getTransactionIcon = (type: TransactionType) => {
-    switch (type) {
-      case TransactionType.INCOME:
-        return <ArrowDownRight className="h-6 w-6 text-emerald-600" />
-      case TransactionType.EXPENSE:
-        return <ArrowUpRight className="h-6 w-6 text-red-600" />
-      case TransactionType.TRANSFER:
-        return <ArrowLeftRight className="h-6 w-6 text-blue-600" />
-      default:
-        return <CreditCard className="h-6 w-6 text-professional-blue" />
-    }
-  }
-
-  const getTransactionColor = (type: TransactionType) => {
-    switch (type) {
-      case TransactionType.INCOME:
-        return 'text-emerald-600'
-      case TransactionType.EXPENSE:
-        return 'text-red-600'
-      case TransactionType.TRANSFER:
-        return 'text-blue-600'
-      default:
-        return 'text-professional-blue'
-    }
-  }
-
-  const getAmountDisplay = (transaction: Transaction) => {
-    const amount = formatCurrency(transaction.amount)
-    switch (transaction.type) {
-      case TransactionType.INCOME:
-        return `+${amount}`
-      case TransactionType.EXPENSE:
-        return `-${amount}`
-      default:
-        return amount
-    }
-  }
-
-  const getStatusBadge = (status: TransactionStatus) => {
-    switch (status) {
-      case TransactionStatus.SUCCESS:
-        return <Badge className="bg-emerald-100 text-emerald-800"><CheckCircle className="w-3 h-3 mr-1" />Success</Badge>
-      case TransactionStatus.PENDING:
-        return <Badge variant="outline" className="text-orange-600 border-orange-200"><Clock className="w-3 h-3 mr-1" />Pending</Badge>
-      case TransactionStatus.FAILED:
-        return <Badge className="bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" />Failed</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
-  }
-
-  const getSourceIcon = (source: TransactionSource) => {
-    switch (source) {
-      case TransactionSource.SMS:
-        return <Smartphone className="w-4 h-4" />
-      case TransactionSource.EMAIL:
-        return <Mail className="w-4 h-4" />
-      case TransactionSource.BANK_STATEMENT:
-        return <FileSpreadsheet className="w-4 h-4" />
-      case TransactionSource.MANUAL:
-        return <User className="w-4 h-4" />
-      case TransactionSource.BILL:
-        return <Building2 className="w-4 h-4" />
-      case 'LOAN' as any:
-        return <CreditCard className="w-4 h-4" />
-      default:
-        return <FileText className="w-4 h-4" />
-    }
-  }
-
-  const getSourceLabel = (source: TransactionSource) => {
-    switch (source) {
-      case TransactionSource.SMS:
-        return 'SMS Import'
-      case TransactionSource.EMAIL:
-        return 'Email Import'
-      case TransactionSource.BANK_STATEMENT:
-        return 'Bank Statement'
-      case TransactionSource.MANUAL:
-        return 'Manual Entry'
-      case TransactionSource.BILL:
-        return 'Bill Payment'
-      case 'LOAN' as any:
-        return 'Loan Payment'
-      default:
-        return source
-    }
-  }
-
-  const getTypeLabel = (type: TransactionType) => {
-    switch (type) {
-      case TransactionType.INCOME:
-        return 'Income'
-      case TransactionType.EXPENSE:
-        return 'Expense'
-      case TransactionType.TRANSFER:
-        return 'Transfer'
-      default:
-        return type
-    }
-  }
-
-  if (!open) return null
+  const isIncome = transaction.type === 'INCOME'
+  const amountColor = isIncome ? 'text-green-600' : 'text-red-600'
+  const amountPrefix = isIncome ? '+' : '-'
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-professional-blue" />
-              Transaction Details
-            </DialogTitle>
-          </DialogHeader>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            Transaction Details
+          </DialogTitle>
+        </DialogHeader>
 
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-professional-blue"></div>
-            </div>
-          ) : transaction ? (
-            <ScrollArea className="max-h-[calc(90vh-120px)]">
-              <div className="space-y-6 pr-4">
-                {/* Transaction Header */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-start justify-between"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="p-2 rounded-full bg-slate-100">
-                        {getTransactionIcon(transaction.type)}
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-bold text-gray-900">
-                          {transaction.description || 'No description'}
-                        </h2>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge className="bg-blue-100 text-blue-800">
-                            {getTypeLabel(transaction.type)}
-                          </Badge>
-                          {transaction.category && (
-                            <div className="flex items-center gap-1">
-                              <div 
-                                className="w-3 h-3 rounded-full"
-                                style={{ backgroundColor: transaction.category.color }}
-                              />
-                              <span className="text-sm text-gray-600">{transaction.category.name}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className={`text-3xl font-bold mb-2 ${getTransactionColor(transaction.type)}`}>
-                      {getAmountDisplay(transaction)}
-                    </div>
-                    
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        {new Date(transaction.date).toLocaleDateString('en-US', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </div>
-                      <div className="flex items-center">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {new Date(transaction.date).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </div>
-                    </div>
+        <ScrollArea className="max-h-[70vh]">
+          <div className="space-y-6">
+            {/* Amount and Type */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className={`text-3xl font-bold ${amountColor}`}>
+                    {amountPrefix}₹{Math.abs(transaction.amount).toLocaleString()}
                   </div>
-                  
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditDialogOpen(true)}
-                      className="text-professional-blue border-blue-200 hover:bg-blue-50"
-                    >
-                      <Edit className="w-4 h-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setDeleteDialogOpen(true)}
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      Delete
-                    </Button>
+                  <Badge 
+                    variant={isIncome ? "default" : "destructive"}
+                    className="mt-2"
+                  >
+                    {transaction.type}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Basic Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Basic Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <FileText className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <div className="font-medium">Description</div>
+                    <div className="text-gray-600">{transaction.description}</div>
                   </div>
-                </motion.div>
+                </div>
 
                 <Separator />
 
-                {/* Transaction Information */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <FileText className="h-5 w-5" />
-                        Transaction Information
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium text-gray-600">Amount</label>
-                          <p className="text-lg font-semibold text-gray-900">{formatCurrency(transaction.amount)}</p>
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <div className="font-medium">Date</div>
+                    <div className="text-gray-600">
+                      {mounted ? formatDate(transaction.date) : 'Loading...'}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Clock className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <div className="font-medium">Time</div>
+                    <div className="text-gray-600">
+                      {mounted ? formatTime(transaction.date) : '--:--'}
+                    </div>
+                  </div>
+                </div>
+
+                {transaction.category && (
+                  <>
+                    <Separator />
+                    <div className="flex items-center gap-3">
+                      <Tag className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <div className="font-medium">Category</div>
+                        <Badge 
+                          style={{ 
+                            backgroundColor: transaction.category.color || '#gray',
+                            color: 'white'
+                          }}
+                        >
+                          {transaction.category.name}
+                        </Badge>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {transaction.account && (
+                  <>
+                    <Separator />
+                    <div className="flex items-center gap-3">
+                      <Building2 className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <div className="font-medium">Account</div>
+                        <div className="text-gray-600">
+                          {transaction.account.name} ({transaction.account.type})
                         </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Additional Details */}
+            {(transaction.merchant || transaction.location || transaction.reference || transaction.notes) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Additional Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {transaction.merchant && (
+                    <div className="flex items-center gap-3">
+                      <Building2 className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <div className="font-medium">Merchant</div>
+                        <div className="text-gray-600">{transaction.merchant}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {transaction.location && (
+                    <>
+                      <Separator />
+                      <div className="flex items-center gap-3">
+                        <MapPin className="h-4 w-4 text-gray-500" />
                         <div>
-                          <label className="text-sm font-medium text-gray-600">Type</label>
-                          <p className="text-lg font-semibold text-gray-900">{getTypeLabel(transaction.type)}</p>
+                          <div className="font-medium">Location</div>
+                          <div className="text-gray-600">{transaction.location}</div>
                         </div>
+                      </div>
+                    </>
+                  )}
+
+                  {transaction.reference && (
+                    <>
+                      <Separator />
+                      <div className="flex items-center gap-3">
+                        <Hash className="h-4 w-4 text-gray-500" />
                         <div>
-                          <label className="text-sm font-medium text-gray-600">Status</label>
-                          <div className="mt-1">
-                            {getStatusBadge(transaction.status)}
-                          </div>
+                          <div className="font-medium">Reference</div>
+                          <div className="text-gray-600">{transaction.reference}</div>
                         </div>
+                      </div>
+                    </>
+                  )}
+
+                  {transaction.notes && (
+                    <>
+                      <Separator />
+                      <div className="flex items-start gap-3">
+                        <FileText className="h-4 w-4 text-gray-500 mt-1" />
                         <div>
-                          <label className="text-sm font-medium text-gray-600">Source</label>
-                          <div className="flex items-center gap-2 mt-1">
-                            {getSourceIcon(transaction.source)}
-                            <span className="text-lg font-semibold text-gray-900">
-                              {getSourceLabel(transaction.source)}
-                            </span>
+                          <div className="font-medium">Notes</div>
+                          <div className="text-gray-600 whitespace-pre-wrap">
+                            {transaction.notes}
                           </div>
                         </div>
                       </div>
-                      
-                      {transaction.merchant && (
-                        <div>
-                          <label className="text-sm font-medium text-gray-600">Merchant</label>
-                          <p className="text-lg font-semibold text-gray-900 mt-1">{transaction.merchant}</p>
-                        </div>
-                      )}
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
-                      {transaction.description && (
-                        <div>
-                          <label className="text-sm font-medium text-gray-600">Description</label>
-                          <p className="text-gray-900 mt-1">{transaction.description}</p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
+            {/* Tags */}
+            {transaction.tags && transaction.tags.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Tags</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {transaction.tags.map((tag, index) => (
+                      <Badge key={index} variant="outline">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </ScrollArea>
 
-                {/* Technical Details */}
-                {(transaction.accountNumber || transaction.transactionId || transaction.balance !== null) && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <Hash className="h-5 w-5" />
-                          Technical Details
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          {transaction.accountNumber && (
-                            <div>
-                              <label className="text-sm font-medium text-gray-600">Account Number</label>
-                              <p className="text-lg font-semibold text-gray-900 font-mono">
-                                ****{transaction.accountNumber}
-                              </p>
-                            </div>
-                          )}
-                          {transaction.transactionId && (
-                            <div>
-                              <label className="text-sm font-medium text-gray-600">Transaction ID</label>
-                              <p className="text-lg font-semibold text-gray-900 font-mono">
-                                {transaction.transactionId}
-                              </p>
-                            </div>
-                          )}
-                          {transaction.balance !== null && transaction.balance !== undefined && (
-                            <div>
-                              <label className="text-sm font-medium text-gray-600">Account Balance</label>
-                              <p className="text-lg font-semibold text-gray-900">
-                                {formatCurrency(transaction.balance)}
-                              </p>
-                            </div>
-                          )}
-                          <div>
-                            <label className="text-sm font-medium text-gray-600">Created</label>
-                            <p className="text-lg font-semibold text-gray-900">
-                              {new Date(transaction.createdAt).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                )}
-
-                {/* Raw Message (for imported transactions) */}
-                {transaction.rawMessage && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <FileText className="h-5 w-5" />
-                          Original Message
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="bg-gray-50 p-3 rounded-lg">
-                          <p className="text-sm text-gray-700 font-mono whitespace-pre-wrap">
-                            {transaction.rawMessage}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                )}
-              </div>
-            </ScrollArea>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-600">Transaction not found</p>
-            </div>
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-2 pt-4 border-t">
+          {onEdit && (
+            <Button
+              variant="outline"
+              onClick={() => onEdit(transaction)}
+              className="flex items-center gap-2"
+            >
+              <Edit className="h-4 w-4" />
+              Edit
+            </Button>
           )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Dialog */}
-      <AddTransactionDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        onTransactionAdded={() => {
-          setEditDialogOpen(false)
-          onTransactionUpdated()
-          fetchTransactionDetails()
-        }}
-        editingTransaction={transaction}
-      />
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Transaction</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this transaction? This action cannot be undone and will remove the transaction from all reports and calculations.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteTransaction} className="bg-red-600 hover:bg-red-700">
-              Delete Transaction
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+          {onDelete && (
+            <Button
+              variant="destructive"
+              onClick={() => onDelete(transaction.id)}
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </Button>
+          )}
+          <Button onClick={onClose}>
+            Close
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

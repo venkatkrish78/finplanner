@@ -489,9 +489,6 @@ model User {
   loanPayments          LoanPayment[]            
   investments    Investment[]
   investmentTransactions InvestmentTransaction[] 
-  // AI-related relationships
-  chatConversations ChatConversation[]
-  aiInsights        AIInsight[]
 
   @@map("users")
 }
@@ -504,67 +501,3 @@ model VerificationToken {
   @@unique([identifier, token])
   @@map("verificationtokens")
 }
-
-// AI Chat and Insights Models
-model ChatConversation {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  title     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  messages  ChatMessage[]
-  
-  @@map("chat_conversations")
-}
-
-model ChatMessage {
-  id             String           @id @default(cuid())
-  conversationId String
-  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  
-  role           String           // 'user' or 'assistant'
-  content        String           @db.Text
-  timestamp      DateTime         @default(now())
-  
-  @@map("chat_messages")
-}
-
-model AIInsight {
-  id          String      @id @default(cuid())
-  userId      String
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  type        InsightType
-  title       String
-  description String      @db.Text
-  data        Json?       // Store insight-specific data
-  priority    Int         @default(1) // 1=low, 2=medium, 3=high
-  isRead      Boolean     @default(false)
-  isArchived  Boolean     @default(false)
-  
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  
-  @@map("ai_insights")
-}
-
-enum InsightType {
-  SPENDING_PATTERN
-  BUDGET_ALERT
-  GOAL_PROGRESS
-  INVESTMENT_SUGGESTION
-  BILL_REMINDER
-  SAVINGS_OPPORTUNITY
-  DEBT_OPTIMIZATION
-  EXPENSE_ANOMALY
-}
-
-
-// Update User model with premium fields
-// Add these fields to your existing User model:
-// isPremium     Boolean   @default(false)
-// premiumUntil  DateTime?
-// usage         UserUsage?

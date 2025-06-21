@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { AddLoanPaymentDialog } from '@/components/add-loan-payment-dialog';
 import EditLoanDialog from '@/components/edit-loan-dialog';
 import DeleteLoanDialog from '@/components/delete-loan-dialog';
-import LoanDetailModal from '@/components/loan-detail-modal';
+import { LoanDetailModal } from '@/components/loan-detail-modal';
 import { formatCurrency } from '@/lib/currency';
 import { Loan, LoanType } from '@/lib/types';
 

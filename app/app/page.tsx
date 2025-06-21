@@ -6,7 +6,7 @@ export default async function HomePage() {
   const session = await getServerSession(authOptions)
   
   if (session) {
-    redirect('/dashboard')
+    redirect('/ai-home')
   } else {
     redirect('/auth/signin')
   }

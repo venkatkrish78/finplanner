@@ -58,7 +58,7 @@ const platformOptions = [
   { value: 'OTHER', label: 'Other' }
 ]
 
-export default function EditInvestmentDialog({ 
+export function EditInvestmentDialog({ 
   open, 
   onOpenChange, 
   investment,

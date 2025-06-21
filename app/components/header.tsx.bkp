@@ -1,0 +1,241 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useSession, signOut } from 'next-auth/react'
+import { motion } from 'framer-motion'
+import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { 
+  BarChart3, 
+  CreditCard, 
+  Target, 
+  Building2, 
+  TrendingUp, 
+  Menu,
+  Calculator,
+  PiggyBank,
+  LogOut,
+  User,
+  ChevronDown,
+  Brain
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+const navigation = [
+  { name: 'AI Home', href: '/ai-home', icon: Brain },
+  { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
+  { name: 'Transactions', href: '/transactions', icon: CreditCard },
+  { name: 'Bills', href: '/bills', icon: Building2 },
+  { name: 'Goals', href: '/goals', icon: Target },
+  { name: 'Loans', href: '/loans', icon: Calculator },
+  { name: 'Investments', href: '/investments', icon: TrendingUp },
+]
+
+export function Header() {
+  const pathname = usePathname()
+  const [isOpen, setIsOpen] = useState(false)
+  const { data: session, status } = useSession()
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/auth/signin' })
+  }
+
+  const getUserInitials = (name: string | null | undefined, email: string | null | undefined) => {
+    if (name) {
+      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    }
+    if (email) {
+      return email.slice(0, 2).toUpperCase()
+    }
+    return 'U'
+  }
+
+  const getUserDisplayName = () => {
+    if (session?.user?.name) return session.user.name
+    if (session?.user?.email) return session.user.email.split('@')[0]
+    return 'User'
+  }
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <div className="w-full max-w-none">
+        <div className="flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* Logo - Left aligned */}
+          <Link href="/ai-home" className="flex items-center space-x-3 flex-shrink-0">
+            <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-professional-blue to-professional-blue-light rounded-xl shadow-sm">
+              <PiggyBank className="h-6 w-6 text-white" />
+            </div>
+            <span className="text-2xl font-bold bg-gradient-to-r from-professional-blue to-professional-blue-light bg-clip-text text-transparent">
+              FinPlanner
+            </span>
+          </Link>
+
+          {/* Desktop Navigation - Centered */}
+          <nav className="hidden lg:flex items-center space-x-2 flex-1 justify-center">
+            {navigation.map((item) => {
+              const isActive = pathname === item.href
+              return (
+                <Link key={item.name} href={item.href}>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "relative px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg",
+                      isActive
+                        ? "text-professional-blue bg-blue-50 shadow-sm"
+                        : "text-slate-600 hover:text-professional-blue hover:bg-slate-50"
+                    )}
+                  >
+                    <item.icon className="h-4 w-4 mr-2.5" />
+                    {item.name}
+                    {isActive && (
+                      <motion.div
+                        className="absolute bottom-1 left-1 right-1 h-0.5 bg-professional-blue rounded-full"
+                        layoutId="activeTab"
+                        initial={false}
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      />
+                    )}
+                  </Button>
+                </Link>
+              )
+            })}
+          </nav>
+
+          {/* User Menu & Mobile Navigation - Right aligned */}
+          <div className="flex items-center space-x-4 flex-shrink-0">
+            {/* User Menu - Desktop */}
+            {session && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild className="hidden lg:flex">
+                  <Button variant="ghost" className="flex items-center space-x-3 px-4 py-2.5 rounded-lg hover:bg-slate-50">
+                    <Avatar className="h-9 w-9 ring-2 ring-slate-100">
+                      <AvatarImage src={session.user?.image || ''} alt={session.user?.name || ''} />
+                      <AvatarFallback className="bg-professional-blue text-white text-sm font-medium">
+                        {getUserInitials(session.user?.name, session.user?.email)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col items-start">
+                      <span className="text-sm font-medium text-slate-900">
+                        {getUserDisplayName()}
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        {session.user?.email}
+                      </span>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-slate-400 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 mt-2">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1 py-2">
+                      <p className="text-sm font-medium">{getUserDisplayName()}</p>
+                      <p className="text-xs text-slate-500">{session.user?.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600 py-3">
+                    <LogOut className="mr-3 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {/* Mobile Navigation */}
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild className="lg:hidden">
+                <Button variant="ghost" size="icon" className="h-10 w-10">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[320px] sm:w-[400px]">
+                <div className="flex flex-col space-y-6 mt-8">
+                  <div className="flex items-center space-x-3 px-4">
+                    <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-professional-blue to-professional-blue-light rounded-xl">
+                      <PiggyBank className="h-6 w-6 text-white" />
+                    </div>
+                    <span className="text-xl font-bold bg-gradient-to-r from-professional-blue to-professional-blue-light bg-clip-text text-transparent">
+                      FinPlanner
+                    </span>
+                  </div>
+
+                  {/* User Info - Mobile */}
+                  {session && (
+                    <div className="flex items-center space-x-3 px-4 py-4 bg-slate-50 rounded-xl mx-4">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={session.user?.image || ''} alt={session.user?.name || ''} />
+                        <AvatarFallback className="bg-professional-blue text-white font-medium">
+                          {getUserInitials(session.user?.name, session.user?.email)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-slate-900">
+                          {getUserDisplayName()}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {session.user?.email}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <nav className="flex flex-col space-y-1 px-2">
+                    {navigation.map((item) => {
+                      const isActive = pathname === item.href
+                      return (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <Button
+                            variant="ghost"
+                            className={cn(
+                              "w-full justify-start px-4 py-4 text-left rounded-lg",
+                              isActive
+                                ? "text-professional-blue bg-blue-50"
+                                : "text-slate-600 hover:text-professional-blue hover:bg-slate-50"
+                            )}
+                          >
+                            <item.icon className="h-5 w-5 mr-4" />
+                            <span className="font-medium">{item.name}</span>
+                          </Button>
+                        </Link>
+                      )
+                    })}
+                  </nav>
+
+                  {/* Logout Button - Mobile */}
+                  {session && (
+                    <div className="px-2 pt-4 border-t border-slate-200 mx-4">
+                      <Button
+                        variant="ghost"
+                        onClick={handleLogout}
+                        className="w-full justify-start px-4 py-4 text-left text-red-600 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                      >
+                        <LogOut className="h-5 w-5 mr-4" />
+                        <span className="font-medium">Log out</span>
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+      </div>
+    </header>
+  )
+}

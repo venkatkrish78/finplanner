@@ -26,7 +26,7 @@ import {
 import { Investment, AssetClass, InvestmentPlatform, GoalType } from '@/lib/types'
 import { formatCurrency } from '@/lib/currency'
 import { motion } from 'framer-motion'
-import EditInvestmentDialog from '@/components/edit-investment-dialog'
+import { EditInvestmentDialog } from '@/components/edit-investment-dialog'
 import DeleteInvestmentDialog from '@/components/delete-investment-dialog'
 
 interface InvestmentListProps {

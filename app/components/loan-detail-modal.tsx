@@ -74,7 +74,7 @@ const paymentTypeLabels = {
   [LoanPaymentType.INTEREST_ONLY]: 'Interest Only'
 }
 
-export default function LoanDetailModal({ 
+export function LoanDetailModal({ 
   open, 
   onOpenChange, 
   loanId, 
