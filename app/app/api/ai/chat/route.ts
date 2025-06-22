@@ -3,8 +3,6 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { GoalType } from '@prisma/client'
-// Remove this line: import OpenAI from 'openai'
-// Remove this block: const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 // Enhanced Indian number parsing - FIXED VERSION
 function parseIndianAmount(text: string): number | null {
@@ -374,7 +372,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ONLY CHANGE: Move OpenAI initialization inside the function
-    const { default: OpenAI } = await import('openai')
+    const OpenAI = (await import('openai')).default
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     })

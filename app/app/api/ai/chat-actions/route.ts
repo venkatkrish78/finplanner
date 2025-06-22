@@ -5,16 +5,22 @@ import { prisma } from '@/lib/prisma'
 import { GoalType } from '@prisma/client'
 import { AssetClass, InvestmentPlatform } from '@/lib/types'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
-
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    // ADD DYNAMIC IMPORT HERE - BEFORE USING OPENAI
+    if (!process.env.OPENAI_API_KEY) {
+      return NextResponse.json({ error: 'OpenAI not configured' }, { status: 500 })
+    }
+
+    const OpenAI = (await import('openai')).default
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
 
     const { message } = await req.json()
     const userId = session.user.id
@@ -255,6 +261,7 @@ function determineGoalType(description: string): GoalType {
   }
   return GoalType.OTHER
 }
+
 async function executeAction(userId: string, extractedData: any) {
   try {
     const { action, data } = extractedData
@@ -295,14 +302,17 @@ async function executeAction(userId: string, extractedData: any) {
           billCategory = await prisma.category.create({
             data: { name: 'Bills & Utilities', userId }
           })
-        }        const bill = await prisma.bill.create({
+        }
+
+        const bill = await prisma.bill.create({
           data: {
             name: data.description,
             amount: data.amount,
             nextDueDate: new Date(data.dueDate || new Date()),
             frequency: data.frequency || 'MONTHLY',
             description: data.description,
-            categoryId: billCategory.id,            userId
+            categoryId: billCategory.id,
+            userId
           }
         })
         
@@ -314,7 +324,8 @@ async function executeAction(userId: string, extractedData: any) {
             name: data.description,
             targetAmount: data.targetAmount,
             currentAmount: 0,
-            goalType: determineGoalType(data.description),            targetDate: new Date(data.targetDate),
+            goalType: determineGoalType(data.description),
+            targetDate: new Date(data.targetDate),
             userId
           }
         })
@@ -373,7 +384,8 @@ async function executeAction(userId: string, extractedData: any) {
             currentBalance: data.amount,
             interestRate: 10,
             loanType: 'PERSONAL_LOAN',
-            startDate: new Date(),            tenure: 60,
+            startDate: new Date(),
+            tenure: 60,
             emiAmount: Math.round(data.amount / 60),
             userId
           }
