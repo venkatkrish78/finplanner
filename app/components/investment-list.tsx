@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState } from 'react'
@@ -28,6 +27,7 @@ import { formatCurrency } from '@/lib/currency'
 import { motion } from 'framer-motion'
 import { EditInvestmentDialog } from '@/components/edit-investment-dialog'
 import DeleteInvestmentDialog from '@/components/delete-investment-dialog'
+import { GoalSelectionDialog } from '@/components/goal-selection-dialog'
 
 interface InvestmentListProps {
   investments: Investment[]
@@ -85,6 +85,7 @@ export default function InvestmentList({ investments, onInvestmentUpdated }: Inv
   const [selectedInvestment, setSelectedInvestment] = useState<Investment | null>(null)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [goalSelectionOpen, setGoalSelectionOpen] = useState(false)
 
   const handleEdit = (investment: Investment) => {
     setSelectedInvestment(investment)
@@ -96,10 +97,16 @@ export default function InvestmentList({ investments, onInvestmentUpdated }: Inv
     setDeleteDialogOpen(true)
   }
 
+  const handleLinkToGoal = (investment: Investment) => {
+    setSelectedInvestment(investment)
+    setGoalSelectionOpen(true)
+  }
+
   const handleDialogClose = () => {
     setSelectedInvestment(null)
     setEditDialogOpen(false)
     setDeleteDialogOpen(false)
+    setGoalSelectionOpen(false)
   }
 
   const getGainLossColor = (gainLoss: number) => {
@@ -190,6 +197,7 @@ export default function InvestmentList({ investments, onInvestmentUpdated }: Inv
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleLinkToGoal(investment)}
                         title="Link to Goal"
                         className="h-8 w-8 p-0"
                       >
@@ -318,6 +326,17 @@ export default function InvestmentList({ investments, onInvestmentUpdated }: Inv
         }}
         investment={selectedInvestment}
         onInvestmentDeleted={onInvestmentUpdated}
+      />
+
+      {/* Goal Selection Dialog */}
+      <GoalSelectionDialog
+        open={goalSelectionOpen}
+        onOpenChange={(open) => {
+          setGoalSelectionOpen(open)
+          if (!open) handleDialogClose()
+        }}
+        investment={selectedInvestment}
+        onInvestmentLinked={onInvestmentUpdated}
       />
     </div>
   )

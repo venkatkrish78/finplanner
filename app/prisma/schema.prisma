@@ -165,25 +165,21 @@ model Bill {
 }
 
 model BillInstance {
-  id       String     @id @default(cuid())
-  dueDate  DateTime
-  amount   Float
-  status   BillStatus @default(PENDING)
-  paidDate DateTime?
-  notes    String?
-
-  billId String
-  userId String
-
-  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id            String       @id @default(cuid())
+  userId        String
+  dueDate       DateTime
+  amount        Float
+  status        BillStatus   @default(PENDING)
+  paidDate      DateTime?
+  notes         String?
+  billId        String
+  bill          Bill         @relation(fields: [billId], references: [id], onDelete: Cascade)
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   // Link to transaction when paid
   transactionId String?      @unique
   transaction   Transaction? @relation(fields: [transactionId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   @@map("bill_instances")
 }
@@ -394,8 +390,10 @@ model InvestmentTransaction {
 
 model SIP {
   id           String     @id @default(cuid())
+  userId       String
   investmentId String
   investment   Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   name              String
   amount            Float
@@ -415,7 +413,10 @@ model SIP {
 
 // Many-to-many relationship between Investments and Goals
 model InvestmentGoalLink {
-  id           String  @id @default(cuid())
+  id     String @id @default(cuid())
+  userId String
+
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   investmentId String
   goalId       String
   allocation   Float   @default(100) // Percentage allocation of investment to this goal
@@ -489,6 +490,9 @@ model User {
   investmentTransactions InvestmentTransaction[]
   aiInsights             AIInsight[]
   ChatConversation       ChatConversation[]
+
+  sips                SIP[]
+  investmentGoalLinks InvestmentGoalLink[]
 
   @@map("users")
 }

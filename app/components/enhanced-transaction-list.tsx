@@ -5,19 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { 
-  Search, 
-  Filter, 
-  ArrowUpDown, 
   Calendar,
   DollarSign,
   TrendingUp,
   TrendingDown,
-  Eye,
-  Edit,
-  Trash2
+  Trash2,
+  Loader2
 } from 'lucide-react'
 
 // Client-safe time formatting to prevent hydration errors
@@ -45,98 +39,107 @@ interface Transaction {
     name: string
     color?: string
   }
-  account?: {
-    id: string
-    name: string
-    type: string
-  }
   merchant?: string
-  location?: string
-  notes?: string
-  tags?: string[]
-  reference?: string
+  status?: string
+  source?: string
 }
 
 interface EnhancedTransactionListProps {
-  transactions: Transaction[]
-  onTransactionClick?: (transaction: Transaction) => void
-  onTransactionEdit?: (transaction: Transaction) => void
-  onTransactionDelete?: (transactionId: string) => void
-  showFilters?: boolean
-  showSearch?: boolean
-  showPagination?: boolean
-  itemsPerPage?: number
+  year: number
+  month?: number
+  searchTerm?: string
+  selectedCategory?: string
+  selectedType?: string
+  dateRange?: { from?: Date; to?: Date }
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  onAddTransaction?: () => void
+  onTransactionUpdated?: () => void
+  onTransactionDeleted?: () => void
 }
 
 export function EnhancedTransactionList({
-  transactions = [],
-  onTransactionClick,
-  onTransactionEdit,
-  onTransactionDelete,
-  showFilters = true,
-  showSearch = true,
-  showPagination = true,
-  itemsPerPage = 10
+  year,
+  month,
+  searchTerm = '',
+  selectedCategory = 'all',
+  selectedType = 'all',
+  dateRange = {},
+  sortBy = 'date',
+  sortOrder = 'desc',
+  onAddTransaction,
+  onTransactionUpdated,
+  onTransactionDeleted
 }: EnhancedTransactionListProps) {
   const [mounted, setMounted] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterType, setFilterType] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL')
-  const [filterCategory, setFilterCategory] = useState<string>('ALL')
-  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'description'>('date')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  const [currentPage, setCurrentPage] = useState(1)
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Get unique categories for filter
-  const categories = Array.from(
-    new Set(
-      transactions
-        .filter(t => t.category)
-        .map(t => t.category!.name)
-    )
-  )
+  useEffect(() => {
+    fetchTransactions()
+  }, [year, month, searchTerm, selectedCategory, selectedType, dateRange, sortBy, sortOrder])
 
-  // Filter and sort transactions
-  const filteredTransactions = transactions
-    .filter(transaction => {
-      const matchesSearch = transaction.description
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-        transaction.merchant?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        transaction.category?.name.toLowerCase().includes(searchTerm.toLowerCase())
-      
-      const matchesType = filterType === 'ALL' || transaction.type === filterType
-      const matchesCategory = filterCategory === 'ALL' || transaction.category?.name === filterCategory
-      
-      return matchesSearch && matchesType && matchesCategory
-    })
-    .sort((a, b) => {
-      let comparison = 0
-      
-      switch (sortBy) {
-        case 'date':
-          comparison = new Date(a.date).getTime() - new Date(b.date).getTime()
-          break
-        case 'amount':
-          comparison = Math.abs(a.amount) - Math.abs(b.amount)
-          break
-        case 'description':
-          comparison = a.description.localeCompare(b.description)
-          break
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const params = new URLSearchParams()
+      if (year) params.append('year', year.toString())
+      if (month) params.append('month', month.toString())
+      if (searchTerm) params.append('search', searchTerm)
+      if (selectedCategory !== 'all') params.append('categoryId', selectedCategory)
+      if (selectedType !== 'all') params.append('type', selectedType)
+      if (dateRange.from) params.append('startDate', dateRange.from.toISOString())
+      if (dateRange.to) params.append('endDate', dateRange.to.toISOString())
+      params.append('limit', '100')
+
+      console.log('Fetching transactions with params:', params.toString())
+
+      const response = await fetch(`/api/transactions?${params}`)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch transactions: ${response.status}`)
       }
-      
-      return sortOrder === 'asc' ? comparison : -comparison
-    })
 
-  // Pagination
-  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedTransactions = showPagination 
-    ? filteredTransactions.slice(startIndex, startIndex + itemsPerPage)
-    : filteredTransactions
+      const data = await response.json()
+      console.log('Fetched transactions:', data)
+      
+      setTransactions(data.transactions || [])
+    } catch (error) {
+      console.error('Error fetching transactions:', error)
+      setError(error instanceof Error ? error.message : 'Failed to fetch transactions')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (transactionId: string) => {
+    if (!confirm("Are you sure you want to delete this transaction?")) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/transactions?id=${transactionId}`, {
+        method: "DELETE"
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to delete transaction")
+      }
+
+      // Refresh the transactions list
+      fetchTransactions()
+      onTransactionDeleted?.()
+    } catch (error) {
+      console.error("Error deleting transaction:", error)
+      alert("Failed to delete transaction")
+    }
+  }
 
   const formatAmount = (amount: number, type: 'INCOME' | 'EXPENSE') => {
     const prefix = type === 'INCOME' ? '+' : '-'
@@ -152,93 +155,48 @@ export function EnhancedTransactionList({
     })
   }
 
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Loading transactions...</span>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="text-center py-8">
+          <p className="text-red-600">Error: {error}</p>
+          <Button onClick={fetchTransactions} className="mt-4">
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <DollarSign className="h-5 w-5" />
-          Transactions ({filteredTransactions.length})
+          Transactions ({transactions.length})
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Search and Filters */}
-        {(showSearch || showFilters) && (
-          <div className="flex flex-col sm:flex-row gap-4">
-            {showSearch && (
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search transactions..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-            )}
-            
-            {showFilters && (
-              <div className="flex gap-2">
-                <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">All Types</SelectItem>
-                    <SelectItem value="INCOME">Income</SelectItem>
-                    <SelectItem value="EXPENSE">Expense</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={filterCategory} onValueChange={setFilterCategory}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">All Categories</SelectItem>
-                    {categories.map(category => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="date">Date</SelectItem>
-                    <SelectItem value="amount">Amount</SelectItem>
-                    <SelectItem value="description">Description</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                >
-                  <ArrowUpDown className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Transaction List */}
         <div className="space-y-2">
           <AnimatePresence>
-            {paginatedTransactions.map((transaction) => (
+            {transactions.map((transaction) => (
               <motion.div
                 key={transaction.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                onClick={() => onTransactionClick?.(transaction)}
+                className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 flex-1">
@@ -284,10 +242,12 @@ export function EnhancedTransactionList({
                           </span>
                         )}
                         {transaction.merchant && (
-                          <span>{transaction.merchant}</span>
+                          <span>Merchant: {transaction.merchant}</span>
                         )}
-                        {transaction.account && (
-                          <span>{transaction.account.name}</span>
+                        {transaction.source && (
+                          <Badge variant="outline" className="text-xs">
+                            {transaction.source}
+                          </Badge>
                         )}
                       </div>
                     </div>
@@ -300,45 +260,15 @@ export function EnhancedTransactionList({
                       {formatAmount(transaction.amount, transaction.type)}
                     </div>
                     
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onTransactionClick?.(transaction)
-                        }}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      
-                      {onTransactionEdit && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            onTransactionEdit(transaction)
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      )}
-                      
-                      {onTransactionDelete && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            onTransactionDelete(transaction.id)
-                          }}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(transaction.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      title="Delete transaction"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </motion.div>
@@ -346,47 +276,16 @@ export function EnhancedTransactionList({
           </AnimatePresence>
         </div>
 
-        {/* Empty State */}
-        {filteredTransactions.length === 0 && (
+        {transactions.length === 0 && (
           <div className="text-center py-8 text-gray-500">
             <DollarSign className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No transactions found</p>
-            {searchTerm && (
-              <p className="text-sm">Try adjusting your search or filters</p>
+            <p className="text-sm">Try adding some transactions or adjusting your filters</p>
+            {onAddTransaction && (
+              <Button onClick={onAddTransaction} className="mt-4">
+                Add Transaction
+              </Button>
             )}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {showPagination && totalPages > 1 && (
-          <div className="flex items-center justify-between pt-4">
-            <div className="text-sm text-gray-500">
-              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredTransactions.length)} of {filteredTransactions.length} transactions
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-              
-              <span className="text-sm">
-                Page {currentPage} of {totalPages}
-              </span>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
-            </div>
           </div>
         )}
       </CardContent>

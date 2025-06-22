@@ -37,6 +37,10 @@ export async function GET(request: NextRequest) {
       dateFilter = { userId: currentUser.id, date: dateRange };
     }
 
+    console.log("=== SUMMARY API DEBUG ===")
+    console.log("User ID:", currentUser.id)
+    console.log("Date filter:", JSON.stringify(dateFilter, null, 2))
+
     // Get all transactions including related transactions from bills, loans, investments - user filtered
     const [incomeData, expenseData, transactionCount, billPayments, loanPayments, investmentTransactions] = await Promise.all([
       prisma.transaction.aggregate({
@@ -90,6 +94,13 @@ export async function GET(request: NextRequest) {
       })
     ]);
 
+    console.log("Income data:", incomeData)
+    console.log("Expense data:", expenseData)
+    console.log("Transaction count:", transactionCount)
+    console.log("Bill payments:", billPayments.length)
+    console.log("Loan payments:", loanPayments.length)
+    console.log("Investment transactions:", investmentTransactions.length)
+
     // Calculate additional income/expenses from related transactions
     let additionalIncome = 0;
     let additionalExpenses = 0;
@@ -123,12 +134,19 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    console.log("Additional income:", additionalIncome)
+    console.log("Additional expenses:", additionalExpenses)
+    console.log("Additional income count:", additionalIncomeCount)
+    console.log("Additional expense count:", additionalExpenseCount)
+
     const totalIncome = (incomeData._sum.amount || 0) + additionalIncome;
     const totalExpense = (expenseData._sum.amount || 0) + additionalExpenses;
     const netBalance = totalIncome - totalExpense;
     const totalIncomeCount = incomeData._count + additionalIncomeCount;
     const totalExpenseCount = expenseData._count + additionalExpenseCount;
     const totalTransactionCount = transactionCount + additionalIncomeCount + additionalExpenseCount;
+
+    console.log("Final totals - Income:", totalIncome, "Expense:", totalExpense, "Count:", totalTransactionCount)
 
     return NextResponse.json({
       totalIncome,

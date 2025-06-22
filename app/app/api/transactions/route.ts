@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,10 +37,20 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
-      where.description = {
-        contains: search,
-        mode: 'insensitive'
-      }
+      where.OR = [
+        {
+          description: {
+            contains: search,
+            mode: 'insensitive'
+          }
+        },
+        {
+          merchant: {
+            contains: search,
+            mode: 'insensitive'
+          }
+        }
+      ]
     }
 
     // Handle date filtering
@@ -70,9 +80,28 @@ export async function GET(request: NextRequest) {
     }
 
     console.log('Transactions query where:', JSON.stringify(where, null, 2))
+    console.log("=== TRANSACTIONS API DEBUG ===")
+    console.log("User ID:", session.user.id)
+    console.log("Query params:", Object.fromEntries(searchParams.entries()))
+    console.log("Where clause:", JSON.stringify(where, null, 2))
+    
+    // Check total transactions for this user
+    const totalUserTransactions = await prisma.transaction.count({ 
+      where: { userId: session.user.id } 
+    })
+    console.log("Total transactions for user:", totalUserTransactions)
+    
+    // Check recent transactions
+    const recentTransactions = await prisma.transaction.findMany({
+      where: { userId: session.user.id },
+      orderBy: { date: 'desc' },
+      take: 5,
+      select: { id: true, amount: true, description: true, date: true }
+    })
+    console.log("Recent transactions:", recentTransactions)
 
     // Get transactions with pagination
-    const [transactions, totalCount] = await Promise.all([
+    const [transactions, totalCount, totalIncome, totalExpenses] = await Promise.all([
       prisma.transaction.findMany({
         where,
         include: {
@@ -84,8 +113,28 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit
       }),
-      prisma.transaction.count({ where })
+      prisma.transaction.count({ where }),
+      prisma.transaction.aggregate({
+        where: {
+          ...where,
+          amount: { gt: 0 }
+        },
+        _sum: {
+          amount: true
+        }
+      }),
+      prisma.transaction.aggregate({
+        where: {
+          ...where,
+          amount: { lt: 0 }
+        },
+        _sum: {
+          amount: true
+        }
+      })
     ])
+
+    const balance = (totalIncome._sum.amount || 0) + (totalExpenses._sum.amount || 0)
 
     console.log(`Found ${transactions.length} transactions for user ${session.user.id}`)
 
@@ -95,11 +144,15 @@ export async function GET(request: NextRequest) {
         amount: t.amount,
         type: t.type,
         description: t.description,
+        merchant: t.merchant,
         date: t.date.toISOString(),
-        category: {
+        category: t.category ? {
           id: t.category.id,
-          name: t.category.name
-        },
+          name: t.category.name,
+          color: t.category.color
+        } : null,
+        status: t.status,
+        source: t.source,
         createdAt: t.createdAt.toISOString(),
         updatedAt: t.updatedAt.toISOString()
       })),
@@ -113,7 +166,7 @@ export async function GET(request: NextRequest) {
       },
       summary: {
         totalIncome: totalIncome._sum.amount || 0,
-        totalExpenses: totalExpenses._sum.amount || 0,
+        totalExpenses: Math.abs(totalExpenses._sum.amount || 0),
         balance,
         transactionCount: totalCount
       }
@@ -125,5 +178,106 @@ export async function GET(request: NextRequest) {
       { error: 'Failed to fetch transactions', details: error.message },
       { status: 500 }
     )
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { amount, type, description, merchant, categoryId, date } = body
+
+    // Validate required fields
+    if (!amount || !type || !description) {
+      return NextResponse.json(
+        { error: 'Amount, type, and description are required' },
+        { status: 400 }
+      )
+    }
+
+    // Create transaction
+    const transaction = await prisma.transaction.create({
+      data: {
+        amount: parseFloat(amount),
+        type,
+        description,
+        merchant: merchant || 'Unknown',
+        categoryId,
+        date: date ? new Date(date) : new Date(),
+        userId: session.user.id,
+        status: 'SUCCESS',
+        source: 'MANUAL'
+      },
+      include: {
+        category: true
+      }
+    })
+
+    return NextResponse.json({
+      id: transaction.id,
+      amount: transaction.amount,
+      type: transaction.type,
+      description: transaction.description,
+      merchant: transaction.merchant,
+      date: transaction.date.toISOString(),
+      category: transaction.category ? {
+        id: transaction.category.id,
+        name: transaction.category.name,
+        color: transaction.category.color
+      } : null,
+      status: transaction.status,
+      source: transaction.source,
+      createdAt: transaction.createdAt.toISOString(),
+      updatedAt: transaction.updatedAt.toISOString()
+    })
+
+  } catch (error) {
+    console.error('Error creating transaction:', error)
+    return NextResponse.json(
+      { error: 'Failed to create transaction', details: error.message },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const transactionId = searchParams.get('id')
+
+    if (!transactionId) {
+      return NextResponse.json({ error: 'Transaction ID required' }, { status: 400 })
+    }
+
+    // Verify the transaction belongs to the user
+    const transaction = await prisma.transaction.findFirst({
+      where: {
+        id: transactionId,
+        userId: session.user.id
+      }
+    })
+
+    if (!transaction) {
+      return NextResponse.json({ error: 'Transaction not found' }, { status: 404 })
+    }
+
+    // Delete the transaction
+    await prisma.transaction.delete({
+      where: { id: transactionId }
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting transaction:', error)
+    return NextResponse.json({ error: 'Failed to delete transaction' }, { status: 500 })
   }
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db'
 import OpenAI from 'openai'
 
 const openai = new OpenAI({
@@ -21,8 +21,8 @@ function parseIndianAmount(text: string): number | null {
     { regex: /(\d+(?:\.\d+)?)\s*(?:crores?|cr)\b/i, multiplier: 10000000 },
     // Thousands: 50k, 50K, 50 thousand
     { regex: /(\d+(?:\.\d+)?)\s*(?:thousands?|k)\b/i, multiplier: 1000 },
-    // Rs/₹ with numbers: Rs 2000, ₹2000, Rs. 2000
-    { regex: /(?:rs\.?|₹)\s*(\d+(?:,\d+)*(?:\.\d+)?)/i, multiplier: 1 },
+    // Rs/₹ with numbers: Rs 2000, ₹2000, Rs. 2000, rupees 10000
+    { regex: /(?:rs\.?|₹|rupees?)\s*(\d+(?:,\d+)*(?:\.\d+)?)/i, multiplier: 1 },
     // Regular numbers with commas: 2,00,000
     { regex: /(\d{1,3}(?:,\d{2}){1,}(?:,\d{3})*)/g, multiplier: 1 },
     // Simple numbers: 2000, 50000
@@ -90,8 +90,8 @@ async function getUserFinancialData(userId: string) {
     const totalLoans = loans.reduce((sum, l) => sum + l.currentBalance, 0)
     const totalInvestments = investments.reduce((sum, i) => sum + i.currentValue, 0)
 
-    // Net Worth = Balance + Assets + Investments - Loans
-    const netWorth = totalBalance + totalAssets + totalInvestments - totalLoans
+    // Net Worth = Investments - Loans (matching dashboard)
+    const netWorth = totalInvestments - totalLoans
 
     const savingsRate = totalIncome > 0 ? ((totalBalance / totalIncome) * 100) : 0
 
@@ -136,28 +136,31 @@ async function processUserRequest(message: string, userId: string, financialData
   console.log('Processing message:', message) // Debug log
 
   // Enhanced transaction patterns - MORE FLEXIBLE
-  const transactionMatch = lowerMessage.match(/add|spent|expense|income|received|paid|bought|purchase|kharcha|paisa|spend/)
+  const transactionMatch = lowerMessage.match(/add|spent|expense|income|received|paid|bought|purchase|kharcha|paisa|spend|got|earn/)
   const amount = parseIndianAmount(message)
 
   console.log('Transaction match:', !!transactionMatch, 'Amount:', amount) // Debug log
 
   if (transactionMatch && amount && amount > 0) {
-    const isIncome = lowerMessage.match(/received|income|salary|earned|got|bonus|freelance|kamaya|mila/)
+    // ENHANCED INCOME DETECTION - Fixed to catch all patterns
+    const isIncome = lowerMessage.match(/received|income|salary|earned|got|bonus|freelance|kamaya|mila|gift|rental|rent|dividend|interest|profit|commission|refund|cashback|reward|prize|winning|inheritance|as\s+income|for\s+me|to\s+me|from/)
     const type = isIncome ? 'INCOME' : 'EXPENSE'
 
-    console.log('Creating transaction:', { amount, type }) // Debug log
+    console.log('Income keywords found:', !!isIncome, 'Type:', type) // Debug log
 
     // Enhanced Indian category detection
     let categoryName = 'Other'
     const categoryKeywords = {
       'Food & Dining': ['food', 'restaurant', 'dining', 'lunch', 'dinner', 'breakfast', 'meal', 'pizza', 'burger', 'khana', 'khaana', 'hotel', 'dhaba', 'biryani', 'dosa', 'idli'],
       'Groceries': ['grocery', 'groceries', 'supermarket', 'vegetables', 'fruits', 'milk', 'bread', 'sabzi', 'kirana', 'ration', 'dal', 'chawal', 'atta'],
-      'Transportation': ['uber', 'taxi', 'bus', 'train', 'fuel', 'petrol', 'transport', 'metro', 'auto', 'rickshaw', 'ola', 'rapido', 'diesel', 'cng'],
+      'Transportation': ['uber', 'taxi', 'bus', 'train', 'fuel', 'petrol', 'transport', 'metro', 'auto', 'rickshaw', 'ola', 'rapido', 'diesel', 'cng', 'foot', 'walking'],
       'Shopping': ['shopping', 'clothes', 'shirt', 'shoes', 'amazon', 'flipkart', 'dress', 'jeans', 'myntra', 'ajio', 'kapde'],
       'Entertainment': ['movie', 'cinema', 'game', 'entertainment', 'fun', 'netflix', 'spotify', 'youtube', 'prime', 'hotstar', 'film'],
       'Bills & Utilities': ['electricity', 'water', 'gas', 'internet', 'phone', 'bill', 'utility', 'bijli', 'paani', 'wifi', 'mobile', 'recharge'],
       'Healthcare': ['doctor', 'medicine', 'hospital', 'health', 'medical', 'pharmacy', 'dawai', 'clinic', 'checkup'],
-      'Salary': ['salary', 'paycheck', 'wage', 'bonus', 'tankhwah', 'income'],
+      'Salary': ['salary', 'paycheck', 'wage', 'bonus', 'tankhwah'],
+      'Rental Income': ['rental', 'rent'],
+      'Gift': ['gift', 'present', 'mother', 'father', 'family', 'friend'],
       'Coffee': ['coffee', 'tea', 'cafe', 'starbucks', 'ccd', 'chai', 'cutting chai']
     }
 
@@ -183,13 +186,15 @@ async function processUserRequest(message: string, userId: string, financialData
         data: {
           amount,
           type,
-          description: message,
+          description: category.name,
+          merchant: "AI Assistant",
           date: new Date(),
           categoryId: category.id,
-          userId
+          userId,
+          status: "SUCCESS",
+          source: "MANUAL"
         }
       })
-
       console.log('Transaction created:', transaction) // Debug log
 
       const newBalance = (financialData?.totalBalance || 0) + (type === 'INCOME' ? amount : -amount)
@@ -267,7 +272,7 @@ async function processUserRequest(message: string, userId: string, financialData
     const { netWorth, totalBalance, totalAssets, totalInvestments, totalLoans } = financialData
 
     return {
-      response: `💎 Net Worth: ${formatIndianCurrency(netWorth)}\n💰 Balance: ${formatIndianCurrency(totalBalance)}\n🏠 Assets: ${formatIndianCurrency(totalAssets)}\n📈 Investments: ${formatIndianCurrency(totalInvestments)}\n💳 Loans: ${formatIndianCurrency(totalLoans)}`,
+      response: `💎 Net Worth: ${formatIndianCurrency(netWorth)}\n📈 Total Assets: ${formatIndianCurrency(totalInvestments)}\n💳 Total Liabilities: ${formatIndianCurrency(totalLoans)}\n\n(Assets - Liabilities = Net Worth)`,
       success: true
     }
   }
@@ -357,10 +362,8 @@ export async function POST(request: NextRequest) {
 
     if (financialData) {
       context += `Net Worth: ${formatIndianCurrency(financialData.netWorth)}\n`
-      context += `Balance: ${formatIndianCurrency(financialData.totalBalance)}\n`
-      context += `Assets: ${formatIndianCurrency(financialData.totalAssets)}\n`
-      context += `Investments: ${formatIndianCurrency(financialData.totalInvestments)}\n`
-      context += `Loans: ${formatIndianCurrency(financialData.totalLoans)}\n`
+      context += `Total Assets (Investments): ${formatIndianCurrency(financialData.totalInvestments)}\n`
+      context += `Total Liabilities (Loans): ${formatIndianCurrency(financialData.totalLoans)}\n`
       context += `Savings Rate: ${financialData.savingsRate.toFixed(0)}%\n`
 
       // Recent transactions
