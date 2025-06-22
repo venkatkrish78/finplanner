@@ -1,0 +1,106 @@
+{
+  "timestamp": "2025-06-22T11:08:44.558Z",
+  "appName": "FinPlanner AI",
+  "cloudReadiness": {
+    "runtime": {
+      "nodeVersion": "v24.2.0",
+      "npmVersion": "11.3.0",
+      "requiredNodeVersion": "Not specified",
+      "buildCommand": "next build",
+      "startCommand": "next start",
+      "devCommand": "next dev"
+    },
+    "environmentVariables": {
+      "requiredVars": [
+        "DATABASE_URL"
+      ],
+      "codeReferences": [
+        "process.env.NODE_ENV",
+        "process.env.OPENAI_API_KEY"
+      ],
+      "criticalVars": {
+        "DATABASE_URL": true,
+        "NEXTAUTH_SECRET": false,
+        "NEXTAUTH_URL": false,
+        "OPENAI_API_KEY": false,
+        "NODE_ENV": false
+      }
+    },
+    "database": {
+      "provider": "prisma-client-js",
+      "urlEnvVar": "DATABASE_URL",
+      "hasMigrations": true,
+      "migrationCount": 1,
+      "seedFile": true,
+      "models": 21
+    },
+    "staticAssets": {
+      "hasPublicDir": true,
+      "fileCount": 9,
+      "totalSize": "6.4M\tpublic",
+      "hasImages": true
+    },
+    "build": {
+      "hasBuildScript": true,
+      "hasPostBuildScript": false,
+      "buildTimeDependencies": [
+        "@types/bcryptjs",
+        "@types/node",
+        "@types/react",
+        "@types/react-dom",
+        "postcss",
+        "prisma",
+        "tailwindcss",
+        "typescript"
+      ],
+      "totalDependencies": 45,
+      "totalDevDependencies": 11,
+      "hasTypeScript": true,
+      "hasTailwind": true,
+      "hasPrisma": true
+    },
+    "deploymentConfigs": {
+      "vercel": {
+        "version": 2,
+        "builds": [
+          {
+            "src": "package.json",
+            "use": "@vercel/next"
+          }
+        ],
+        "env": {
+          "DATABASE_URL": "@database_url"
+        }
+      },
+      "netlify": "[build]\n  command = \"npm run build\"\n  publish = \".next\"\n\n[build.environment]\n  NODE_VERSION = \"24.2.0\"\n\n[[plugins]]\n  package = \"@netlify/plugin-nextjs\"\n\n[functions]\n  node_bundler = \"esbuild\"\n",
+      "railway": {
+        "build": {
+          "builder": "NIXPACKS"
+        },
+        "deploy": {
+          "startCommand": "npm start",
+          "restartPolicyType": "ON_FAILURE",
+          "restartPolicyMaxRetries": 10
+        }
+      },
+      "render": {
+        "services": [
+          {
+            "type": "web",
+            "name": "finplanner-ai",
+            "env": "node",
+            "buildCommand": "npm install && npm run build",
+            "startCommand": "npm start",
+            "envVars": [
+              {
+                "key": "DATABASE_URL",
+                "sync": false
+              }
+            ]
+          }
+        ]
+      },
+      "dockerfile": "FROM node:24.2.0-alpine\n\nWORKDIR /app\n\n# Copy package files\nCOPY package*.json ./\nCOPY prisma ./prisma/\n\n# Install dependencies\nRUN npm ci --only=production\n\n# Copy source code\nCOPY . .\n\n# Generate Prisma client\nRUN npx prisma generate\n\n# Build the application\nRUN npm run build\n\n# Expose port\nEXPOSE 3000\n\n# Start the application\nCMD [\"npm\", \"start\"]\n"
+    }
+  }
+}

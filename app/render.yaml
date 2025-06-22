@@ -1,0 +1,17 @@
+{
+  "services": [
+    {
+      "type": "web",
+      "name": "finplanner-ai",
+      "env": "node",
+      "buildCommand": "npm install && npm run build",
+      "startCommand": "npm start",
+      "envVars": [
+        {
+          "key": "DATABASE_URL",
+          "sync": false
+        }
+      ]
+    }
+  ]
+}
