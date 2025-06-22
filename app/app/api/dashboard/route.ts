@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
 
     // Get category names for breakdown
     const categoryIds = categoryBreakdown.map(item => item.categoryId).filter(Boolean);
-    let categories = [];
+    let categories: any[] = [];
     if (categoryIds.length > 0) {
       categories = await prisma.category.findMany({
         where: { 

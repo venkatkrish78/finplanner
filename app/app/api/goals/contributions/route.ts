@@ -77,8 +77,7 @@ export async function POST(request: NextRequest) {
             name: 'Savings',
             OR: [
               { userId: currentUser.id },
-              { isDefault: true, userId: null }
-            ]
+              { isDefault: true }            ]
           }
         });
 

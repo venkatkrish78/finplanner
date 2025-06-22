@@ -1,0 +1,8 @@
+    const categorySpending: Record<string, number> = {}
+    transactions.filter((t: any) => t.type === 'EXPENSE').forEach((t: any) => {
+      const cat = t.category || 'Other'
+      categorySpending[cat] = (categorySpending[cat] || 0) + t.amount
+    })
+
+    const topCategory = Object.entries(categorySpending)
+      .sort(([,a], [,b]) => (b as number) - (a as number))[0]

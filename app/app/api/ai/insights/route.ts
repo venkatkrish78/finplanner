@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { InsightType } from '@prisma/client'
 import OpenAI from 'openai'
 
 const openai = new OpenAI({
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest) {
     if (existingInsights.length > 0) {
       const formattedInsights = existingInsights.map(insight => ({
         id: insight.id,
-        type: insight.type,
+        type: insight.type as InsightType,
         title: insight.title,
         description: insight.description,
         priority: insight.priority,
@@ -63,7 +64,7 @@ export async function GET(req: NextRequest) {
     if (transactions.length === 0) {
       const welcomeInsight = await prisma.aIInsight.create({
         data: {
-          type: 'SAVINGS_OPPORTUNITY',
+          type: InsightType.SAVINGS_OPPORTUNITY,
           title: 'Welcome!',
           description: 'Start adding transactions to get personalized insights.',
           priority: 1,
@@ -124,7 +125,7 @@ export async function GET(req: NextRequest) {
     // Balance insight
     if (balance > 0) {
       insights.push({
-        type: 'SAVINGS_OPPORTUNITY',
+        type: InsightType.SAVINGS_OPPORTUNITY,
         title: 'Great Balance!',
         description: `You have ₹${balance.toFixed(0)} positive balance. Consider investing some of it.`,
         priority: 1
@@ -141,7 +142,7 @@ export async function GET(req: NextRequest) {
     // Savings rate insight
     if (savingsRate < 10) {
       insights.push({
-        type: 'SAVINGS_OPPORTUNITY',
+        type: InsightType.SAVINGS_OPPORTUNITY,
         title: 'Low Savings',
         description: `Only ${savingsRate.toFixed(0)}% savings rate. Try to save at least 20%.`,
         priority: 2
@@ -215,7 +216,7 @@ export async function GET(req: NextRequest) {
     for (const insight of topInsights) {
       const saved = await prisma.aIInsight.create({
         data: {
-          type: insight.type,
+          type: insight.type as InsightType,
           title: insight.title,
           description: insight.description,
           priority: insight.priority,
@@ -236,7 +237,7 @@ export async function GET(req: NextRequest) {
     // Format response
     const formattedInsights = savedInsights.map(insight => ({
       id: insight.id,
-      type: insight.type,
+      type: insight.type as InsightType,
       title: insight.title,
       description: insight.description,
       priority: insight.priority,

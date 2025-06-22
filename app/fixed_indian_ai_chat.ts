@@ -202,7 +202,7 @@ async function processUserRequest(message: string, userId: string, financialData
     } catch (error) {
       console.error('Transaction creation error:', error)
       return {
-        response: `❌ Couldn't add transaction: ${error.message}. Try: "Add ₹100 coffee" or "Spent Rs 2000 on food"`,
+        response: `❌ Couldn't add transaction: ${error instanceof Error ? error.message : String(error)}. Try: "Add ₹100 coffee" or "Spent Rs 2000 on food"`,
         success: false
       }
     }
@@ -238,7 +238,7 @@ async function processUserRequest(message: string, userId: string, financialData
           name: goalName,
           targetAmount: amount,
           currentAmount: 0,
-          goalType,
+          goalType: goalType as any,
           userId
         }
       })
@@ -293,15 +293,14 @@ async function processUserRequest(message: string, userId: string, financialData
     } = financialData
 
     // Top spending category
-    const categorySpending = {}
-    transactions.filter(t => t.type === 'EXPENSE').forEach(t => {
-      const cat = t.category?.name || 'Other'
+    const categorySpending: Record<string, number> = {}
+    transactions.filter((t: any) => t.type === 'EXPENSE').forEach((t: any) => {
+      const cat = t.category || 'Other'
       categorySpending[cat] = (categorySpending[cat] || 0) + t.amount
     })
 
     const topCategory = Object.entries(categorySpending)
-      .sort(([,a], [,b]) => b - a)[0]
-
+      .sort(([,a], [,b]) => (b as number) - (a as number))[0]
     let analysis = `📊 Financial Overview:\n\n`
     analysis += `💎 Net Worth: ${formatIndianCurrency(netWorth)}\n`
     analysis += `💰 Balance: ${formatIndianCurrency(totalBalance)}\n`
@@ -311,7 +310,7 @@ async function processUserRequest(message: string, userId: string, financialData
     analysis += `💳 Loans: ${loans.length} | 📊 Investments: ${investments.length}\n`
 
     if (topCategory) {
-      analysis += `\n🔥 Top spending: ${topCategory[0]} (${formatIndianCurrency(topCategory[1])})`
+      analysis += `\n🔥 Top spending: ${topCategory[0]} (${formatIndianCurrency(topCategory[1] as number)})`
     }
 
     if (savingsRate > 20) {

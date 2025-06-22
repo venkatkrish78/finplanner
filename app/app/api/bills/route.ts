@@ -41,7 +41,7 @@ function shouldBillAppearInPeriod(bill: any, view: string, year: number, month?:
 }
 
 // Helper function to get payment status for a bill in a specific period
-async function getBillPaymentStatus(billId: string, view: string, year: number, month?: number, userId: string) {
+async function getBillPaymentStatus(billId: string, view: string, year: number, userId: string, month?: number) {
   let startDate: Date
   let endDate: Date
 
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
       
       for (const bill of bills) {
         if (shouldBillAppearInPeriod(bill, view, year, month)) {
-          const paymentStatus = await getBillPaymentStatus(bill.id, view, year, month, currentUser.id)
+          const paymentStatus = await getBillPaymentStatus(bill.id, view, year, currentUser.id, month)
           
           filteredBills.push({
             ...bill,

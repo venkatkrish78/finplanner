@@ -1,6 +1,6 @@
 
 
-export const dynamic = "force-dynamic";
+import { getCurrentUser } from '@/lib/auth-helpers';export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
@@ -102,6 +102,14 @@ export async function POST(
     const body = await request.json();
     const { goalId, allocation = 100, notes } = body;
 
+    // Get current user
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
     if (!goalId) {
       return NextResponse.json(
         { error: 'Goal ID is required' },
@@ -163,7 +171,8 @@ export async function POST(
         investmentId,
         goalId,
         allocation,
-        notes
+        notes,
+        userId: currentUser.id
       },
       include: {
         investment: true,

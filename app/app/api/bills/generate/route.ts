@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         const existingInstance = await prisma.billInstance.findFirst({
           where: {
             billId: bill.id,
-            dueDate: {
+              userId: bill.userId,            dueDate: {
               gte: new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate()),
               lt: new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1)
             }
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
           await prisma.billInstance.create({
             data: {
               billId: bill.id,
-              dueDate: new Date(currentDate),
+              userId: bill.userId,              dueDate: new Date(currentDate),
               amount: bill.amount
             }
           })

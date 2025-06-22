@@ -13,7 +13,7 @@ export async function GET() {
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       include: {
-        goals: {
+        financialGoals: {
           include: {
             category: true,
             investmentLinks: {
@@ -26,7 +26,6 @@ export async function GET() {
         investments: {
           include: {
             category: true,
-            goal: true,
             goalLinks: {
               include: {
                 goal: true
@@ -37,7 +36,6 @@ export async function GET() {
         transactions: {
           include: {
             category: true,
-            goal: true
           }
         },
         categories: true,
@@ -53,21 +51,15 @@ export async function GET() {
     // Remove sensitive information
     const exportData = {
       profile: {
+        id: user.id,
         name: user.name,
         email: user.email,
-        phone: user.phone,
-        address: user.address,
-        dateOfBirth: user.dateOfBirth,
-        occupation: user.occupation,
-        annualIncome: user.annualIncome,
-        riskTolerance: user.riskTolerance,
-        investmentExperience: user.investmentExperience,
-        financialGoals: user.financialGoals,
-        isPremium: user.isPremium,
+        emailVerified: user.emailVerified,
+        image: user.image,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       },
-      goals: user.goals,
+      goals: user.financialGoals,
       investments: user.investments,
       transactions: user.transactions,
       categories: user.categories,
@@ -79,7 +71,6 @@ export async function GET() {
         priority: insight.priority,
         createdAt: insight.createdAt
       })),
-      settings: user.settings,
       exportedAt: new Date().toISOString()
     }
 

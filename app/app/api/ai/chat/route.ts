@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { GoalType } from '@prisma/client'
 import OpenAI from 'openai'
 
 const openai = new OpenAI({
@@ -207,7 +208,7 @@ async function processUserRequest(message: string, userId: string, financialData
     } catch (error) {
       console.error('Transaction creation error:', error)
       return {
-        response: `❌ Couldn't add transaction: ${error.message}. Try: "Add ₹100 coffee" or "Spent Rs 2000 on food"`,
+        response: `❌ Couldn't add transaction: ${error instanceof Error ? error.message : "Unknown error"}. Try: "Add ₹100 coffee" or "Spent Rs 2000 on food"`,
         success: false
       }
     }
@@ -220,19 +221,29 @@ async function processUserRequest(message: string, userId: string, financialData
 
     if (!goalName || goalName.length < 3) goalName = 'Savings Goal'
 
-    let goalType = 'OTHER'
-    const goalTypeKeywords = {
-      'HOUSE': ['house', 'home', 'property', 'ghar', 'flat', 'apartment'],
-      'VACATION': ['vacation', 'trip', 'travel', 'holiday', 'ghumna'],
-      'EDUCATION': ['education', 'course', 'study', 'college', 'padhai'],
-      'EMERGENCY_FUND': ['emergency', 'fund', 'backup'],
-      'RETIREMENT': ['retirement', 'pension'],
-      'INVESTMENT': ['investment', 'invest', 'nivesh']
+    const goalTypeKeywords: Record<keyof typeof GoalType, string[]> = {
+      HOUSE: ['house', 'home', 'property', 'ghar', 'flat', 'apartment'],
+      VACATION: ['vacation', 'trip', 'travel', 'holiday', 'ghumna'],
+      EDUCATION: ['education', 'course', 'study', 'college', 'padhai'],
+      EMERGENCY_FUND: ['emergency', 'fund', 'backup'],
+      RETIREMENT: ['retirement', 'pension'],
+      INVESTMENT: ['investment', 'invest', 'nivesh'],
+      SAVINGS: ['save', 'saving', 'money'],
+      DEBT_PAYOFF: ['debt', 'loan', 'payoff'],
+      OTHER: []
     }
+
+    let goalType: GoalType = GoalType.OTHER
 
     for (const [type, keywords] of Object.entries(goalTypeKeywords)) {
       if (keywords.some(keyword => lowerMessage.includes(keyword))) {
-        goalType = type
+        goalType = GoalType[type as keyof typeof GoalType]
+        break
+      }
+    }
+    for (const [type, keywords] of Object.entries(goalTypeKeywords)) {
+      if (keywords.some(keyword => lowerMessage.includes(keyword))) {
+        goalType = type as GoalType
         break
       }
     }
@@ -298,8 +309,8 @@ async function processUserRequest(message: string, userId: string, financialData
     } = financialData
 
     // Top spending category
-    const categorySpending = {}
-    transactions.filter(t => t.type === 'EXPENSE').forEach(t => {
+    const categorySpending: Record<string, number> = {}
+    transactions.filter((t: any) => t.type === 'EXPENSE').forEach((t: any) => {
       const cat = t.category?.name || 'Other'
       categorySpending[cat] = (categorySpending[cat] || 0) + t.amount
     })

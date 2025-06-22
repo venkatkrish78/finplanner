@@ -192,7 +192,7 @@ export async function DELETE(
     // Delete related records first (goal links, transactions, etc.)
     await prisma.$transaction(async (tx) => {
       // Delete goal links
-      await tx.goalInvestmentLink.deleteMany({
+      await tx.investmentGoalLink.deleteMany({
         where: { investmentId: params.id }
       })
 

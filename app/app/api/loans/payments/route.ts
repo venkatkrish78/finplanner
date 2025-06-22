@@ -1,4 +1,5 @@
 
+import { getCurrentUser } from '@/lib/auth-helpers';
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -7,7 +8,15 @@ import { prisma } from '@/lib/db';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { loanId, amount, paymentType, note, createTransaction } = body;
+
+    // Get current user
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }    const { loanId, amount, paymentType, note, createTransaction } = body;
 
     const result = await prisma.$transaction(async (tx) => {
       // Get loan details
@@ -34,7 +43,8 @@ export async function POST(request: NextRequest) {
           principalPaid,
           interestPaid: Math.min(interestPaid, paymentAmount),
           note,
-          paymentDate: new Date()
+          paymentDate: new Date(),
+          userId: currentUser.id
         }
       });
 
@@ -60,8 +70,9 @@ export async function POST(request: NextRequest) {
             data: {
               name: 'Loan Payment',
               color: '#EF4444',
-              isDefault: true
-            }
+              isDefault: true,
+              userId: currentUser.id
+        }
           });
         }
 
@@ -72,8 +83,9 @@ export async function POST(request: NextRequest) {
             description: `Loan payment: ${loan.name}`,
             date: new Date(),
             categoryId: category.id,
-            source: 'MANUAL'
-          }
+            source: 'MANUAL',
+            userId: currentUser.id
+        }
         });
 
         // Link the transaction to the payment

@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import OpenAI from 'openai'
+import { GoalType } from '@prisma/client'
+import { AssetClass, InvestmentPlatform } from '@/lib/types'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -234,6 +236,26 @@ Be conversational and helpful!`
   }
 }
 
+function determineGoalType(description: string): GoalType {
+  const desc = description.toLowerCase()
+  const goalTypeKeywords = {
+    EMERGENCY_FUND: ['emergency', 'fund', 'backup'],
+    HOUSE: ['house', 'home', 'property', 'real estate'],
+    VACATION: ['vacation', 'travel', 'trip', 'holiday'],
+    EDUCATION: ['education', 'study', 'course', 'school', 'college'],
+    RETIREMENT: ['retirement', 'pension', 'retire'],
+    DEBT_PAYOFF: ['debt', 'loan', 'payoff', 'pay off'],
+    INVESTMENT: ['invest', 'portfolio', 'stocks', 'mutual fund'],
+    SAVINGS: ['save', 'saving', 'money'],
+  }
+  
+  for (const [type, keywords] of Object.entries(goalTypeKeywords)) {
+    if (keywords.some(keyword => desc.includes(keyword))) {
+      return type as GoalType
+    }
+  }
+  return GoalType.OTHER
+}
 async function executeAction(userId: string, extractedData: any) {
   try {
     const { action, data } = extractedData
@@ -265,14 +287,23 @@ async function executeAction(userId: string, extractedData: any) {
         return { success: true, data: transaction }
 
       case 'ADD_BILL':
-        const bill = await prisma.bill.create({
+        // Get or create default category for bills
+        let billCategory = await prisma.category.findFirst({
+          where: { name: 'Bills & Utilities', userId }
+        })
+        
+        if (!billCategory) {
+          billCategory = await prisma.category.create({
+            data: { name: 'Bills & Utilities', userId }
+          })
+        }        const bill = await prisma.bill.create({
           data: {
             name: data.description,
             amount: data.amount,
-            dueDate: new Date(data.dueDate || new Date()),
             nextDueDate: new Date(data.dueDate || new Date()),
             frequency: data.frequency || 'MONTHLY',
-            userId
+            description: data.description,
+            categoryId: billCategory.id,            userId
           }
         })
         
@@ -284,7 +315,7 @@ async function executeAction(userId: string, extractedData: any) {
             name: data.description,
             targetAmount: data.targetAmount,
             currentAmount: 0,
-            targetDate: new Date(data.targetDate),
+            goalType: determineGoalType(data.description),            targetDate: new Date(data.targetDate),
             userId
           }
         })
@@ -293,28 +324,28 @@ async function executeAction(userId: string, extractedData: any) {
 
       case 'ADD_INVESTMENT':
         // Determine asset class based on description
-        let assetClass = 'MUTUAL_FUNDS' // default
+        let assetClass = AssetClass.MUTUAL_FUNDS // default
         let platform = data.platform || 'ZERODHA' // Use provided platform or default
         
         const description = data.description.toLowerCase()
         if (description.includes('stock') || description.includes('share')) {
-          assetClass = 'STOCKS'
+          assetClass = AssetClass.STOCKS
         } else if (description.includes('mutual fund') || description.includes('sip')) {
-          assetClass = 'MUTUAL_FUNDS'
+          assetClass = AssetClass.MUTUAL_FUNDS
         } else if (description.includes('crypto') || description.includes('bitcoin')) {
-          assetClass = 'CRYPTO'
+          assetClass = AssetClass.CRYPTO
         } else if (description.includes('gold')) {
-          assetClass = 'GOLD'
+          assetClass = AssetClass.GOLD
         } else if (description.includes('bond')) {
-          assetClass = 'BONDS'
+          assetClass = AssetClass.BONDS
         } else if (description.includes('real estate') || description.includes('property')) {
-          assetClass = 'REAL_ESTATE'
+          assetClass = AssetClass.REAL_ESTATE
         } else if (description.includes('ppf')) {
-          assetClass = 'PPF'
+          assetClass = AssetClass.PPF
         } else if (description.includes('epf')) {
-          assetClass = 'EPF'
+          assetClass = AssetClass.EPF
         } else if (description.includes('elss')) {
-          assetClass = 'ELSS'
+          assetClass = AssetClass.ELSS
         }
 
         const investment = await prisma.investment.create({
@@ -342,8 +373,9 @@ async function executeAction(userId: string, extractedData: any) {
             principalAmount: data.amount,
             currentBalance: data.amount,
             interestRate: 10,
-            termMonths: 60,
-            monthlyPayment: Math.round(data.amount / 60),
+            loanType: 'PERSONAL_LOAN',
+            startDate: new Date(),            tenure: 60,
+            emiAmount: Math.round(data.amount / 60),
             userId
           }
         })
@@ -375,7 +407,7 @@ async function executeAction(userId: string, extractedData: any) {
     }
   } catch (error) {
     console.error('Action execution error:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error occurred" }
   }
 }
 
