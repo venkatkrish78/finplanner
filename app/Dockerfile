@@ -1,4 +1,8 @@
-FROM node:24.2.0-alpine
+#FROM node:24.2.0-alpine
+
+FROM node:20-slim
+
+RUN apt-get update && apt-get install -y openssl
 
 WORKDIR /app
 
