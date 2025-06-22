@@ -1,6 +1,6 @@
 #FROM node:24.2.0-alpine
-
-FROM node:20-slim
+FROM node:16-alpine3.16
+#FROM node:20-slim
 
 # Install OpenSSL 1.1 compatibility library
 RUN apk add --no-cache openssl1.1-compat
