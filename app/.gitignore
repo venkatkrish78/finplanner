@@ -1,0 +1,6 @@
+# Prisma
+.prisma
+node_modules/
+
+# Next.js
+.next
