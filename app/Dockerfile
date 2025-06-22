@@ -2,6 +2,8 @@
 
 FROM node:20-slim
 
+# Install OpenSSL 1.1 compatibility library
+RUN apk add --no-cache openssl1.1-compat
 RUN apt-get update && apt-get install -y openssl
 
 WORKDIR /app
