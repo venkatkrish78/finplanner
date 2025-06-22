@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { InvestmentTransactionType } from '@/lib/types'
@@ -55,6 +54,9 @@ export async function POST(request: NextRequest) {
       notes
     } = body
 
+    // Get current user from session or auth
+    const currentUser = { id: "demo-user-id" } // TODO: Get from actual auth
+
     const amount = quantity * price
 
     // Get investment details for transaction creation
@@ -81,7 +83,8 @@ export async function POST(request: NextRequest) {
         fees,
         tax,
         date: new Date(date),
-        notes
+        notes,
+        userId: currentUser.id
       }
     })
 
@@ -93,14 +96,15 @@ export async function POST(request: NextRequest) {
       
       mainTransaction = await db.transaction.create({
         data: {
-          amount: amount + fees + tax, // Include fees and tax in cash flow
+          amount: amount + fees + tax,
           type: transactionType,
           description,
           merchant: investment.name,
           date: new Date(date),
-          categoryId: investment.categoryId || '', // Use investment's category or default
+          categoryId: investment.categoryId || '',
           status: 'SUCCESS',
-          source: 'MANUAL'
+          source: 'MANUAL',
+          userId: currentUser.id
         }
       })
 

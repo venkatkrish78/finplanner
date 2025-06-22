@@ -43,8 +43,8 @@ export async function PUT(
           description: `Bill payment: ${instance.bill.name}`,
           date: new Date(),
           categoryId: instance.bill.categoryId,
-          source: 'MANUAL'
-        }
+          source: 'MANUAL',
+          userId: instance.userId        }
       })
       transactionId = transaction.id
     }

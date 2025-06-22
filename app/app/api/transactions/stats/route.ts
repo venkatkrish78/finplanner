@@ -62,8 +62,7 @@ export async function GET(request: NextRequest) {
         id: { in: categoryIds },
         OR: [
           { userId: currentUser.id },
-          { isDefault: true, userId: null }
-        ]
+          { isDefault: true }        ]
       }
     });
 

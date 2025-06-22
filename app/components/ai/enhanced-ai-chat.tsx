@@ -1,3 +1,5 @@
+/// <reference path="../../types/speech-recognition.d.ts" />
+/// <reference path="../../types/speech-recognition.d.ts" />
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
@@ -19,6 +21,7 @@ import {
   Target,
   Receipt
 } from 'lucide-react'
+
 
 interface Message {
   id: string
@@ -219,9 +222,7 @@ export default function EnhancedAIChat() {
   return (
     <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50">
       <CardContent className="p-0">
-        {/* Fixed height container - KEY FIX */}
         <div className="h-[650px] flex flex-col">
-          {/* Header with gradient */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white flex-shrink-0 rounded-t-lg">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white/20 rounded-full">
@@ -234,7 +235,6 @@ export default function EnhancedAIChat() {
             </div>
           </div>
 
-          {/* Quick Actions */}
           <div className="p-4 bg-gray-50 border-b flex-shrink-0">
             <p className="text-sm text-gray-600 mb-2">Quick actions:</p>
             <div className="flex flex-wrap gap-2">
@@ -253,7 +253,6 @@ export default function EnhancedAIChat() {
             </div>
           </div>
 
-          {/* Messages - KEY FIX: flex-1 with min-h-0 for proper scrolling */}
           <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white">
             {messages.map((message) => (
               <div
@@ -314,7 +313,6 @@ export default function EnhancedAIChat() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area - KEY FIX: flex-shrink-0 to prevent compression */}
           <div className="border-t bg-white p-4 flex-shrink-0 rounded-b-lg">
             <div className="flex space-x-2">
               <Input
@@ -344,7 +342,6 @@ export default function EnhancedAIChat() {
               </Button>
             </div>
 
-            {/* Voice indicator */}
             {isListening && (
               <div className="mt-2 flex items-center justify-center space-x-2 text-red-600">
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>

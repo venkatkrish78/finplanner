@@ -35,18 +35,24 @@ async function main() {
 
   const createdCategories = []
   for (const category of categories) {
-    const created = await prisma.category.upsert({
+    // Try to find existing category first
+    const existing = await prisma.category.findFirst({
       where: { 
-        name_userId: { 
-          name: category.name, 
-          userId: category.userId 
-        } 
-      },
-      update: {},
-      create: category,
+        name: category.name,
+        userId: category.userId
+      }
     })
-    createdCategories.push(created)
+    
+    if (existing) {
+      createdCategories.push(existing)
+    } else {
+      // Create new category
+      const created = await prisma.category.create({
+        data: category
+      })
+      createdCategories.push(created)
   }
+    }
 
   console.log('📂 Created categories:', createdCategories.length)
 

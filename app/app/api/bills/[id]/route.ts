@@ -75,8 +75,7 @@ export async function PUT(
           id: categoryId,
           OR: [
             { userId: currentUser.id },
-            { isDefault: true, userId: null }
-          ]
+            { isDefault: true }          ]
         }
       });
 

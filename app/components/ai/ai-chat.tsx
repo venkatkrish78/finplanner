@@ -31,7 +31,7 @@ export default function AIChat() {
 
   useEffect(() => {
     if (audioPrefs.enabled) {
-      audioManager.enable();
+      AudioManager.enable();
       setAudioEnabled(true);
     }
   }, []);
@@ -41,9 +41,9 @@ export default function AIChat() {
     setAudioEnabled(newEnabled);
     
     if (newEnabled) {
-      audioManager.enable();
+      AudioManager.enable();
     } else {
-      audioManager.disable();
+      AudioManager.disable();
     }
 
     const newPrefs = { ...audioPrefs, enabled: newEnabled };
@@ -52,16 +52,15 @@ export default function AIChat() {
   };
 
   const speakMessage = (message: Message) => {
-    if (!audioManager.isSupported()) {
+    if (!AudioManager.isSupported()) {
       alert('Text-to-speech is not supported in your browser');
       return;
     }
 
-    audioManager.speak(message.content, {
+    AudioManager.speak(message.content, {
       rate: audioPrefs.rate,
       pitch: audioPrefs.pitch,
       volume: audioPrefs.volume,
-      isEncouraging: message.isEncouraging
     });
   };
 
@@ -95,7 +94,7 @@ export default function AIChat() {
       
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: enhanced.text,
+        content: enhanced.content,
         isUser: false,
         timestamp: new Date(),
         isEncouraging: enhanced.isEncouraging,
@@ -257,7 +256,7 @@ export default function AIChat() {
                       <span className="text-xs text-gray-500">
                         {message.timestamp.toLocaleTimeString()}
                       </span>
-                      {audioManager.isSupported() && (
+                      {AudioManager.isSupported() && (
                         <Button
                           variant="ghost"
                           size="sm"

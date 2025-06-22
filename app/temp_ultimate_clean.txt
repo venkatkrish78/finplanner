@@ -1,0 +1,38 @@
+'use client'
+
+import { useState, useRef, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { 
+  Send, 
+  Bot, 
+  User, 
+  CheckCircle, 
+  AlertCircle,
+  Mic,
+  MicOff,
+  Sparkles,
+  Plus,
+  DollarSign,
+  Target,
+  Receipt,
+  Volume2,
+  VolumeX,
+  Settings,
+  Loader2
+} from 'lucide-react'
+import { AudioManager, EncouragementEngine, AudioPreferences } from '@/lib/audio-utils'
+
+interface Message {
+  id: string
+  content: string
+  isUser: boolean
+  timestamp: Date
+  type?: 'success' | 'error' | 'info'
+  isEncouraging?: boolean
+  shouldCelebrate?: boolean
+}
+
+

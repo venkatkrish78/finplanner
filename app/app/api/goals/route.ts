@@ -141,8 +141,7 @@ export async function POST(request: NextRequest) {
           id: categoryId,
           OR: [
             { userId: currentUser.id },
-            { isDefault: true, userId: null }
-          ]
+            { isDefault: true }          ]
         }
       });
 

@@ -19,6 +19,8 @@ model Category {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([name, userId])
+
   transactions   Transaction[]
   bills          Bill[]
   financialGoals FinancialGoal[]
