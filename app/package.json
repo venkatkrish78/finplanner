@@ -17,7 +17,8 @@
   "dev:auth": "echo 'Starting with auth enabled...' && npm run dev",
   "check:auth": "echo 'Checking authentication setup...' && node -e \"console.log('NextAuth configured:', !!process.env.NEXTAUTH_SECRET)\"",
   "seed": "tsx seed-demo-data.ts",
-  "postinstall": "prisma generate"
+  "postinstall": "npm run prisma:generate",
+  "prisma:generate": "prisma generate --schema=./prisma/schema.prisma"
  },
   "dependencies": {
     "@auth/prisma-adapter": "^2.4.0",
