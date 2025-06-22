@@ -3,11 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { GoalType } from '@prisma/client'
-import OpenAI from 'openai'
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Remove this line: import OpenAI from 'openai'
+// Remove this block: const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 // Enhanced Indian number parsing - FIXED VERSION
 function parseIndianAmount(text: string): number | null {
@@ -367,6 +364,20 @@ export async function POST(request: NextRequest) {
       console.log('Direct result:', directResult) // Debug log
       return NextResponse.json(directResult)
     }
+
+    // Runtime check for OpenAI API key
+    if (!process.env.OPENAI_API_KEY) {
+      return NextResponse.json({
+        response: "I can help with your finances! Try: 'Add ₹100 coffee', 'Spent Rs 2000 on food', or 'How am I doing?'",
+        success: true
+      })
+    }
+
+    // ONLY CHANGE: Move OpenAI initialization inside the function
+    const { default: OpenAI } = await import('openai')
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
 
     // Build Indian context for OpenAI
     let context = `User's Financial Profile (Indian context):\n`
