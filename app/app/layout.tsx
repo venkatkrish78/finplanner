@@ -1,52 +1,26 @@
-
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/toaster'
-import { Header } from '@/components/header'
+import Header from '@/components/header'
 import { AuthProvider } from '@/components/providers/auth-provider'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'FinPlanner - Professional Personal Finance Manager',
-  description: 'Take control of your finances with FinPlanner - a comprehensive personal finance management platform for tracking expenses, managing investments, and achieving your financial goals.',
-  keywords: 'personal finance, expense tracking, investment management, financial planning, budgeting, money management',
-  authors: [{ name: 'FinPlanner Team' }],
-  creator: 'FinPlanner',
-  publisher: 'FinPlanner',
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
+  title: 'FinPlanner AI - AI Financial Coach',
+  description: 'Your intelligent financial planning companion powered by AI. Track expenses, set goals, and get personalized financial insights with advanced AI coaching.',
+  keywords: 'AI financial coach, personal finance, expense tracking, investment management, financial planning, budgeting, money management, artificial intelligence',
+  authors: [{ name: 'FinPlanner AI Team' }],
+  creator: 'FinPlanner AI',
+  publisher: 'FinPlanner AI',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon-16x16.png',
+    apple: '/apple-touch-icon.png',
   },
-  metadataBase: new URL('https://finplanner.app'),
-  openGraph: {
-    title: 'FinPlanner - Professional Personal Finance Manager',
-    description: 'Take control of your finances with FinPlanner - a comprehensive personal finance management platform.',
-    url: 'https://finplanner.app',
-    siteName: 'FinPlanner',
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'FinPlanner - Professional Personal Finance Manager',
-    description: 'Take control of your finances with FinPlanner - a comprehensive personal finance management platform.',
-    creator: '@finplanner',
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
+  manifest: '/site.webmanifest',
 }
 
 export default function RootLayout({
@@ -56,8 +30,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+      </head>
       <body className={inter.className}>
-        <AuthProvider> {/* Wrap everything with AuthProvider */}
+        <AuthProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="light"
@@ -72,7 +51,7 @@ export default function RootLayout({
             </div>
             <Toaster />
           </ThemeProvider>
-        </AuthProvider> {/* Close AuthProvider */}
+        </AuthProvider>
       </body>
     </html>
   )

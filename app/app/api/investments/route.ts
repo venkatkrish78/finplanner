@@ -150,15 +150,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Verify category belongs to user if provided
+    // Verify category belongs to user if provided - FIXED: removed userId: null lookup
     if (categoryId) {
       const category = await prisma.category.findFirst({
         where: {
           id: categoryId,
-          OR: [
-            { userId: currentUser.id },
-            { isDefault: true, userId: null }
-          ]
+          userId: currentUser.id
         }
       });
 
@@ -208,48 +205,46 @@ export async function POST(request: NextRequest) {
         }
       })
 
-// Create corresponding main transaction for cash flow tracking
-// If no categoryId provided, find or create a default "Investments" category
-let transactionCategoryId = categoryId;
-if (!transactionCategoryId) {
-  const investmentCategory = await prisma.category.findFirst({
-    where: {
-      name: 'Investment',
-      OR: [
-        { userId: currentUser.id },
-        { isDefault: true, userId: null }
-      ]
-    }
-  });
+      // Create corresponding main transaction for cash flow tracking
+      // If no categoryId provided, find or create a default "Investment" category
+      // FIXED: removed userId: null lookup
+      let transactionCategoryId = categoryId;
+      if (!transactionCategoryId) {
+        const investmentCategory = await prisma.category.findFirst({
+          where: {
+            name: 'Investment',
+            userId: currentUser.id
+          }
+        });
 
-  if (investmentCategory) {
-    transactionCategoryId = investmentCategory.id;
-  } else {
-    // Create a default Investments category for the user
-    const newCategory = await prisma.category.create({
-      data: {
-        name: 'Investment',
-        color: '#10b981',
-        userId: currentUser.id
+        if (investmentCategory) {
+          transactionCategoryId = investmentCategory.id;
+        } else {
+          // Create a default Investment category for the user
+          const newCategory = await prisma.category.create({
+            data: {
+              name: 'Investment',
+              color: '#10b981',
+              userId: currentUser.id
+            }
+          });
+          transactionCategoryId = newCategory.id;
+        }
       }
-    });
-    transactionCategoryId = newCategory.id;
-  }
-}
 
-const mainTransaction = await prisma.transaction.create({
-  data: {
-    amount: totalInvested,
-    type: 'INVESTMENT_BUY',
-    description: `Investment purchase: ${name}`,
-    merchant: name,
-    date: purchaseDate ? new Date(purchaseDate) : new Date(),
-    categoryId: transactionCategoryId, // ✅ NOW IT'S GUARANTEED TO BE VALID
-    status: 'SUCCESS',
-    source: 'MANUAL',
-    userId: currentUser.id
-  }
-})
+      const mainTransaction = await prisma.transaction.create({
+        data: {
+          amount: totalInvested,
+          type: 'INVESTMENT_BUY',
+          description: `Investment purchase: ${name}`,
+          merchant: name,
+          date: purchaseDate ? new Date(purchaseDate) : new Date(),
+          categoryId: transactionCategoryId,
+          status: 'SUCCESS',
+          source: 'MANUAL',
+          userId: currentUser.id
+        }
+      })
 
       // Link the investment transaction to the main transaction
       await prisma.investmentTransaction.update({

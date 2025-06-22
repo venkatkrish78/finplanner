@@ -1,536 +1,294 @@
+'use client'
 
-'use client';
-
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { 
-  CreditCard, 
-  Plus, 
   Calendar,
-  Tag,
-  ArrowUpRight,
-  ArrowDownRight,
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
-  MoreVertical,
-  Eye,
-  Edit,
-  Trash2
-} from 'lucide-react';
-import { Transaction, Category } from '@/lib/types';
-import { formatCurrency } from '@/lib/currency';
-import { useToast } from '@/hooks/use-toast';
-import TransactionDetailModal from './transaction-detail-modal';
-import { AddTransactionDialog } from './add-transaction-dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Trash2,
+  Loader2
+} from 'lucide-react'
 
-interface EnhancedTransactionListProps {
-  year: number;
-  month?: number;
-  searchTerm: string;
-  selectedCategory: string;
-  selectedType: string;
-  dateRange: { from?: Date; to?: Date };
-  sortBy: string;
-  sortOrder: 'asc' | 'desc';
-  onAddTransaction: () => void;
-  onTransactionUpdated?: () => void;
-  onTransactionDeleted?: () => void;
+// Client-safe time formatting to prevent hydration errors
+function formatTimeClientSafe(date: string | Date): string {
+  if (typeof window === 'undefined') {
+    return '--:--' // Server-side fallback
+  }
+  
+  const d = typeof date === 'string' ? new Date(date) : date
+  return d.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  })
 }
 
-interface PaginationInfo {
-  page: number;
-  limit: number;
-  total: number;
-  pages: number;
+interface Transaction {
+  id: string
+  amount: number
+  description: string
+  date: string | Date
+  type: 'INCOME' | 'EXPENSE'
+  category?: {
+    id: string
+    name: string
+    color?: string
+  }
+  merchant?: string
+  status?: string
+  source?: string
+}
+
+interface EnhancedTransactionListProps {
+  year: number
+  month?: number
+  searchTerm?: string
+  selectedCategory?: string
+  selectedType?: string
+  dateRange?: { from?: Date; to?: Date }
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  onAddTransaction?: () => void
+  onTransactionUpdated?: () => void
+  onTransactionDeleted?: () => void
 }
 
 export function EnhancedTransactionList({
   year,
   month,
-  searchTerm,
-  selectedCategory,
-  selectedType,
-  dateRange,
-  sortBy,
-  sortOrder,
+  searchTerm = '',
+  selectedCategory = 'all',
+  selectedType = 'all',
+  dateRange = {},
+  sortBy = 'date',
+  sortOrder = 'desc',
   onAddTransaction,
   onTransactionUpdated,
   onTransactionDeleted
 }: EnhancedTransactionListProps) {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState<PaginationInfo>({
-    page: 1,
-    limit: 20,
-    total: 0,
-    pages: 0
-  });
-  const [detailModalOpen, setDetailModalOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-  const { toast } = useToast();
+  const [mounted, setMounted] = useState(false)
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchTransactions();
-  }, [year, month, searchTerm, selectedCategory, selectedType, dateRange, sortBy, sortOrder, pagination.page]);
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    fetchTransactions()
+  }, [year, month, searchTerm, selectedCategory, selectedType, dateRange, sortBy, sortOrder])
 
   const fetchTransactions = async () => {
     try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        page: pagination.page.toString(),
-        limit: pagination.limit.toString(),
-        sortBy,
-        sortOrder
-      });
+      setLoading(true)
+      setError(null)
 
-      if (year) params.append('year', year.toString());
-      if (month) params.append('month', month.toString());
-      if (searchTerm) params.append('search', searchTerm);
-      if (selectedCategory !== 'all') params.append('categoryId', selectedCategory);
-      if (selectedType !== 'all') params.append('type', selectedType);
-      if (dateRange.from) params.append('startDate', dateRange.from.toISOString());
-      if (dateRange.to) params.append('endDate', dateRange.to.toISOString());
+      const params = new URLSearchParams()
+      if (year) params.append('year', year.toString())
+      if (month) params.append('month', month.toString())
+      if (searchTerm) params.append('search', searchTerm)
+      if (selectedCategory !== 'all') params.append('categoryId', selectedCategory)
+      if (selectedType !== 'all') params.append('type', selectedType)
+      if (dateRange.from) params.append('startDate', dateRange.from.toISOString())
+      if (dateRange.to) params.append('endDate', dateRange.to.toISOString())
+      params.append('limit', '100')
 
-      const response = await fetch(`/api/transactions?${params}`);
-      if (response.ok) {
-        const data = await response.json();
-        setTransactions(data.transactions || []);
-        setPagination(prev => ({
-          ...prev,
-          total: data.pagination.total,
-          pages: data.pagination.pages
-        }));
-      } else {
-        console.error('Failed to fetch transactions:', response.status);
-        toast({
-          title: "Error",
-          description: "Failed to load transactions",
-          variant: "destructive",
-        });
+      console.log('Fetching transactions with params:', params.toString())
+
+      const response = await fetch(`/api/transactions?${params}`)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch transactions: ${response.status}`)
       }
+
+      const data = await response.json()
+      console.log('Fetched transactions:', data)
+      
+      setTransactions(data.transactions || [])
     } catch (error) {
-      console.error('Error fetching transactions:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load transactions",
-        variant: "destructive",
-      });
+      console.error('Error fetching transactions:', error)
+      setError(error instanceof Error ? error.message : 'Failed to fetch transactions')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  const handlePageChange = (newPage: number) => {
-    setPagination(prev => ({ ...prev, page: newPage }));
-  };
-
-  const handleTransactionClick = (transaction: Transaction) => {
-    setSelectedTransaction(transaction);
-    setDetailModalOpen(true);
-  };
-
-  const handleEditTransaction = (transaction: Transaction) => {
-    setSelectedTransaction(transaction);
-    setEditDialogOpen(true);
-  };
-
-  const handleDeleteTransaction = (transaction: Transaction) => {
-    setSelectedTransaction(transaction);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDeleteTransaction = async () => {
-    if (!selectedTransaction) return;
+  const handleDelete = async (transactionId: string) => {
+    if (!confirm("Are you sure you want to delete this transaction?")) {
+      return
+    }
 
     try {
-      const response = await fetch(`/api/transactions/${selectedTransaction.id}`, {
-        method: 'DELETE'
-      });
+      const response = await fetch(`/api/transactions?id=${transactionId}`, {
+        method: "DELETE"
+      })
 
-      if (response.ok) {
-        toast({
-          title: "Success",
-          description: "Transaction deleted successfully",
-        });
-        fetchTransactions();
-        // Trigger parent callback for chart refresh
-        onTransactionDeleted?.();
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to delete transaction",
-          variant: "destructive",
-        });
+      if (!response.ok) {
+        throw new Error("Failed to delete transaction")
       }
+
+      // Refresh the transactions list
+      fetchTransactions()
+      onTransactionDeleted?.()
     } catch (error) {
-      console.error('Error deleting transaction:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete transaction",
-        variant: "destructive",
-      });
-    } finally {
-      setDeleteDialogOpen(false);
-      setSelectedTransaction(null);
+      console.error("Error deleting transaction:", error)
+      alert("Failed to delete transaction")
     }
-  };
+  }
 
-  const handleTransactionUpdated = () => {
-    fetchTransactions();
-    setSelectedTransaction(null);
-    // Trigger parent callback for chart refresh
-    onTransactionUpdated?.();
-  };
+  const formatAmount = (amount: number, type: 'INCOME' | 'EXPENSE') => {
+    const prefix = type === 'INCOME' ? '+' : '-'
+    return `${prefix}₹${Math.abs(amount).toLocaleString()}`
+  }
 
-  const getTransactionIcon = (type: string) => {
-    switch (type) {
-      case 'INCOME':
-        return <ArrowDownRight className="h-4 w-4 text-emerald-600" />;
-      case 'EXPENSE':
-        return <ArrowUpRight className="h-4 w-4 text-red-600" />;
-      default:
-        return <CreditCard className="h-4 w-4 text-professional-blue" />;
-    }
-  };
-
-  const getTransactionColor = (type: string) => {
-    switch (type) {
-      case 'INCOME':
-        return 'text-emerald-600';
-      case 'EXPENSE':
-        return 'text-red-600';
-      default:
-        return 'text-professional-blue';
-    }
-  };
-
-  const getAmountDisplay = (transaction: Transaction) => {
-    const amount = formatCurrency(transaction.amount);
-    return transaction.type === 'INCOME' ? `+${amount}` : `-${amount}`;
-  };
-
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
+  const formatDate = (date: string | Date) => {
+    const d = typeof date === 'string' ? new Date(date) : date
+    return d.toLocaleDateString('en-GB', {
+      day: '2-digit',
       month: 'short',
-      day: 'numeric',
       year: 'numeric'
-    });
-  };
+    })
+  }
 
-  const formatTime = (date: Date) => {
-    return new Date(date).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  if (loading && pagination.page === 1) {
+  if (loading) {
     return (
-      <Card className="professional-card">
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <Skeleton className="h-10 w-10 rounded-full" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-48" />
-                    <Skeleton className="h-3 w-32" />
-                  </div>
-                </div>
-                <div className="text-right space-y-2">
-                  <Skeleton className="h-5 w-24" />
-                  <Skeleton className="h-4 w-16" />
-                </div>
-              </div>
-            ))}
-          </div>
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Loading transactions...</span>
         </CardContent>
       </Card>
-    );
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="text-center py-8">
+          <p className="text-red-600">Error: {error}</p>
+          <Button onClick={fetchTransactions} className="mt-4">
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
-    <>
-      <Card className="professional-card">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-slate-900 flex items-center gap-2">
-            <Tag className="h-5 w-5 text-professional-blue" />
-            Transactions ({pagination.total.toLocaleString()})
-          </CardTitle>
-          {loading && pagination.page > 1 && (
-            <Loader2 className="h-4 w-4 animate-spin text-professional-blue" />
-          )}
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {transactions.length === 0 ? (
-              <div className="text-center py-12">
-                <CreditCard className="h-16 w-16 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">No transactions found</h3>
-                <p className="text-slate-600 mb-6">
-                  {searchTerm || selectedCategory !== 'all' || selectedType !== 'all' || dateRange.from || dateRange.to
-                    ? 'Try adjusting your filters to see more results'
-                    : 'Start by adding your first transaction'
-                  }
-                </p>
-                <Button
-                  onClick={onAddTransaction}
-                  className="bg-professional-blue hover:bg-professional-blue-dark text-white"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Transaction
-                </Button>
-              </div>
-            ) : (
-              <>
-                <AnimatePresence mode="wait">
-                  <div className="space-y-3">
-                    {transactions.map((transaction, index) => (
-                      <motion.div
-                        key={`${transaction.id}-${pagination.page}`}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                        className="group flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all duration-200 hover-shadow cursor-pointer"
-                        onClick={() => handleTransactionClick(transaction)}
-                      >
-                        <div className="flex items-center space-x-4 flex-1">
-                          <div className="p-2 rounded-full bg-slate-100 group-hover:bg-white transition-colors">
-                            {getTransactionIcon(transaction.type)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-slate-900 truncate">
-                                  {transaction.description || 'No description'}
-                                </h3>
-                                <div className="flex items-center space-x-3 mt-1">
-                                  {transaction.merchant && (
-                                    <span className="text-sm text-slate-600 truncate">
-                                      {transaction.merchant}
-                                    </span>
-                                  )}
-                                  {transaction.category && (
-                                    <Badge
-                                      variant="secondary"
-                                      className="text-xs px-2 py-1"
-                                      style={{ 
-                                        backgroundColor: transaction.category.color + '20', 
-                                        color: transaction.category.color,
-                                        border: `1px solid ${transaction.category.color}30`
-                                      }}
-                                    >
-                                      {transaction.category.name}
-                                    </Badge>
-                                  )}
-                                </div>
-                                <div className="flex items-center space-x-3 mt-2 text-xs text-slate-500">
-                                  <span className="flex items-center">
-                                    <Calendar className="h-3 w-3 mr-1" />
-                                    {formatDate(transaction.date)}
-                                  </span>
-                                  <span>{formatTime(transaction.date)}</span>
-                                  {transaction.transactionId && (
-                                    <span className="font-mono">
-                                      ID: {transaction.transactionId.slice(-6)}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-right">
-                            <div className={`text-lg font-bold ${getTransactionColor(transaction.type)}`}>
-                              {getAmountDisplay(transaction)}
-                            </div>
-                            <div className="flex items-center justify-end space-x-2 mt-1">
-                              <Badge 
-                                variant={transaction.status === 'SUCCESS' ? 'default' : 'destructive'}
-                                className={`text-xs ${
-                                  transaction.status === 'SUCCESS' 
-                                    ? 'bg-emerald-100 text-emerald-800 border-emerald-200' 
-                                    : 'bg-red-100 text-red-800 border-red-200'
-                                }`}
-                              >
-                                {transaction.status}
-                              </Badge>
-                              {transaction.source !== 'MANUAL' && (
-                                <Badge variant="outline" className="text-xs">
-                                  {transaction.source}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleTransactionClick(transaction);
-                                }}
-                                className="flex items-center gap-2"
-                              >
-                                <Eye className="h-4 w-4" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditTransaction(transaction);
-                                }}
-                                className="flex items-center gap-2"
-                              >
-                                <Edit className="h-4 w-4" />
-                                Edit Transaction
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteTransaction(transaction);
-                                }}
-                                className="flex items-center gap-2 text-red-600 focus:text-red-600"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                                Delete Transaction
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </AnimatePresence>
-
-                {/* Pagination */}
-                {pagination.pages > 1 && (
-                  <div className="flex items-center justify-between pt-6 border-t border-slate-200">
-                    <div className="text-sm text-slate-600">
-                      Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                      {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                      {pagination.total.toLocaleString()} transactions
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <DollarSign className="h-5 w-5" />
+          Transactions ({transactions.length})
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <AnimatePresence>
+            {transactions.map((transaction) => (
+              <motion.div
+                key={transaction.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      transaction.type === 'INCOME' 
+                        ? 'bg-green-100 text-green-600' 
+                        : 'bg-red-100 text-red-600'
+                    }`}>
+                      {transaction.type === 'INCOME' ? (
+                        <TrendingUp className="h-5 w-5" />
+                      ) : (
+                        <TrendingDown className="h-5 w-5" />
+                      )}
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        onClick={() => handlePageChange(pagination.page - 1)}
-                        disabled={pagination.page === 1 || loading}
-                        variant="outline"
-                        size="sm"
-                        className="border-slate-300 text-slate-600 hover:bg-slate-50"
-                      >
-                        <ChevronLeft className="h-4 w-4 mr-1" />
-                        Previous
-                      </Button>
-                      
-                      <div className="flex items-center space-x-1">
-                        {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
-                          let pageNum: number;
-                          if (pagination.pages <= 5) {
-                            pageNum = i + 1;
-                          } else if (pagination.page <= 3) {
-                            pageNum = i + 1;
-                          } else if (pagination.page >= pagination.pages - 2) {
-                            pageNum = pagination.pages - 4 + i;
-                          } else {
-                            pageNum = pagination.page - 2 + i;
-                          }
-                          
-                          return (
-                            <Button
-                              key={pageNum}
-                              onClick={() => handlePageChange(pageNum)}
-                              disabled={loading}
-                              variant={pagination.page === pageNum ? "default" : "outline"}
-                              size="sm"
-                              className={`w-8 h-8 p-0 ${
-                                pagination.page === pageNum 
-                                  ? 'bg-professional-blue text-white' 
-                                  : 'border-slate-300 text-slate-600 hover:bg-slate-50'
-                              }`}
-                            >
-                              {pageNum}
-                            </Button>
-                          );
-                        })}
+                    
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-medium text-gray-900">
+                          {transaction.description}
+                        </h3>
+                        {transaction.category && (
+                          <Badge 
+                            variant="outline"
+                            style={{ 
+                              backgroundColor: transaction.category.color || '#gray',
+                              color: 'white',
+                              borderColor: transaction.category.color || '#gray'
+                            }}
+                          >
+                            {transaction.category.name}
+                          </Badge>
+                        )}
                       </div>
                       
-                      <Button
-                        onClick={() => handlePageChange(pagination.page + 1)}
-                        disabled={pagination.page === pagination.pages || loading}
-                        variant="outline"
-                        size="sm"
-                        className="border-slate-300 text-slate-600 hover:bg-slate-50"
-                      >
-                        Next
-                        <ChevronRight className="h-4 w-4 ml-1" />
-                      </Button>
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {formatDate(transaction.date)}
+                        </span>
+                        {mounted && (
+                          <span>
+                            {formatTimeClientSafe(transaction.date)}
+                          </span>
+                        )}
+                        {transaction.merchant && (
+                          <span>Merchant: {transaction.merchant}</span>
+                        )}
+                        {transaction.source && (
+                          <Badge variant="outline" className="text-xs">
+                            {transaction.source}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
-                )}
-              </>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className={`text-lg font-semibold ${
+                      transaction.type === 'INCOME' ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {formatAmount(transaction.amount, transaction.type)}
+                    </div>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(transaction.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      title="Delete transaction"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+
+        {transactions.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            <DollarSign className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>No transactions found</p>
+            <p className="text-sm">Try adding some transactions or adjusting your filters</p>
+            {onAddTransaction && (
+              <Button onClick={onAddTransaction} className="mt-4">
+                Add Transaction
+              </Button>
             )}
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Transaction Detail Modal */}
-      <TransactionDetailModal
-        open={detailModalOpen}
-        onOpenChange={setDetailModalOpen}
-        transactionId={selectedTransaction?.id || null}
-        onTransactionUpdated={handleTransactionUpdated}
-      />
-
-      {/* Edit Transaction Dialog */}
-      <AddTransactionDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        onTransactionAdded={handleTransactionUpdated}
-        editingTransaction={selectedTransaction}
-      />
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Transaction</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this transaction? This action cannot be undone and will remove the transaction from all reports and calculations.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setSelectedTransaction(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteTransaction} className="bg-red-600 hover:bg-red-700">
-              Delete Transaction
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  );
+        )}
+      </CardContent>
+    </Card>
+  )
 }

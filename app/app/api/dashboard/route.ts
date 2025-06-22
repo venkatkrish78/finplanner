@@ -6,7 +6,6 @@ import { getCurrentUser } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication
     const currentUser = await getCurrentUser();
     if (!currentUser) {
       return NextResponse.json(
@@ -14,14 +13,6 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
-
-    console.log('Dashboard API called for user:', currentUser.email);
-    
-    // Test basic Prisma connection first
-    const transactionCount = await prisma.transaction.count({
-      where: { userId: currentUser.id }
-    });
-    console.log('Transaction count for user:', transactionCount);
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -83,7 +74,6 @@ export async function GET(request: NextRequest) {
       include: { category: true }
     }).catch(() => []);
 
-    // Enhanced Goals Progress Calculation with Linked Investments - user filtered
     const topGoals = await prisma.financialGoal.findMany({
       where: { 
         userId: currentUser.id,
@@ -164,27 +154,37 @@ export async function GET(request: NextRequest) {
     const liabilities = totalLiabilities._sum.currentBalance || 0;
     const netWorth = assets - liabilities;
 
-    // Get category names for breakdown - user filtered
+    // Get category names for breakdown
     const categoryIds = categoryBreakdown.map(item => item.categoryId).filter(Boolean);
-    const categories = categoryIds.length > 0 ? await prisma.category.findMany({
-      where: { 
-        id: { in: categoryIds },
-        OR: [
-          { userId: currentUser.id },
-          { isDefault: true, userId: null }
-        ]
-      }
-    }).catch(() => []) : [];
+    let categories = [];
+    if (categoryIds.length > 0) {
+      categories = await prisma.category.findMany({
+        where: { 
+          id: { in: categoryIds },
+          userId: currentUser.id
+        }
+      }).catch(() => []);
+    }
 
     const categoryMap = categories.reduce((acc, cat) => {
       acc[cat.id] = cat.name;
       return acc;
     }, {} as Record<string, string>);
 
-    const enhancedCategoryBreakdown = categoryBreakdown.map(item => ({
-      categoryName: item.categoryId ? categoryMap[item.categoryId] || 'Unknown' : 'Uncategorized',
-      amount: item._sum.amount || 0
-    }));
+    const enhancedCategoryBreakdown = categoryBreakdown.map(item => {
+      let categoryName = 'Unknown';
+      
+      if (item.categoryId && categoryMap[item.categoryId]) {
+        categoryName = categoryMap[item.categoryId];
+      } else if (!item.categoryId) {
+        categoryName = 'Uncategorized';
+      }
+
+      return {
+        categoryName,
+        amount: item._sum.amount || 0
+      };
+    });
 
     // Calculate savings rate
     const savingsRate = currentIncome > 0 ? ((currentIncome - currentExpenses) / currentIncome) * 100 : 0;
@@ -193,7 +193,6 @@ export async function GET(request: NextRequest) {
     const enhancedGoals = topGoals.map(goal => {
       let linkedInvestmentValue = 0;
 
-      // Calculate from many-to-many links with allocation
       if (goal.investmentLinks) {
         linkedInvestmentValue += goal.investmentLinks.reduce((sum, link) => {
           if (link.investment && link.investment.isActive) {
@@ -203,7 +202,6 @@ export async function GET(request: NextRequest) {
         }, 0);
       }
 
-      // Calculate from direct goal links (backward compatibility)
       if (goal.investments) {
         linkedInvestmentValue += goal.investments.reduce((sum, investment) => {
           if (investment.isActive) {
@@ -213,12 +211,10 @@ export async function GET(request: NextRequest) {
         }, 0);
       }
 
-      // Calculate total contributions
       const totalContributions = goal.contributions.reduce((sum, contribution) => {
         return sum + contribution.amount;
       }, 0);
 
-      // Total progress includes contributions + linked investment value
       const totalProgress = goal.currentAmount + linkedInvestmentValue + totalContributions;
       const progress = goal.targetAmount > 0 ? (totalProgress / goal.targetAmount) * 100 : 0;
       const remainingAmount = Math.max(0, goal.targetAmount - totalProgress);
@@ -227,8 +223,8 @@ export async function GET(request: NextRequest) {
         id: goal.id,
         name: goal.name,
         targetAmount: goal.targetAmount,
-        currentAmount: totalProgress, // Updated to include all sources
-        progress: Math.min(100, progress), // Cap at 100%
+        currentAmount: totalProgress,
+        progress: Math.min(100, progress),
         remainingAmount,
         linkedInvestmentValue,
         totalContributions

@@ -1,0 +1,29 @@
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // For credentials login
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+
+  // Link user to their financial data
+  categories     Category[]
+  transactions   Transaction[]
+  bills          Bill[]
+  billInstances         BillInstance[]           
+  financialGoals FinancialGoal[]
+  goalContributions     GoalContribution[]       
+  loans          Loan[]
+  loanPayments          LoanPayment[]            
+  investments    Investment[]
+  assets         Asset[]  assets         Asset[]  // AI-related relationships
+  chatConversations ChatConversation[]
+  aiInsights        AIInsight[]
+
+  @@map("users")
+}
