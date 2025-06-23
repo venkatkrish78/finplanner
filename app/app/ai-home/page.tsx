@@ -1,7 +1,8 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { redirect } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import UltimateAIChat from "@/components/ai/ultimate-ai-chat"
 import AIInsights from '@/components/ai/ai-insights'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,6 +10,13 @@ import { Brain, MessageSquare, TrendingUp, Zap } from 'lucide-react'
 
 export default function AIHomePage() {
   const { data: session, status } = useSession()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin')
+    }
+  }, [status, router])
 
   if (status === 'loading') {
     return (
@@ -18,8 +26,12 @@ export default function AIHomePage() {
     )
   }
 
-  if (!session) {
-    redirect('/auth/signin')
+  if (status === 'unauthenticated') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
   }
 
   return (
