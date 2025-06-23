@@ -19,7 +19,10 @@ function SignInForm() {
     setError('')
 
     console.log('Form submitted with:', { email, password: '***' })
-    console.log('CallbackUrl:', searchParams.get('callbackUrl'))
+    
+    // Get callbackUrl from searchParams
+    const callbackUrl = searchParams.get('callbackUrl')
+    console.log('CallbackUrl from searchParams:', callbackUrl)
 
     try {
       const result = await signIn('credentials', {
@@ -35,16 +38,13 @@ function SignInForm() {
         setError('Invalid email or password')
       } else if (result?.ok) {
         console.log('SignIn successful!')
-        // Get the callbackUrl from URL params
-        const callbackUrl = searchParams.get('callbackUrl')
         
         if (callbackUrl) {
           console.log('Redirecting to callbackUrl:', callbackUrl)
-          // Redirect to the original page they were trying to access
+          // Decode the URL and redirect
           router.push(decodeURIComponent(callbackUrl))
         } else {
           console.log('Redirecting to dashboard')
-          // Default redirect to dashboard
           router.push('/dashboard')
         }
         router.refresh()
