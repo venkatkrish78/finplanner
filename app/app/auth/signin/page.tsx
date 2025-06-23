@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signIn, getSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function SignIn() {
@@ -11,11 +11,15 @@ export default function SignIn() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
+
+    console.log('Form submitted with:', { email, password: '***' })
+    console.log('CallbackUrl:', searchParams.get('callbackUrl'))
 
     try {
       const result = await signIn('credentials', {
@@ -24,13 +28,29 @@ export default function SignIn() {
         redirect: false,
       })
 
+      console.log('SignIn result:', result)
+
       if (result?.error) {
+        console.error('SignIn error:', result.error)
         setError('Invalid email or password')
-      } else {
-        router.push('/')
+      } else if (result?.ok) {
+        console.log('SignIn successful!')
+        // Get the callbackUrl from URL params
+        const callbackUrl = searchParams.get('callbackUrl')
+        
+        if (callbackUrl) {
+          console.log('Redirecting to callbackUrl:', callbackUrl)
+          // Redirect to the original page they were trying to access
+          router.push(decodeURIComponent(callbackUrl))
+        } else {
+          console.log('Redirecting to dashboard')
+          // Default redirect to dashboard
+          router.push('/dashboard')
+        }
         router.refresh()
       }
     } catch (error) {
+      console.error('SignIn catch error:', error)
       setError('An error occurred. Please try again.')
     } finally {
       setLoading(false)
