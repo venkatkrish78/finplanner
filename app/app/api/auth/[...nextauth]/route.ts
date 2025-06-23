@@ -58,6 +58,41 @@ const handler = NextAuth({
         session.user.id = token.id as string
       }
       return session
+    },
+    async redirect({ url, baseUrl }) {
+      // Handle different redirect scenarios
+      console.log('NextAuth redirect:', { url, baseUrl })
+      
+      // If redirecting from signin page after successful login
+      if (url === `${baseUrl}/auth/signin`) {
+        return `${baseUrl}/dashboard`
+      }
+      
+      // If URL contains a callbackUrl, decode and use it
+      if (url.includes('callbackUrl=')) {
+        const urlObj = new URL(url)
+        const callbackUrl = urlObj.searchParams.get('callbackUrl')
+        if (callbackUrl) {
+          const decodedCallback = decodeURIComponent(callbackUrl)
+          // Make sure it's a valid internal URL
+          if (decodedCallback.startsWith(baseUrl) || decodedCallback.startsWith('/')) {
+            return decodedCallback.startsWith('/') ? `${baseUrl}${decodedCallback}` : decodedCallback
+          }
+        }
+      }
+      
+      // If URL starts with baseUrl, use it
+      if (url.startsWith(baseUrl)) {
+        return url
+      }
+      
+      // If it's a relative URL, make it absolute
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`
+      }
+      
+      // Default fallback to dashboard
+      return `${baseUrl}/dashboard`
     }
   }
 })
