@@ -20,17 +20,9 @@ exec('npx prisma migrate deploy', (error, stdout, stderr) => {
   
   console.log('✅ Migration completed:', stdout);
   
-  // Start the Next.js app
+  // Start the Next.js standalone server
   console.log('🚀 Starting Next.js application...');
-  const app = exec('node server.js');
-  
-  app.stdout.on('data', (data) => {
-    console.log(data);
-  });
-  
-  app.stderr.on('data', (data) => {
-    console.error(data);
-  });
+  const app = exec('node server.js', { stdio: 'inherit' });
   
   app.on('close', (code) => {
     console.log(`App exited with code ${code}`);
