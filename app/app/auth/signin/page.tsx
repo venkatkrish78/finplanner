@@ -39,15 +39,17 @@ function SignInForm() {
       } else if (result?.ok) {
         console.log('SignIn successful!')
         
+        // Add a small delay to ensure session is set
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
         if (callbackUrl) {
           console.log('Redirecting to callbackUrl:', callbackUrl)
-          // Decode the URL and redirect
-          router.push(decodeURIComponent(callbackUrl))
+          // Use window.location for a full page redirect
+          window.location.href = decodeURIComponent(callbackUrl)
         } else {
           console.log('Redirecting to dashboard')
-          router.push('/dashboard')
+          window.location.href = '/dashboard'
         }
-        router.refresh()
       }
     } catch (error) {
       console.error('SignIn catch error:', error)
