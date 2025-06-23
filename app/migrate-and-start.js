@@ -20,12 +20,23 @@ exec('npx prisma migrate deploy', (error, stdout, stderr) => {
   
   console.log('✅ Migration completed:', stdout);
   
-  // Start the Next.js standalone server
-  console.log('🚀 Starting Next.js application...');
-  const app = exec('node server.js', { stdio: 'inherit' });
-  
-  app.on('close', (code) => {
-    console.log(`App exited with code ${code}`);
-    process.exit(code);
+  // Run seed to create demo user and data
+  console.log('🌱 Running database seed...');
+  exec('npx prisma db seed', (seedError, seedStdout, seedStderr) => {
+    if (seedError) {
+      console.error('⚠️ Seed failed (continuing anyway):', seedError);
+      console.error('seed stderr:', seedStderr);
+    } else {
+      console.log('✅ Seed completed:', seedStdout);
+    }
+    
+    // Start the Next.js standalone server
+    console.log('🚀 Starting Next.js application...');
+    const app = exec('node server.js', { stdio: 'inherit' });
+    
+    app.on('close', (code) => {
+      console.log(`App exited with code ${code}`);
+      process.exit(code);
+    });
   });
 });
