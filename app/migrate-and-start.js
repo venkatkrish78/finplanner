@@ -1,5 +1,7 @@
+#!/usr/bin/env node
 const { exec } = require('child_process');
 
+console.log('🚀 Custom start script running...');
 console.log('🔍 Checking DATABASE_URL:', process.env.DATABASE_URL ? 'Available' : 'Missing');
 
 if (!process.env.DATABASE_URL) {
@@ -20,7 +22,7 @@ exec('npx prisma migrate deploy', (error, stdout, stderr) => {
   
   // Start the Next.js app
   console.log('🚀 Starting Next.js application...');
-  const app = exec('npx next start');
+  const app = exec('node server.js');
   
   app.stdout.on('data', (data) => {
     console.log(data);
@@ -28,5 +30,10 @@ exec('npx prisma migrate deploy', (error, stdout, stderr) => {
   
   app.stderr.on('data', (data) => {
     console.error(data);
+  });
+  
+  app.on('close', (code) => {
+    console.log(`App exited with code ${code}`);
+    process.exit(code);
   });
 });
