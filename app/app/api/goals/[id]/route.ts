@@ -6,7 +6,7 @@ import { getCurrentUser } from '@/lib/auth-helpers';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -18,9 +18,11 @@ export async function GET(
       );
     }
 
+    const { id } = await params;
+
     const goal = await prisma.financialGoal.findFirst({
       where: { 
-        id: params.id,
+        id,
         userId: currentUser.id
       },
       include: {
@@ -100,7 +102,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -112,6 +114,7 @@ export async function PUT(
       );
     }
 
+    const { id } = await params;
     const body = await request.json();
     const {
       name,
@@ -144,7 +147,7 @@ export async function PUT(
 
     const goal = await prisma.financialGoal.updateMany({
       where: { 
-        id: params.id,
+        id,
         userId: currentUser.id
       },
       data: {
@@ -168,7 +171,7 @@ export async function PUT(
     // Fetch the updated goal
     const updatedGoal = await prisma.financialGoal.findFirst({
       where: { 
-        id: params.id,
+        id,
         userId: currentUser.id
       },
       include: {
@@ -189,7 +192,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -201,9 +204,11 @@ export async function DELETE(
       );
     }
 
+    const { id } = await params;
+
     const result = await prisma.financialGoal.deleteMany({
       where: { 
-        id: params.id,
+        id,
         userId: currentUser.id
       }
     });

@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { BillStatus } from '@/lib/types'
@@ -8,14 +7,15 @@ export const dynamic = 'force-dynamic'
 // PUT /api/bills/instances/[id] - Update bill instance (mark as paid, etc.)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json()
     const { status, notes, createTransaction } = body
 
     const instance = await prisma.billInstance.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         bill: {
           include: {
@@ -50,7 +50,7 @@ export async function PUT(
     }
 
     const updatedInstance = await prisma.billInstance.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status: status as BillStatus,
         notes,

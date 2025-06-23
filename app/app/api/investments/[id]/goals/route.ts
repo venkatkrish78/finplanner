@@ -1,5 +1,3 @@
-
-
 import { getCurrentUser } from '@/lib/auth-helpers';export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -8,10 +6,10 @@ import { db } from '@/lib/db';
 // Get goals linked to a specific investment
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const investmentId = params.id;
+    const { id: investmentId } = await params;
 
     // Get investment with linked goals
     const investment = await db.investment.findUnique({
@@ -95,10 +93,10 @@ export async function GET(
 // Link a goal to an investment
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const investmentId = params.id;
+    const { id: investmentId } = await params;
     const body = await request.json();
     const { goalId, allocation = 100, notes } = body;
 
@@ -189,4 +187,3 @@ export async function POST(
     );
   }
 }
-

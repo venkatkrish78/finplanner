@@ -7,7 +7,7 @@ import { getCurrentUser } from '@/lib/auth-helpers';
 // Get investments linked to a specific goal
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -19,7 +19,7 @@ export async function GET(
       );
     }
 
-    const goalId = params.id;
+    const { id: goalId } = await params;
 
     // Get goal with linked investments - user filtered
     const goal = await prisma.financialGoal.findFirst({
@@ -101,7 +101,7 @@ export async function GET(
 // Link an investment to a goal
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -113,7 +113,7 @@ export async function POST(
       );
     }
 
-    const goalId = params.id;
+    const { id: goalId } = await params;
     const body = await request.json();
     const { investmentId, allocation = 100, notes } = body;
 

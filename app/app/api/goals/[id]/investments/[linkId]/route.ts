@@ -7,7 +7,7 @@ import { getCurrentUser } from '@/lib/auth-helpers';
 // Update investment-goal link
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; linkId: string } }
+  { params }: { params: Promise<{ id: string; linkId: string }> }
 ) {
   try {
     // Check authentication
@@ -19,7 +19,7 @@ export async function PUT(
       );
     }
 
-    const { linkId } = params;
+    const { linkId } = await params;
     const body = await request.json();
     const { allocation, notes } = body;
 
@@ -78,7 +78,7 @@ export async function PUT(
 // Remove investment-goal link
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; linkId: string } }
+  { params }: { params: Promise<{ id: string; linkId: string }> }
 ) {
   try {
     // Check authentication
@@ -90,7 +90,7 @@ export async function DELETE(
       );
     }
 
-    const { linkId } = params;
+    const { linkId } = await params;
 
     const result = await prisma.investmentGoalLink.deleteMany({
       where: { 

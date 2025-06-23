@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -21,9 +21,11 @@ export async function GET(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    const { id } = await params
+
     const investment = await prisma.investment.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: user.id
       },
       include: {
@@ -64,7 +66,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -80,10 +82,12 @@ export async function PUT(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    const { id } = await params
+
     // Check if investment exists and belongs to user
     const existingInvestment = await prisma.investment.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: user.id
       }
     })
@@ -125,7 +129,7 @@ export async function PUT(
     }
 
     const updatedInvestment = await prisma.investment.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         goal: true,
@@ -161,7 +165,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -177,10 +181,12 @@ export async function DELETE(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    const { id } = await params
+
     // Check if investment exists and belongs to user
     const existingInvestment = await prisma.investment.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: user.id
       }
     })
@@ -193,19 +199,19 @@ export async function DELETE(
     await prisma.$transaction(async (tx) => {
       // Delete goal links
       await tx.investmentGoalLink.deleteMany({
-        where: { investmentId: params.id }
+        where: { investmentId: id }
       })
 
       // Delete investment transactions if they exist
       await tx.investmentTransaction.deleteMany({
-        where: { investmentId: params.id }
+        where: { investmentId: id }
       }).catch(() => {
         // Ignore if table doesn't exist
       })
 
       // Delete the investment
       await tx.investment.delete({
-        where: { id: params.id }
+        where: { id }
       })
     })
 

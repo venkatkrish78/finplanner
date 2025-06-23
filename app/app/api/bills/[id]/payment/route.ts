@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth'
 export const dynamic = 'force-dynamic'
 
 // POST /api/bills/[id]/payment - Mark a bill as paid for a specific period
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Get authenticated user
     const session = await getServerSession(authOptions)
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
     const userId = session.user.id
 
-    const { id: billId } = params 
+    const { id: billId } = await params 
     const body = await request.json()
     const { view, year, month, amount, notes } = body
 
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 }
 
 // DELETE /api/bills/[id]/payment - Unmark a bill as paid for a specific period
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Get authenticated user
     const session = await getServerSession(authOptions)
@@ -150,7 +150,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
     const userId = session.user.id
 
-    const { id: billId } = params
+    const { id: billId } = await params
     const { searchParams } = new URL(request.url)
     const view = searchParams.get('view')
     const year = searchParams.get('year') ? parseInt(searchParams.get('year')!) : null

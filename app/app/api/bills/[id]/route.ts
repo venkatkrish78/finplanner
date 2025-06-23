@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 // GET /api/bills/[id] - Get a specific bill
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -20,9 +20,11 @@ export async function GET(
       );
     }
 
+    const { id } = await params;
+
     const bill = await prisma.bill.findFirst({
       where: { 
-        id: params.id,
+        id,
         userId: currentUser.id
       },
       include: {
@@ -53,7 +55,7 @@ export async function GET(
 // PUT /api/bills/[id] - Update a bill
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -65,6 +67,7 @@ export async function PUT(
       );
     }
 
+    const { id } = await params;
     const body = await request.json()
     const { name, amount, frequency, description, categoryId, nextDueDate, isActive } = body
 
@@ -89,7 +92,7 @@ export async function PUT(
 
     const bill = await prisma.bill.updateMany({
       where: { 
-        id: params.id,
+        id,
         userId: currentUser.id
       },
       data: {
@@ -113,7 +116,7 @@ export async function PUT(
     // Fetch the updated bill
     const updatedBill = await prisma.bill.findFirst({
       where: { 
-        id: params.id,
+        id,
         userId: currentUser.id
       },
       include: {
@@ -134,7 +137,7 @@ export async function PUT(
 // DELETE /api/bills/[id] - Delete a bill
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -146,9 +149,11 @@ export async function DELETE(
       );
     }
 
+    const { id } = await params;
+
     const result = await prisma.bill.deleteMany({
       where: { 
-        id: params.id,
+        id,
         userId: currentUser.id
       }
     })

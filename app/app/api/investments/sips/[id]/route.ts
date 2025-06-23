@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
@@ -6,9 +5,10 @@ export const dynamic = 'force-dynamic'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json()
     const { status, amount, endDate } = body
 
@@ -18,7 +18,7 @@ export async function PUT(
     if (endDate !== undefined) updateData.endDate = endDate ? new Date(endDate) : null
 
     const sip = await db.sIP.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         investment: {
@@ -43,11 +43,13 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+    
     await db.sIP.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ success: true })

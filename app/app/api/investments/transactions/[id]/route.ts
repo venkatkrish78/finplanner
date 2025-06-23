@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
@@ -6,11 +5,13 @@ export const dynamic = 'force-dynamic'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+    
     const transaction = await db.investmentTransaction.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         investment: true
       }
@@ -53,7 +54,7 @@ export async function DELETE(
 
     // Delete transaction
     await db.investmentTransaction.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ success: true })
