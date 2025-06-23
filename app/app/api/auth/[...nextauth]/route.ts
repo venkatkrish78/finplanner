@@ -60,38 +60,35 @@ const handler = NextAuth({
       return session
     },
     async redirect({ url, baseUrl }) {
-      // Handle different redirect scenarios
       console.log('NextAuth redirect:', { url, baseUrl })
       
-      // If redirecting from signin page after successful login
-      if (url === `${baseUrl}/auth/signin`) {
-        return `${baseUrl}/dashboard`
+      // Don't redirect manifest or static files
+      if (url.includes('site.webmanifest') || url.includes('favicon')) {
+        return url
       }
       
-      // If URL contains a callbackUrl, decode and use it
-      if (url.includes('callbackUrl=')) {
+      // If it's a signin URL with callbackUrl, extract and use the callback
+      if (url.includes('/auth/signin?callbackUrl=')) {
         const urlObj = new URL(url)
         const callbackUrl = urlObj.searchParams.get('callbackUrl')
         if (callbackUrl) {
           const decodedCallback = decodeURIComponent(callbackUrl)
-          // Make sure it's a valid internal URL
-          if (decodedCallback.startsWith(baseUrl) || decodedCallback.startsWith('/')) {
-            return decodedCallback.startsWith('/') ? `${baseUrl}${decodedCallback}` : decodedCallback
-          }
+          console.log('Extracted callbackUrl:', decodedCallback)
+          return decodedCallback
         }
       }
       
-      // If URL starts with baseUrl, use it
-      if (url.startsWith(baseUrl)) {
+      // If it's already a valid internal URL, use it
+      if (url.startsWith(baseUrl) && !url.includes('/auth/signin')) {
         return url
       }
       
-      // If it's a relative URL, make it absolute
-      if (url.startsWith('/')) {
+      // If it's a relative URL (like /ai-home), make it absolute
+      if (url.startsWith('/') && !url.startsWith('/auth/signin')) {
         return `${baseUrl}${url}`
       }
       
-      // Default fallback to dashboard
+      // Default fallback
       return `${baseUrl}/dashboard`
     }
   }
