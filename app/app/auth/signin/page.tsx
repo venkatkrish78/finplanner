@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn, getSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
@@ -39,16 +39,29 @@ function SignInForm() {
       } else if (result?.ok) {
         console.log('SignIn successful!')
         
-        // Add a small delay to ensure session is set
-        await new Promise(resolve => setTimeout(resolve, 500))
+        // Wait for session to be established
+        let sessionEstablished = false
+        for (let i = 0; i < 10; i++) {
+          await new Promise(resolve => setTimeout(resolve, 300))
+          const session = await getSession()
+          console.log(`Session check ${i + 1}:`, session)
+          if (session) {
+            sessionEstablished = true
+            break
+          }
+        }
         
-        if (callbackUrl) {
+        if (!sessionEstablished) {
+          console.warn('Session not established after 3 seconds, redirecting anyway')
+        }
+        
+        // Use router.push instead of window.location.href to avoid full page reload
+        if (callbackUrl && callbackUrl !== window.location.origin + '/auth/signin') {
           console.log('Redirecting to callbackUrl:', callbackUrl)
-          // Use window.location for a full page redirect
-          window.location.href = decodeURIComponent(callbackUrl)
+          router.push(decodeURIComponent(callbackUrl))
         } else {
           console.log('Redirecting to dashboard')
-          window.location.href = '/dashboard'
+          router.push('/dashboard')
         }
       }
     } catch (error) {
