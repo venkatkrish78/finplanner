@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
+import { PrismaClient, BillFrequency } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -95,7 +94,7 @@ async function main() {
     {
       name: 'Car Insurance - LIC',
       amount: 15000,
-      frequency: 'YEARLY',
+      frequency: 'YEARLY' as BillFrequency,
       description: 'Annual car insurance renewal',
       categoryId: insuranceCategory.id,
       userId: user.id,
@@ -108,7 +107,7 @@ async function main() {
     {
       name: 'School Fees - Quarterly',
       amount: 25000,
-      frequency: 'QUARTERLY',
+      frequency: 'QUARTERLY' as BillFrequency,
       description: 'Children school fees',
       categoryId: educationCategory.id,
       userId: user.id,
@@ -121,7 +120,7 @@ async function main() {
     {
       name: 'Netflix Subscription',
       amount: 649,
-      frequency: 'MONTHLY',
+      frequency: 'MONTHLY' as BillFrequency,
       description: 'Premium Netflix subscription',
       categoryId: subscriptionCategory.id,
       userId: user.id,
@@ -134,7 +133,7 @@ async function main() {
     {
       name: 'Electricity Bill',
       amount: 2400,
-      frequency: 'MONTHLY',
+      frequency: 'MONTHLY' as BillFrequency,
       description: 'Monthly electricity bill',
       categoryId: utilitiesCategory.id,
       userId: user.id,
@@ -147,7 +146,7 @@ async function main() {
     {
       name: 'Property Tax',
       amount: 8000,
-      frequency: 'HALF_YEARLY',
+      frequency: 'HALF_YEARLY' as BillFrequency,
       description: 'Half-yearly property tax payment',
       categoryId: taxCategory.id,
       userId: user.id,
@@ -160,7 +159,7 @@ async function main() {
     {
       name: 'Health Insurance',
       amount: 18000,
-      frequency: 'YEARLY',
+      frequency: 'YEARLY' as BillFrequency,
       description: 'Family health insurance',
       categoryId: insuranceCategory.id,
       userId: user.id,
