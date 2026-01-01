@@ -271,7 +271,7 @@ async function main() {
       categoryId: incomeCategory.id,
       userId: user.id,
       status: 'SUCCESS' as TransactionStatus,
-      source: 'MANUAL as TransactionSource'
+      source: 'MANUAL' as TransactionSource
     },
     {
       amount: 1200,
