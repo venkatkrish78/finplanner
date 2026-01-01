@@ -270,8 +270,8 @@ async function main() {
       date: new Date(now.getFullYear(), now.getMonth(), 1),
       categoryId: incomeCategory.id,
       userId: user.id,
-      status: 'SUCCESS' as TransactionType,
-      source: 'MANUAL as TransactionType'
+      status: 'SUCCESS' as TransactionStatus,
+      source: 'MANUAL as TransactionSource'
     },
     {
       amount: 1200,
@@ -281,8 +281,8 @@ async function main() {
       date: new Date(now.getFullYear(), now.getMonth(), 3),
       categoryId: foodCategory.id,
       userId: user.id,
-      status: 'SUCCESS' as TransactionType,
-      source: 'MANUAL' as TransactionType
+      status: 'SUCCESS' as TransactionStatus,
+      source: 'MANUAL' as TransactionSource
     },
     {
       amount: 500,
@@ -292,8 +292,8 @@ async function main() {
       date: new Date(now.getFullYear(), now.getMonth(), 5),
       categoryId: transportCategory.id,
       userId: user.id,
-      status: 'SUCCESS' as TransactionType,
-      source: 'MANUAL' as TransactionType
+      status: 'SUCCESS' as TransactionStatus,
+      source: 'MANUAL' as TransactionSource
     },
     {
       amount: 2500,
@@ -303,8 +303,8 @@ async function main() {
       date: new Date(now.getFullYear(), now.getMonth(), 7),
       categoryId: shoppingCategory.id,
       userId: user.id,
-      status: 'SUCCESS' as TransactionType,
-      source: 'MANUAL' as TransactionType
+      status: 'SUCCESS' as TransactionStatus,
+      source: 'MANUAL' as TransactionSource
     },
     {
       amount: 800,
@@ -314,8 +314,8 @@ async function main() {
       date: new Date(now.getFullYear(), now.getMonth(), 10),
       categoryId: foodCategory.id,
       userId: user.id,
-      status: 'SUCCESS' as TransactionType,
-      source: 'MANUAL' as TransactionType
+      status: 'SUCCESS' as TransactionStatus,
+      source: 'MANUAL' as TransactionSource
     },
     {
       amount: 3000,
@@ -325,8 +325,8 @@ async function main() {
       date: new Date(now.getFullYear(), now.getMonth(), 12),
       categoryId: healthcareCategory.id,
       userId: user.id,
-      status: 'SUCCESS' as TransactionType,
-      source: 'MANUAL' as TransactionType
+      status: 'SUCCESS' as TransactionStatus,
+      source: 'MANUAL' as TransactionSource
     },
     {
       amount: 1500,
@@ -336,8 +336,8 @@ async function main() {
       date: new Date(now.getFullYear(), now.getMonth(), 15),
       categoryId: entertainmentCategory.id,
       userId: user.id,
-      status: 'SUCCESS' as TransactionType,
-      source: 'MANUAL' as TransactionType
+      status: 'SUCCESS' as TransactionStatus,
+      source: 'MANUAL' as TransactionSource
     },
     {
       amount: 5000,
@@ -346,8 +346,8 @@ async function main() {
       date: new Date(now.getFullYear(), now.getMonth(), 18),
       categoryId: incomeCategory.id,
       userId: user.id,
-      status: 'SUCCESS' as TransactionType,
-      source: 'MANUAL' as TransactionType
+      status: 'SUCCESS' as TransactionStatus,
+      source: 'MANUAL' as TransactionSource
     }
   ];
 
