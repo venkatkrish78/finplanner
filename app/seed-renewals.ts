@@ -1,4 +1,4 @@
-import { PrismaClient, BillFrequency } from '@prisma/client';
+import { PrismaClient, BillFrequency, TransactionType, TransactionStatus, TransactionSource } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -265,89 +265,89 @@ async function main() {
   const transactions = [
     {
       amount: 50000,
-      type: 'INCOME',
+      type: 'INCOME' as TransactionType,
       description: 'Monthly Salary',
       date: new Date(now.getFullYear(), now.getMonth(), 1),
       categoryId: incomeCategory.id,
       userId: user.id,
-      status: 'SUCCESS',
-      source: 'MANUAL'
+      status: 'SUCCESS' as TransactionType,
+      source: 'MANUAL as TransactionType'
     },
     {
       amount: 1200,
-      type: 'EXPENSE',
+      type: 'EXPENSE' as TransactionType,
       description: 'Grocery Shopping',
       merchant: 'Reliance Fresh',
       date: new Date(now.getFullYear(), now.getMonth(), 3),
       categoryId: foodCategory.id,
       userId: user.id,
-      status: 'SUCCESS',
-      source: 'MANUAL'
+      status: 'SUCCESS' as TransactionType,
+      source: 'MANUAL' as TransactionType
     },
     {
       amount: 500,
-      type: 'EXPENSE',
+      type: 'EXPENSE' as TransactionType,
       description: 'Uber Ride',
       merchant: 'Uber',
       date: new Date(now.getFullYear(), now.getMonth(), 5),
       categoryId: transportCategory.id,
       userId: user.id,
-      status: 'SUCCESS',
-      source: 'MANUAL'
+      status: 'SUCCESS' as TransactionType,
+      source: 'MANUAL' as TransactionType
     },
     {
       amount: 2500,
-      type: 'EXPENSE',
+      type: 'EXPENSE' as TransactionType,
       description: 'Online Shopping',
       merchant: 'Amazon India',
       date: new Date(now.getFullYear(), now.getMonth(), 7),
       categoryId: shoppingCategory.id,
       userId: user.id,
-      status: 'SUCCESS',
-      source: 'MANUAL'
+      status: 'SUCCESS' as TransactionType,
+      source: 'MANUAL' as TransactionType
     },
     {
       amount: 800,
-      type: 'EXPENSE',
+      type: 'EXPENSE' as TransactionType,
       description: 'Restaurant Dinner',
       merchant: 'Cafe Delhi Heights',
       date: new Date(now.getFullYear(), now.getMonth(), 10),
       categoryId: foodCategory.id,
       userId: user.id,
-      status: 'SUCCESS',
-      source: 'MANUAL'
+      status: 'SUCCESS' as TransactionType,
+      source: 'MANUAL' as TransactionType
     },
     {
       amount: 3000,
-      type: 'EXPENSE',
+      type: 'EXPENSE' as TransactionType,
       description: 'Medical Checkup',
       merchant: 'Max Hospital',
       date: new Date(now.getFullYear(), now.getMonth(), 12),
       categoryId: healthcareCategory.id,
       userId: user.id,
-      status: 'SUCCESS',
-      source: 'MANUAL'
+      status: 'SUCCESS' as TransactionType,
+      source: 'MANUAL' as TransactionType
     },
     {
       amount: 1500,
-      type: 'EXPENSE',
+      type: 'EXPENSE' as TransactionType,
       description: 'Movie & Snacks',
       merchant: 'PVR Cinemas',
       date: new Date(now.getFullYear(), now.getMonth(), 15),
       categoryId: entertainmentCategory.id,
       userId: user.id,
-      status: 'SUCCESS',
-      source: 'MANUAL'
+      status: 'SUCCESS' as TransactionType,
+      source: 'MANUAL' as TransactionType
     },
     {
       amount: 5000,
-      type: 'INCOME',
+      type: 'INCOME' as TransactionType,
       description: 'Freelance Project Payment',
       date: new Date(now.getFullYear(), now.getMonth(), 18),
       categoryId: incomeCategory.id,
       userId: user.id,
-      status: 'SUCCESS',
-      source: 'MANUAL'
+      status: 'SUCCESS' as TransactionType,
+      source: 'MANUAL' as TransactionType
     }
   ];
 
