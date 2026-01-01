@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Edit, Trash2, Calendar, DollarSign, MoreVertical, Power, PowerOff, FileText } from 'lucide-react'
+import { Edit, Trash2, Calendar, DollarSign, MoreVertical, Power, PowerOff, FileText, Bell, Building2, FileSignature } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from 'sonner'
 import { Bill, BillFrequency } from '@/lib/types'
 import { formatCurrency } from '@/lib/currency'
+import { computeBillStatus, shouldShowReminder, parseReminderDays } from '@/lib/bill-utils'
 import AddBillDialog from './add-bill-dialog'
 import BillDetailModal from './bill-detail-modal'
 
@@ -229,6 +230,38 @@ export default function BillList({ refreshTrigger, onBillUpdated }: BillListProp
                     </Badge>
                   </div>
                   
+                  {/* Status Badge */}
+                  {(() => {
+                    const billStatus = computeBillStatus(bill.nextDueDate, false, 7)
+                    const showReminder = shouldShowReminder(bill.nextDueDate, parseReminderDays(bill.reminderDays || ''), false)
+                    
+                    return (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {billStatus.isOverdue && (
+                          <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200">
+                            Overdue
+                          </Badge>
+                        )}
+                        {!billStatus.isOverdue && billStatus.isDueSoon && (
+                          <Badge variant="default" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                            Due Soon
+                          </Badge>
+                        )}
+                        {!billStatus.isOverdue && !billStatus.isDueSoon && (
+                          <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                            Upcoming
+                          </Badge>
+                        )}
+                        {showReminder && (
+                          <Badge variant="outline" className="flex items-center gap-1">
+                            <Bell className="w-3 h-3" />
+                            Reminder
+                          </Badge>
+                        )}
+                      </div>
+                    )
+                  })()}
+                  
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center text-gray-600">
                       <Calendar className="w-4 h-4 mr-1" />
@@ -240,6 +273,24 @@ export default function BillList({ refreshTrigger, onBillUpdated }: BillListProp
                       title={bill.category.name}
                     />
                   </div>
+                  
+                  {/* Provider and Policy Number */}
+                  {(bill.provider || bill.policyNumber) && (
+                    <div className="space-y-1 text-xs text-gray-600">
+                      {bill.provider && (
+                        <div className="flex items-center gap-1">
+                          <Building2 className="w-3 h-3" />
+                          <span>{bill.provider}</span>
+                        </div>
+                      )}
+                      {bill.policyNumber && (
+                        <div className="flex items-center gap-1">
+                          <FileSignature className="w-3 h-3" />
+                          <span>{bill.policyNumber}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   
                   <div className="text-xs text-gray-500">
                     Category: {bill.category.name}

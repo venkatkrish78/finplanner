@@ -25,6 +25,7 @@ import {
 import { formatCurrency } from '@/lib/currency'
 import AddBillDialog from '@/components/add-bill-dialog'
 import BillList from '@/components/bill-list'
+import MarkPaidDialog from '@/components/mark-paid-dialog'
 import { toast } from 'sonner'
 
 interface BillWithPaymentStatus {
@@ -65,6 +66,7 @@ export default function BillsPage() {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear())
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1)
   const [paymentLoading, setPaymentLoading] = useState<string | null>(null)
+  const [markPaidBill, setMarkPaidBill] = useState<BillWithPaymentStatus | null>(null)
 
   useEffect(() => {
     fetchBillsData()
@@ -131,34 +133,8 @@ export default function BillsPage() {
     }
   }
 
-  const handleMarkAsPaid = async (billId: string, amount?: number) => {
-    try {
-      setPaymentLoading(billId)
-      
-      const response = await fetch(`/api/bills/${billId}/payment`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          view: activeView === 'monthly' ? 'monthly' : 'yearly',
-          year: currentYear,
-          month: activeView === 'monthly' ? currentMonth : undefined,
-          amount
-        })
-      })
-
-      if (response.ok) {
-        toast.success('Bill marked as paid')
-        fetchBillsData()
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Failed to mark bill as paid')
-      }
-    } catch (error) {
-      console.error('Error marking bill as paid:', error)
-      toast.error('Failed to mark bill as paid')
-    } finally {
-      setPaymentLoading(null)
-    }
+  const handleMarkAsPaid = (bill: BillWithPaymentStatus) => {
+    setMarkPaidBill(bill)
   }
 
   const handleMarkAsUnpaid = async (billId: string) => {
@@ -293,7 +269,7 @@ export default function BillsPage() {
             ) : (
               <Button
                 size="sm"
-                onClick={() => handleMarkAsPaid(bill.id)}
+                onClick={() => handleMarkAsPaid(bill)}
                 disabled={paymentLoading === bill.id}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
@@ -591,6 +567,20 @@ export default function BillsPage() {
           setShowAddDialog(false)
           fetchBillsData()
         }}
+      />
+
+      {/* Mark Paid Dialog */}
+      <MarkPaidDialog
+        open={!!markPaidBill}
+        onOpenChange={(open) => !open && setMarkPaidBill(null)}
+        bill={markPaidBill}
+        onSuccess={() => {
+          setMarkPaidBill(null)
+          fetchBillsData()
+        }}
+        view={activeView === 'overview' ? undefined : activeView}
+        year={currentYear}
+        month={currentMonth}
       />
     </div>
   )

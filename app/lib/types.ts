@@ -109,6 +109,9 @@ export type Bill = {
     color: string
   }
   nextDueDate: Date
+  provider?: string
+  policyNumber?: string
+  reminderDays?: string
   createdAt: Date
   updatedAt: Date
 }
@@ -120,6 +123,7 @@ export type BillInstance = {
   status: BillStatus
   paidDate?: Date
   notes?: string
+  referenceNumber?: string
   billId: string
   bill: {
     id: string
@@ -142,6 +146,9 @@ export type BillFormData = {
   description?: string
   categoryId: string
   nextDueDate: string
+  provider?: string
+  policyNumber?: string
+  reminderDays?: string
 }
 
 export type BillStats = {

@@ -166,18 +166,7 @@ export function LinkInvestmentDialog({ open, onOpenChange, goalId, onInvestmentL
                 ) : (
                   investments.map((investment) => (
                     <SelectItem key={investment.id} value={investment.id}>
-                      <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4" />
-                          <span>{investment.name}</span>
-                        </div>
-                        <div className="text-right text-sm">
-                          <div className="font-medium">{formatCurrency(investment.currentValue)}</div>
-                          <Badge className={assetClassColors[investment.assetClass]} variant="secondary">
-                            {investment.assetClass.replace('_', ' ')}
-                          </Badge>
-                        </div>
-                      </div>
+                      {investment.name} - {formatCurrency(investment.currentValue)}
                     </SelectItem>
                   ))
                 )}

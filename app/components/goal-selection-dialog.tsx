@@ -158,18 +158,7 @@ export function GoalSelectionDialog({ open, onOpenChange, investment, onInvestme
                 ) : (
                   goals.map((goal) => (
                     <SelectItem key={goal.id} value={goal.id}>
-                      <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center gap-2">
-                          <Target className="h-4 w-4" />
-                          <span>{goal.name}</span>
-                        </div>
-                        <div className="text-right text-sm">
-                          <div className="font-medium">{formatCurrency(goal.targetAmount)}</div>
-                          <Badge className={goalTypeColors[goal.goalType]} variant="secondary">
-                            {goal.goalType.replace('_', ' ')}
-                          </Badge>
-                        </div>
-                      </div>
+                      {goal.name} - {formatCurrency(goal.targetAmount)}
                     </SelectItem>
                   ))
                 )}

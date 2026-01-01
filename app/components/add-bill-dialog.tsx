@@ -33,7 +33,10 @@ export default function AddBillDialog({ open, onOpenChange, onBillAdded, editing
     frequency: BillFrequency.MONTHLY,
     description: '',
     categoryId: '',
-    nextDueDate: ''
+    nextDueDate: '',
+    provider: '',
+    policyNumber: '',
+    reminderDays: '30,7,1'
   })
 
   useEffect(() => {
@@ -46,7 +49,10 @@ export default function AddBillDialog({ open, onOpenChange, onBillAdded, editing
           frequency: editingBill.frequency,
           description: editingBill.description || '',
           categoryId: editingBill.categoryId,
-          nextDueDate: new Date(editingBill.nextDueDate).toISOString().split('T')[0]
+          nextDueDate: new Date(editingBill.nextDueDate).toISOString().split('T')[0],
+          provider: editingBill.provider || '',
+          policyNumber: editingBill.policyNumber || '',
+          reminderDays: editingBill.reminderDays || '30,7,1'
         })
       } else {
         // Reset form for new bill
@@ -58,7 +64,10 @@ export default function AddBillDialog({ open, onOpenChange, onBillAdded, editing
           frequency: BillFrequency.MONTHLY,
           description: '',
           categoryId: '',
-          nextDueDate: tomorrow.toISOString().split('T')[0]
+          nextDueDate: tomorrow.toISOString().split('T')[0],
+          provider: '',
+          policyNumber: '',
+          reminderDays: '30,7,1'
         })
       }
     }
@@ -195,13 +204,7 @@ export default function AddBillDialog({ open, onOpenChange, onBillAdded, editing
               <SelectContent>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
-                    <div className="flex items-center">
-                      <div 
-                        className="w-3 h-3 rounded-full mr-2"
-                        style={{ backgroundColor: category.color }}
-                      />
-                      {category.name}
-                    </div>
+                    {category.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -215,8 +218,54 @@ export default function AddBillDialog({ open, onOpenChange, onBillAdded, editing
               type="date"
               value={formData.nextDueDate}
               onChange={(e) => setFormData({ ...formData, nextDueDate: e.target.value })}
+              min={new Date().toISOString().split('T')[0]}
+              max="2099-12-31"
               required
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="provider">Provider/Vendor</Label>
+              <Input
+                id="provider"
+                value={formData.provider}
+                onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
+                placeholder="e.g., ICICI, Airtel"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="policyNumber">Policy/Reference #</Label>
+              <Input
+                id="policyNumber"
+                value={formData.policyNumber}
+                onChange={(e) => setFormData({ ...formData, policyNumber: e.target.value })}
+                placeholder="e.g., POL123456"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="reminderDays">Reminder Days Before Due</Label>
+            <div className="flex gap-2">
+              <Select
+                value={formData.reminderDays}
+                onValueChange={(value) => setFormData({ ...formData, reminderDays: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30,7,1">30, 7, and 1 day before</SelectItem>
+                  <SelectItem value="30,7">30 and 7 days before</SelectItem>
+                  <SelectItem value="7,1">7 and 1 day before</SelectItem>
+                  <SelectItem value="7">7 days before</SelectItem>
+                  <SelectItem value="1">1 day before</SelectItem>
+                  <SelectItem value="none">No reminders</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">

@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
 
     const totalIncome = (incomeData._sum.amount || 0) + additionalIncome;
     const totalExpense = (expenseData._sum.amount || 0) + additionalExpenses;
-    const netBalance = totalIncome - totalExpense;
+    const netBalance = totalIncome + totalExpense;
     const totalIncomeCount = incomeData._count + additionalIncomeCount;
     const totalExpenseCount = expenseData._count + additionalExpenseCount;
     const totalTransactionCount = transactionCount + additionalIncomeCount + additionalExpenseCount;
