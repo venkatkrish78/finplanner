@@ -149,6 +149,8 @@ export type BillFormData = {
   provider?: string
   policyNumber?: string
   reminderDays?: string
+  linkedInvestmentId?: string
+  linkedLoanId?: string
 }
 
 export type BillStats = {

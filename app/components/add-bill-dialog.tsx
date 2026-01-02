@@ -17,6 +17,18 @@ interface Category {
   color: string
 }
 
+interface Investment {
+  id: string
+  name: string
+  assetClass: string
+}
+
+interface Loan {
+  id: string
+  name: string
+  loanType: string
+}
+
 interface AddBillDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -26,6 +38,8 @@ interface AddBillDialogProps {
 
 export default function AddBillDialog({ open, onOpenChange, onBillAdded, editingBill }: AddBillDialogProps) {
   const [categories, setCategories] = useState<Category[]>([])
+  const [investments, setInvestments] = useState<Investment[]>([])
+  const [loans, setLoans] = useState<Loan[]>([])
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<BillFormData>({
     name: '',
@@ -36,12 +50,16 @@ export default function AddBillDialog({ open, onOpenChange, onBillAdded, editing
     nextDueDate: '',
     provider: '',
     policyNumber: '',
-    reminderDays: '30,7,1'
+    reminderDays: '30,7,1',
+    linkedInvestmentId: '',
+    linkedLoanId: ''
   })
 
   useEffect(() => {
     if (open) {
       fetchCategories()
+      fetchInvestments()
+      fetchLoans()
       if (editingBill) {
         setFormData({
           name: editingBill.name,
@@ -52,7 +70,9 @@ export default function AddBillDialog({ open, onOpenChange, onBillAdded, editing
           nextDueDate: new Date(editingBill.nextDueDate).toISOString().split('T')[0],
           provider: editingBill.provider || '',
           policyNumber: editingBill.policyNumber || '',
-          reminderDays: editingBill.reminderDays || '30,7,1'
+          reminderDays: editingBill.reminderDays || '30,7,1',
+          linkedInvestmentId: (editingBill as any).linkedInvestmentId || '',
+          linkedLoanId: (editingBill as any).linkedLoanId || ''
         })
       } else {
         // Reset form for new bill
@@ -67,7 +87,9 @@ export default function AddBillDialog({ open, onOpenChange, onBillAdded, editing
           nextDueDate: tomorrow.toISOString().split('T')[0],
           provider: '',
           policyNumber: '',
-          reminderDays: '30,7,1'
+          reminderDays: '30,7,1',
+          linkedInvestmentId: '',
+          linkedLoanId: ''
         })
       }
     }
@@ -82,6 +104,30 @@ export default function AddBillDialog({ open, onOpenChange, onBillAdded, editing
       }
     } catch (error) {
       console.error('Error fetching categories:', error)
+    }
+  }
+
+  const fetchInvestments = async () => {
+    try {
+      const response = await fetch('/api/investments')
+      if (response.ok) {
+        const data = await response.json()
+        setInvestments(data)
+      }
+    } catch (error) {
+      console.error('Error fetching investments:', error)
+    }
+  }
+
+  const fetchLoans = async () => {
+    try {
+      const response = await fetch('/api/loans')
+      if (response.ok) {
+        const data = await response.json()
+        setLoans(data)
+      }
+    } catch (error) {
+      console.error('Error fetching loans:', error)
     }
   }
 
@@ -266,6 +312,48 @@ export default function AddBillDialog({ open, onOpenChange, onBillAdded, editing
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="linkedInvestmentId">Link to Investment (Optional)</Label>
+            <Select
+              value={formData.linkedInvestmentId || 'none'}
+              onValueChange={(value) => setFormData({ ...formData, linkedInvestmentId: value === 'none' ? '' : value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select an investment" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No investment linked</SelectItem>
+                {investments.map((investment) => (
+                  <SelectItem key={investment.id} value={investment.id}>
+                    {investment.name} ({investment.assetClass})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-slate-500">When this bill is paid, the investment amount will increase</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="linkedLoanId">Link to Loan (Optional)</Label>
+            <Select
+              value={formData.linkedLoanId || 'none'}
+              onValueChange={(value) => setFormData({ ...formData, linkedLoanId: value === 'none' ? '' : value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a loan" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No loan linked</SelectItem>
+                {loans.map((loan) => (
+                  <SelectItem key={loan.id} value={loan.id}>
+                    {loan.name} ({loan.loanType})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-slate-500">When this bill is paid, the loan balance will decrease</p>
           </div>
 
           <div className="space-y-2">

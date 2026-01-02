@@ -44,7 +44,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         userId: userId
       },
       include: {
-        category: true
+        category: true,
+        linkedInvestment: true,
+        linkedLoan: true
       }
     })
     
@@ -151,6 +153,35 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           notes: notes || null,
           referenceNumber: referenceNumber || null,
           transactionId: transaction?.id
+        }
+      })
+    }
+
+    // **INVESTMENT UPDATE**: If bill is linked to an investment, increase the investment amount
+    if (bill.linkedInvestmentId && bill.linkedInvestment) {
+      const paymentAmount = amount || bill.amount
+      await prisma.investment.update({
+        where: { id: bill.linkedInvestmentId },
+        data: {
+          currentValue: {
+            increment: paymentAmount
+          },
+          totalInvested: {
+            increment: paymentAmount
+          }
+        }
+      })
+    }
+
+    // **LOAN UPDATE**: If bill is linked to a loan, decrease the loan balance
+    if (bill.linkedLoanId && bill.linkedLoan) {
+      const paymentAmount = amount || bill.amount
+      await prisma.loan.update({
+        where: { id: bill.linkedLoanId },
+        data: {
+          currentBalance: {
+            decrement: paymentAmount
+          }
         }
       })
     }

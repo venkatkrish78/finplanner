@@ -12,7 +12,8 @@ import {
   Tag,
   ArrowUpRight,
   ArrowDownRight,
-  Calendar
+  Calendar,
+  PiggyBank
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/currency';
 
@@ -27,6 +28,7 @@ interface SummaryData {
   totalIncome: number;
   totalExpense: number;
   netBalance: number;
+  totalInvestments: number;
   incomeTransactions: number;
   expenseTransactions: number;
   totalTransactions: number;
@@ -128,14 +130,14 @@ export function TransactionSummaryCards({ year, month, view, refreshTrigger }: T
       trend: 'negative'
     },
     {
-      title: 'Net Balance',
-      value: Math.abs(summaryData.netBalance),
+      title: 'Total Investments',
+      value: summaryData.totalInvestments,
       count: null,
-      icon: summaryData.netBalance >= 0 ? ArrowDownRight : ArrowUpRight,
-      color: summaryData.netBalance >= 0 ? 'emerald' : 'red',
-      bgColor: summaryData.netBalance >= 0 ? 'bg-emerald-100' : 'bg-red-100',
-      textColor: summaryData.netBalance >= 0 ? 'text-emerald-600' : 'text-red-600',
-      trend: summaryData.netBalance >= 0 ? 'positive' : 'negative'
+      icon: PiggyBank,
+      color: 'purple',
+      bgColor: 'bg-purple-100',
+      textColor: 'text-purple-600',
+      trend: 'neutral'
     },
     {
       title: 'Total Transactions',
@@ -208,9 +210,9 @@ export function TransactionSummaryCards({ year, month, view, refreshTrigger }: T
                     {card.count} transaction{card.count !== 1 ? 's' : ''}
                   </p>
                 )}
-                {card.title === 'Net Balance' && (
+                {card.title === 'Total Investments' && (
                   <p className="text-xs text-slate-600 mt-1">
-                    {summaryData.netBalance >= 0 ? 'Surplus' : 'Deficit'}
+                    Current portfolio value
                   </p>
                 )}
               </CardContent>
