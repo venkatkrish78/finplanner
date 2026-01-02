@@ -187,7 +187,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Calculate savings rate
-    const savingsRate = currentIncome > 0 ? ((currentIncome + currentExpenses) / currentIncome) * 100 : 0;
+    const savingsRate = currentIncome > 0 ? ((currentIncome - currentExpenses) / currentIncome) * 100 : 0;
 
     // Enhanced Goals Progress Calculation
     const enhancedGoals = topGoals.map(goal => {
