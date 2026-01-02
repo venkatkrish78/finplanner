@@ -149,7 +149,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, amount, frequency, description, categoryId, nextDueDate } = body
+    const { 
+      name, 
+      amount, 
+      frequency, 
+      description, 
+      categoryId, 
+      nextDueDate,
+      provider,
+      policyNumber,
+      reminderDays 
+    } = body
 
     if (!name || !amount || !frequency || !categoryId || !nextDueDate) {
       return NextResponse.json(
@@ -196,6 +206,9 @@ if (category.userId !== currentUser.id && !category.isDefault) {
         categoryId,
         nextDueDate: new Date(nextDueDate),
         isActive: true,
+        provider: provider || null,
+        policyNumber: policyNumber || null,
+        reminderDays: reminderDays || '30,7,1',
         userId: currentUser.id // Link to current user
       },
       include: {

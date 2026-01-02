@@ -148,10 +148,17 @@ export async function GET(request: NextRequest) {
 
     console.log("Final totals - Income:", totalIncome, "Expense:", totalExpense, "Count:", totalTransactionCount)
 
+    // Get total investments for the user
+    const totalInvestments = await prisma.investment.aggregate({
+      where: { userId: currentUser.id },
+      _sum: { currentValue: true }
+    }).catch(() => ({ _sum: { currentValue: 0 } }));
+
     return NextResponse.json({
       totalIncome,
       totalExpense,
       netBalance,
+      totalInvestments: totalInvestments._sum.currentValue || 0,
       incomeTransactions: totalIncomeCount,
       expenseTransactions: totalExpenseCount,
       totalTransactions: totalTransactionCount,

@@ -69,7 +69,18 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json()
-    const { name, amount, frequency, description, categoryId, nextDueDate, isActive } = body
+    const { 
+      name, 
+      amount, 
+      frequency, 
+      description, 
+      categoryId, 
+      nextDueDate, 
+      isActive,
+      provider,
+      policyNumber,
+      reminderDays 
+    } = body
 
     // Verify category belongs to user if provided
     if (categoryId) {
@@ -102,7 +113,10 @@ export async function PUT(
         description,
         categoryId,
         nextDueDate: nextDueDate ? new Date(nextDueDate) : undefined,
-        isActive
+        isActive,
+        provider: provider !== undefined ? provider : undefined,
+        policyNumber: policyNumber !== undefined ? policyNumber : undefined,
+        reminderDays: reminderDays !== undefined ? reminderDays : undefined
       }
     })
 

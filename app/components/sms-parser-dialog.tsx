@@ -409,16 +409,8 @@ export function SMSParserDialog({ open, onOpenChange, onTransactionAdded }: SMSP
                     <SelectContent>
                       {categories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
-                          <div className="flex items-center space-x-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: category.color }}
-                            />
-                            <span>{category.name}</span>
-                            {category.name === parsedTransaction.suggestedCategory && (
-                              <Badge variant="secondary" className="ml-2 text-xs">Suggested</Badge>
-                            )}
-                          </div>
+                          {category.name}
+                          {category.name === parsedTransaction.suggestedCategory && ' (Suggested)'}
                         </SelectItem>
                       ))}
                     </SelectContent>

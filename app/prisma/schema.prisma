@@ -152,6 +152,17 @@ model Bill {
   description String?
   isActive    Boolean       @default(true)
 
+  // Extended fields for renewals/planned obligations
+  provider      String? // Insurance company, school, vendor, etc.
+  policyNumber  String? // Policy number, reference ID, etc.
+  reminderDays  String  @default("30,7,1") // Comma-separated days before due (e.g., "30,7,1")
+
+  // Links to investments and loans
+  linkedInvestmentId String?
+  linkedInvestment   Investment? @relation(fields: [linkedInvestmentId], references: [id])
+  linkedLoanId       String?
+  linkedLoan         Loan?       @relation(fields: [linkedLoanId], references: [id])
+
   categoryId String
   userId     String
   category   Category @relation(fields: [categoryId], references: [id])
@@ -176,6 +187,7 @@ model BillInstance {
   status        BillStatus   @default(PENDING)
   paidDate      DateTime?
   notes         String?
+  referenceNumber String?   // Policy number, receipt reference, etc. for the payment
   billId        String
   bill          Bill         @relation(fields: [billId], references: [id], onDelete: Cascade)
   user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -242,9 +254,10 @@ model Loan {
   category        Category? @relation(fields: [categoryId], references: [id])
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  payments  LoanPayment[]
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  payments    LoanPayment[]
+  linkedBills Bill[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   @@map("loans")
 }
@@ -359,6 +372,7 @@ model Investment {
 
   transactions InvestmentTransaction[]
   sips         SIP[]
+  linkedBills  Bill[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

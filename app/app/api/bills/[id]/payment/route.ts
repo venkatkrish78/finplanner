@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { calculateNextDueDate } from '@/lib/bill-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const { id: billId } = await params 
     const body = await request.json()
-    const { view, year, month, amount, notes } = body
+    const { view, year, month, amount, notes, referenceNumber, createTransaction } = body
 
     if (!view || !year) {
       return NextResponse.json(
@@ -41,6 +42,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       where: { 
         id: billId,
         userId: userId
+      },
+      include: {
+        category: true,
+        linkedInvestment: true,
+        linkedLoan: true
       }
     })
     
@@ -101,6 +107,26 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       }
     })
 
+    // Create transaction if requested
+    let transaction = null
+    if (createTransaction !== false) { // Create by default unless explicitly set to false
+      const description = `${bill.name}${bill.provider ? ` - ${bill.provider}` : ''}${referenceNumber ? ` (Ref: ${referenceNumber})` : ''}`
+      
+      transaction = await prisma.transaction.create({
+        data: {
+          amount: amount || bill.amount,
+          type: 'EXPENSE',
+          description,
+          merchant: bill.provider || bill.name,
+          date: new Date(),
+          status: 'SUCCESS',
+          source: 'BILL',
+          categoryId: bill.categoryId,
+          userId: userId
+        }
+      })
+    }
+
     if (billInstance) {
       // Update existing instance
       billInstance = await prisma.billInstance.update({
@@ -109,7 +135,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           status: 'PAID',
           paidDate: new Date(),
           notes,
-          amount: amount || bill.amount
+          referenceNumber: referenceNumber || null,
+          amount: amount || bill.amount,
+          transactionId: transaction?.id
         }
       })
     } else {
@@ -122,12 +150,60 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           amount: amount || bill.amount,
           status: 'PAID',
           paidDate: new Date(),
-          notes: notes || null
+          notes: notes || null,
+          referenceNumber: referenceNumber || null,
+          transactionId: transaction?.id
         }
       })
     }
 
-    return NextResponse.json(billInstance, { status: 200 })
+    // **INVESTMENT UPDATE**: If bill is linked to an investment, increase the investment amount
+    if (bill.linkedInvestmentId && bill.linkedInvestment) {
+      const paymentAmount = amount || bill.amount
+      await prisma.investment.update({
+        where: { id: bill.linkedInvestmentId },
+        data: {
+          currentValue: {
+            increment: paymentAmount
+          },
+          totalInvested: {
+            increment: paymentAmount
+          }
+        }
+      })
+    }
+
+    // **LOAN UPDATE**: If bill is linked to a loan, decrease the loan balance
+    if (bill.linkedLoanId && bill.linkedLoan) {
+      const paymentAmount = amount || bill.amount
+      await prisma.loan.update({
+        where: { id: bill.linkedLoanId },
+        data: {
+          currentBalance: {
+            decrement: paymentAmount
+          }
+        }
+      })
+    }
+
+    // **AUTOMATIC DATE ROLLING**: Update the bill's nextDueDate when marking as paid
+    // Only roll for recurring bills (not ONE_TIME)
+    if (bill.frequency !== 'ONE_TIME') {
+      const newNextDueDate = calculateNextDueDate(new Date(bill.nextDueDate), bill.frequency)
+      
+      await prisma.bill.update({
+        where: { id: billId },
+        data: {
+          nextDueDate: newNextDueDate
+        }
+      })
+    }
+
+    return NextResponse.json({ 
+      billInstance, 
+      transaction,
+      nextDueDate: bill.frequency !== 'ONE_TIME' ? calculateNextDueDate(new Date(bill.nextDueDate), bill.frequency) : null
+    }, { status: 200 })
   } catch (error) {
     console.error('Error marking bill as paid:', error)
     return NextResponse.json(

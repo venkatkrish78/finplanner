@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/toaster'
 import Header from '@/components/header'
 import { AuthProvider } from '@/components/providers/auth-provider'
+import { GlobalCommandBar } from '@/components/global-command-bar'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -48,6 +49,7 @@ export default function RootLayout({
               <main className="pb-8">
                 {children}
               </main>
+              <GlobalCommandBar />
             </div>
             <Toaster />
           </ThemeProvider>
