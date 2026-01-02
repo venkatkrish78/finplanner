@@ -121,6 +121,48 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    // Auto-create bill for monthly loan EMI payments
+    try {
+      // Find or create "Loan Payment" category
+      let loanCategory = await prisma.category.findFirst({
+        where: {
+          userId: currentUser.id,
+          name: 'Loan Payment'
+        }
+      });
+
+      if (!loanCategory) {
+        loanCategory = await prisma.category.create({
+          data: {
+            name: 'Loan Payment',
+            color: '#EF4444',
+            userId: currentUser.id
+          }
+        });
+      }
+
+      // Calculate next EMI due date (typically one month after start date)
+      const nextEmiDate = new Date(startDate);
+      nextEmiDate.setMonth(nextEmiDate.getMonth() + 1);
+
+      // Create the bill
+      await prisma.bill.create({
+        data: {
+          name: `${name} - EMI`,
+          amount: emi,
+          frequency: 'MONTHLY',
+          description: `Monthly EMI for ${name}`,
+          categoryId: loanCategory.id,
+          nextDueDate: nextEmiDate,
+          linkedLoanId: loan.id,
+          userId: currentUser.id
+        }
+      });
+    } catch (billError) {
+      console.error('Error creating auto-bill for loan EMI:', billError);
+      // Don't fail the loan creation if bill creation fails
+    }
+
     return NextResponse.json(loan, { status: 201 });
   } catch (error) {
     console.error('Error creating loan:', error);

@@ -35,7 +35,8 @@ export async function GET() {
         { name: 'Investment', color: '#06B6D4' },
         { name: 'Education', color: '#84CC16' },
         { name: 'Travel', color: '#F97316' },
-        { name: 'Insurance', color: '#6366F1' }
+        { name: 'Insurance', color: '#6366F1' },
+        { name: 'Salary', color: '#22C55E' }
       ];
 
       // Create default categories for the user

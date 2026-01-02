@@ -31,6 +31,7 @@ async function main() {
     { name: 'Travel', color: '#F7DC6F', userId: defaultUser.id },
     { name: 'Income', color: '#82E0AA', userId: defaultUser.id },
     { name: 'Investment', color: '#85C1E9', userId: defaultUser.id },
+    { name: 'Salary', color: '#22C55E', userId: defaultUser.id },
   ]
 
   const createdCategories = []
