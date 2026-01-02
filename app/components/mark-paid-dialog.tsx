@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { formatCurrency } from '@/lib/currency'
+import { BillFrequency } from '@prisma/client' 
 import { CheckCircle, Calendar, ArrowRight } from 'lucide-react'
 import { calculateNextDueDate } from '@/lib/bill-utils'
 
@@ -17,7 +18,7 @@ interface Bill {
   id: string
   name: string
   amount: number
-  frequency: string
+  frequency: BillFrequency
   nextDueDate: Date | string
   provider?: string
   policyNumber?: string
