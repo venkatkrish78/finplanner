@@ -1,5 +1,6 @@
 'use client'
 
+import { Repeat } from "lucide-react"
 import { BillFrequency } from '@prisma/client'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
