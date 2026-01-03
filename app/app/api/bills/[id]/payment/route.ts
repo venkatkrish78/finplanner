@@ -157,9 +157,28 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       })
     }
 
-    // **INVESTMENT UPDATE**: If bill is linked to an investment, increase the investment amount
+    // **INVESTMENT UPDATE**: If bill is linked to an investment, increase the investment amount and units
     if (bill.linkedInvestmentId && bill.linkedInvestment) {
       const paymentAmount = amount || bill.amount
+      const investment = bill.linkedInvestment
+      
+      // Calculate units to add based on current price
+      // If currentPrice is 0 or not set, use averagePrice or default to payment amount
+      let unitsToAdd = 0
+      if (investment.currentPrice > 0) {
+        unitsToAdd = paymentAmount / investment.currentPrice
+      } else if (investment.averagePrice > 0) {
+        unitsToAdd = paymentAmount / investment.averagePrice
+      } else {
+        // If no price set, just add 1 unit per rupee (for instruments like FD, RD, etc.)
+        unitsToAdd = paymentAmount
+      }
+
+      // Calculate new average price
+      const newTotalInvested = investment.totalInvested + paymentAmount
+      const newQuantity = investment.quantity + unitsToAdd
+      const newAveragePrice = newQuantity > 0 ? newTotalInvested / newQuantity : 0
+
       await prisma.investment.update({
         where: { id: bill.linkedInvestmentId },
         data: {
@@ -168,7 +187,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           },
           totalInvested: {
             increment: paymentAmount
-          }
+          },
+          quantity: {
+            increment: unitsToAdd
+          },
+          averagePrice: newAveragePrice
         }
       })
     }

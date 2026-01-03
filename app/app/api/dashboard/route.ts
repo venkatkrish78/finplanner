@@ -128,6 +128,22 @@ export async function GET(request: NextRequest) {
       take: 5
     }).catch(() => []);
 
+    // Get upcoming SIP bills (bills linked to investments)
+    const upcomingSipBills = await prisma.bill.findMany({
+      where: {
+        userId: currentUser.id,
+        linkedInvestmentId: { not: null },
+        isActive: true,
+        nextDueDate: {
+          gte: now,
+          lte: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+        }
+      }
+    }).catch(() => []);
+
+    const upcomingSipCount = upcomingSipBills.length;
+    const upcomingSipAmount = upcomingSipBills.reduce((sum, bill) => sum + bill.amount, 0);
+
     const categoryBreakdown = await prisma.transaction.groupBy({
       by: ['categoryId'],
       where: {
@@ -268,6 +284,10 @@ export async function GET(request: NextRequest) {
         incomeTrend,
         expenseTrend,
         savingsRate
+      },
+      upcomingSips: {
+        count: upcomingSipCount,
+        totalAmount: upcomingSipAmount
       },
       goals: enhancedGoals,
       loans: activeLoans.map(loan => ({

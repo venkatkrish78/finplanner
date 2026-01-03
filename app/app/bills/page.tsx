@@ -67,8 +67,15 @@ export default function BillsPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1)
   const [paymentLoading, setPaymentLoading] = useState<string | null>(null)
   const [markPaidBill, setMarkPaidBill] = useState<BillWithPaymentStatus | null>(null)
+  const [filterSIP, setFilterSIP] = useState(false)
 
   useEffect(() => {
+    // Check URL parameters for filter
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('filter') === 'sip') {
+      setFilterSIP(true)
+    }
+    
     fetchBillsData()
   }, [activeView, currentYear, currentMonth])
 
@@ -309,6 +316,17 @@ export default function BillsPage() {
     )
   }
 
+  // Apply SIP filter if active
+  const filteredBills = filterSIP 
+    ? data.bills.filter(bill => (bill as any).linkedInvestmentId)
+    : data.bills
+
+  // Update stats for filtered bills
+  const displayStats = {
+    ...data.stats,
+    totalBills: filteredBills.length
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <motion.div
@@ -330,13 +348,23 @@ export default function BillsPage() {
               Manage your recurring bills and track payments
             </p>
           </div>
-          <Button 
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={() => setShowAddDialog(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Bill
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant={filterSIP ? "default" : "outline"}
+              className={filterSIP ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "border-emerald-600 text-emerald-600 hover:bg-emerald-50"}
+              onClick={() => setFilterSIP(!filterSIP)}
+            >
+              <Repeat className="h-4 w-4 mr-2" />
+              {filterSIP ? 'All Bills' : 'SIP Bills Only'}
+            </Button>
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={() => setShowAddDialog(true)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Bill
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -357,7 +385,7 @@ export default function BillsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-blue-600">
-                  {data.stats.totalBills}
+                  {displayStats.totalBills}
                 </div>
                 <p className="text-xs text-slate-500 mt-1">
                   {activeView === 'overview' ? 'Active bills' : 
@@ -409,7 +437,7 @@ export default function BillsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-emerald-600">
-                  {data.bills.filter(bill => bill.isPaid).length}
+                  {filteredBills.filter(bill => bill.isPaid).length}
                 </div>
                 <p className="text-xs text-slate-500 mt-1">
                   {activeView === 'overview' ? 'This month' : 
@@ -436,7 +464,7 @@ export default function BillsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-orange-600">
-                  {data.bills.filter(bill => !bill.isPaid).length}
+                  {filteredBills.filter(bill => !bill.isPaid).length}
                 </div>
                 <p className="text-xs text-slate-500 mt-1">
                   Need payment
@@ -514,11 +542,11 @@ export default function BillsPage() {
               <Card className="professional-card">
                 <CardHeader>
                   <CardTitle className="text-slate-900">
-                    Bills for {getMonthName(currentMonth)} {currentYear} ({data.bills.length})
+                    Bills for {getMonthName(currentMonth)} {currentYear} ({filteredBills.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {data.bills.length === 0 ? (
+                  {filteredBills.length === 0 ? (
                     <div className="text-center py-8">
                       <Calendar className="h-12 w-12 text-slate-400 mx-auto mb-4" />
                       <h3 className="text-lg font-semibold text-slate-900 mb-2">No bills for this month</h3>
@@ -526,7 +554,7 @@ export default function BillsPage() {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {data.bills.map(renderBillItem)}
+                      {filteredBills.map(renderBillItem)}
                     </div>
                   )}
                 </CardContent>
@@ -537,11 +565,11 @@ export default function BillsPage() {
               <Card className="professional-card">
                 <CardHeader>
                   <CardTitle className="text-slate-900">
-                    Bills for {currentYear} ({data.bills.length})
+                    Bills for {currentYear} ({filteredBills.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {data.bills.length === 0 ? (
+                  {filteredBills.length === 0 ? (
                     <div className="text-center py-8">
                       <Calendar className="h-12 w-12 text-slate-400 mx-auto mb-4" />
                       <h3 className="text-lg font-semibold text-slate-900 mb-2">No bills for this year</h3>
@@ -549,7 +577,7 @@ export default function BillsPage() {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {data.bills.map(renderBillItem)}
+                      {filteredBills.map(renderBillItem)}
                     </div>
                   )}
                 </CardContent>

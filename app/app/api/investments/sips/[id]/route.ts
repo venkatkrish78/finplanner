@@ -1,25 +1,51 @@
+import { getCurrentUser } from '@/lib/auth-helpers';
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 
-export async function PUT(
+// PATCH /api/investments/sips/[id] - Update SIP (mainly for status changes)
+export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { id } = await params
     const body = await request.json()
-    const { status, amount, endDate } = body
 
-    const updateData: any = {}
-    if (status !== undefined) updateData.status = status
-    if (amount !== undefined) updateData.amount = amount
-    if (endDate !== undefined) updateData.endDate = endDate ? new Date(endDate) : null
+    // Get current user
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
 
-    const sip = await db.sIP.update({
+    // Verify SIP exists and belongs to user
+    const existingSip = await db.sIP.findFirst({
+      where: {
+        id,
+        userId: currentUser.id
+      }
+    })
+
+    if (!existingSip) {
+      return NextResponse.json(
+        { error: 'SIP not found' },
+        { status: 404 }
+      )
+    }
+
+    // Update SIP
+    const updatedSip = await db.sIP.update({
       where: { id },
-      data: updateData,
+      data: {
+        status: body.status || existingSip.status,
+        amount: body.amount !== undefined ? body.amount : existingSip.amount,
+        frequency: body.frequency || existingSip.frequency,
+        endDate: body.endDate !== undefined ? (body.endDate ? new Date(body.endDate) : null) : existingSip.endDate
+      },
       include: {
         investment: {
           select: {
@@ -31,7 +57,7 @@ export async function PUT(
       }
     })
 
-    return NextResponse.json(sip)
+    return NextResponse.json(updatedSip)
   } catch (error) {
     console.error('Error updating SIP:', error)
     return NextResponse.json(
@@ -41,18 +67,44 @@ export async function PUT(
   }
 }
 
+// DELETE /api/investments/sips/[id] - Delete SIP
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    
+    const { id } = await params
+
+    // Get current user
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Verify SIP exists and belongs to user
+    const existingSip = await db.sIP.findFirst({
+      where: {
+        id,
+        userId: currentUser.id
+      }
+    })
+
+    if (!existingSip) {
+      return NextResponse.json(
+        { error: 'SIP not found' },
+        { status: 404 }
+      )
+    }
+
+    // Delete SIP
     await db.sIP.delete({
       where: { id }
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, message: 'SIP deleted successfully' })
   } catch (error) {
     console.error('Error deleting SIP:', error)
     return NextResponse.json(

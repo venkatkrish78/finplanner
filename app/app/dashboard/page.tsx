@@ -12,6 +12,7 @@ import { LoansStatusWidget } from '@/components/loans-status-widget';
 import { InvestmentSnapshotWidget } from '@/components/investment-snapshot-widget';
 import { UpcomingItemsWidget } from '@/components/upcoming-items-widget';
 import { CategoryBreakdownWidget } from '@/components/category-breakdown-widget';
+import { UpcomingSipsCard } from '@/components/upcoming-sips-card';
 
 interface DashboardData {
   financialOverview: {
@@ -21,6 +22,10 @@ interface DashboardData {
     incomeTrend: number;
     expenseTrend: number;
     savingsRate: number;
+  };
+  upcomingSips: {
+    count: number;
+    totalAmount: number;
   };
   goals: Array<{
     id: string;
@@ -282,6 +287,19 @@ export default function Dashboard() {
             <FinancialOverviewCards 
               data={data.financialOverview} 
               cardType="savingsRate"
+            />
+          </motion.div>
+
+          {/* Upcoming SIPs Card */}
+          <motion.div 
+            className="xl:col-span-3"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <UpcomingSipsCard 
+              count={data.upcomingSips.count}
+              totalAmount={data.upcomingSips.totalAmount}
             />
           </motion.div>
 

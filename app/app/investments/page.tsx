@@ -18,10 +18,14 @@ import {
 } from 'lucide-react'
 import { formatCurrency } from '@/lib/currency'
 import AddInvestmentDialog from '@/components/add-investment-dialog'
+import AddRecurringInvestmentDialog from '@/components/add-recurring-investment-dialog'
 import InvestmentList from '@/components/investment-list'
+import RecurringInvestmentsTable from '@/components/recurring-investments-table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface InvestmentsData {
   investments: any[]
+  sips: any[]
   portfolio: {
     totalInvestments: number
     totalInvested: number
@@ -35,6 +39,7 @@ export default function InvestmentsPage() {
   const [data, setData] = useState<InvestmentsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [showAddDialog, setShowAddDialog] = useState(false)
+  const [showAddSIPDialog, setShowAddSIPDialog] = useState(false)
 
   useEffect(() => {
     fetchInvestmentsData()
@@ -44,12 +49,14 @@ export default function InvestmentsPage() {
     try {
       setLoading(true)
       
-      const [investmentsRes, portfolioRes] = await Promise.all([
+      const [investmentsRes, portfolioRes, sipsRes] = await Promise.all([
         fetch('/api/investments?includeGoals=true'),
-        fetch('/api/investments/portfolio')
+        fetch('/api/investments/portfolio'),
+        fetch('/api/investments/sips')
       ])
 
       const investments = investmentsRes.ok ? await investmentsRes.json() : []
+      const sips = sipsRes.ok ? await sipsRes.json() : []
       const portfolioData = portfolioRes.ok ? await portfolioRes.json() : null
       const portfolio = portfolioData ? portfolioData.stats : {
         totalInvestments: 0,
@@ -61,6 +68,7 @@ export default function InvestmentsPage() {
 
       setData({
         investments,
+        sips,
         portfolio
       })
     } catch (error) {
@@ -126,8 +134,8 @@ export default function InvestmentsPage() {
               Add Investment
             </Button>
             <Button
-              variant="outline"
-              className="border-emerald-600 text-emerald-600 hover:bg-emerald-50"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              onClick={() => setShowAddSIPDialog(true)}
             >
               <Repeat className="h-4 w-4 mr-2" />
               Start SIP
@@ -238,13 +246,26 @@ export default function InvestmentsPage() {
           </motion.div>
         </div>
 
-        {/* Investments List */}
+        {/* Investments and SIPs Tabs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <InvestmentList investments={data.investments} onInvestmentUpdated={fetchInvestmentsData} />
+          <Tabs defaultValue="all" className="w-full">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="all">All Investments</TabsTrigger>
+              <TabsTrigger value="sips">Recurring SIPs</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all" className="mt-6">
+              <InvestmentList investments={data.investments} onInvestmentUpdated={fetchInvestmentsData} />
+            </TabsContent>
+            
+            <TabsContent value="sips" className="mt-6">
+              <RecurringInvestmentsTable sips={data.sips} onRefresh={fetchInvestmentsData} />
+            </TabsContent>
+          </Tabs>
         </motion.div>
       </motion.div>
 
@@ -254,6 +275,16 @@ export default function InvestmentsPage() {
         onOpenChange={setShowAddDialog}
         onInvestmentAdded={() => {
           setShowAddDialog(false)
+          fetchInvestmentsData()
+        }}
+      />
+
+      {/* Add Recurring Investment Dialog */}
+      <AddRecurringInvestmentDialog
+        open={showAddSIPDialog}
+        onOpenChange={setShowAddSIPDialog}
+        onInvestmentAdded={() => {
+          setShowAddSIPDialog(false)
           fetchInvestmentsData()
         }}
       />
