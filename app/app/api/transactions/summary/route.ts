@@ -148,17 +148,21 @@ export async function GET(request: NextRequest) {
 
     console.log("Final totals - Income:", totalIncome, "Expense:", totalExpense, "Count:", totalTransactionCount)
 
-    // Get total investments for the user
-    const totalInvestments = await prisma.investment.aggregate({
-      where: { userId: currentUser.id },
-      _sum: { currentValue: true }
-    }).catch(() => ({ _sum: { currentValue: 0 } }));
+    // Get total investments for the current month only (sum of INVESTMENT_BUY transactions in the period)
+    const monthlyInvestments = await prisma.transaction.aggregate({
+      where: {
+        userId: currentUser.id,
+        type: 'INVESTMENT_BUY',
+        date: dateRange
+      },
+      _sum: { amount: true }
+    }).catch(() => ({ _sum: { amount: 0 } }));
 
     return NextResponse.json({
       totalIncome,
       totalExpense,
       netBalance,
-      totalInvestments: totalInvestments._sum.currentValue || 0,
+      totalInvestments: monthlyInvestments._sum.amount || 0,
       incomeTransactions: totalIncomeCount,
       expenseTransactions: totalExpenseCount,
       totalTransactions: totalTransactionCount,

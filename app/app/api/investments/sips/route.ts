@@ -89,6 +89,46 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Auto-create bill for monthly SIP investments
+    if (frequency === 'MONTHLY') {
+      try {
+        // Find or create "Investment" or "SIP Investment" category
+        let sipCategory = await db.category.findFirst({
+          where: {
+            userId: currentUser.id,
+            name: 'Investment'
+          }
+        });
+
+        if (!sipCategory) {
+          sipCategory = await db.category.create({
+            data: {
+              name: 'Investment',
+              color: '#059669',
+              userId: currentUser.id
+            }
+          });
+        }
+
+        // Create the bill
+        await db.bill.create({
+          data: {
+            name: `${sip.investment.name} - SIP`,
+            amount: amount,
+            frequency: 'MONTHLY',
+            description: `Monthly SIP for ${sip.investment.name}`,
+            categoryId: sipCategory.id,
+            nextDueDate: nextDate,
+            linkedInvestmentId: investmentId,
+            userId: currentUser.id
+          }
+        });
+      } catch (billError) {
+        console.error('Error creating auto-bill for SIP:', billError);
+        // Don't fail the SIP creation if bill creation fails
+      }
+    }
+
     return NextResponse.json(sip, { status: 201 })
   } catch (error) {
     console.error('Error creating SIP:', error)
